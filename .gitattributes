@@ -1,0 +1,15 @@
+# Text files are stored with LF in the repository; Git converts them for each checkout.
+* text=auto eol=lf
+
+# Windows-only files that expect CRLF.
+*.ps1 text eol=crlf
+*.iss text eol=crlf
+*.sln text eol=crlf
+
+# Binary files: never touched.
+*.ico binary
+*.png binary
+*.webp binary
+*.ttf binary
+*.woff2 binary
+*.exe binary

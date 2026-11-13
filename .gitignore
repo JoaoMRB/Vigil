@@ -7,10 +7,17 @@ obj/
 /publish/
 /dist/
 
-# Visual Studio
+# Editors
 .vs/
+.vscode/
+.idea/
 *.user
 *.suo
+*.DotSettings.user
+
+# Windows
+Thumbs.db
+desktop.ini
 
 # Logs and local test output
 *.log
