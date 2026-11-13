@@ -12,7 +12,8 @@ All notable changes to Vigil are listed here. Versions follow [Semantic Versioni
 
 ### Added
 - The first time it runs, Vigil copies the settings from `%AppData%\AuraTime`, so you don't have to set it up again.
-- Vigil has its own icon: a screen with a lined eye in it. The Dashboard design shows it in place of AuraTime's clock.
+- Vigil has its own icon: a screen with a lined eye in it. The Dashboard design shows it in place of AuraTime's clock,
+  and the settings window next to the name.
 - A website for the app in English, Portuguese, Spanish and French, in `site/`.
 
 ## AuraTime app 0.1.0

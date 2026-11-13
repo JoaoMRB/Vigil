@@ -43,6 +43,10 @@ To update, run the new installer over the old one. Your settings are kept.
 - **Start with Windows:** Vigil waits in the notification area and draws on the screen as soon as the screen
   is plugged in. You can switch this on and off in Vigil, or under *Startup apps* in Task Manager.
 
+<p align="center">
+  <img src="docs/images/app-window.webp" alt="Vigil's settings window: a live preview of the screen next to the views and themes" width="720">
+</p>
+
 ## Privacy
 
 The only thing Vigil gets from the internet is the weather, from [Open-Meteo](https://open-meteo.com/), for the
