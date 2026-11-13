@@ -2,7 +2,7 @@
 bin/
 obj/
 
-# Installer build (app/build-installer.ps1): the published app and the finished Setup.exe.
+# Installer build (build-installer.ps1): the published app and the finished Setup.exe.
 # Installers go to a release, not to git.
 /publish/
 /dist/

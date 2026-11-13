@@ -1,0 +1,249 @@
+{
+  "SCREEN": {
+    "NAME": "Desk Display",
+    "LABELS": {
+      "FOCUS": "FOKUS",
+      "BREAK": "PAUSE",
+      "PAUSED": "ANGEHALTEN",
+      "READY": "BEREIT",
+      "NO_TASKS": "Keine offenen Aufgaben",
+      "TODAY": "HEUTE",
+      "STREAK": "TAGE IN FOLGE",
+      "MINUTES": "Min",
+      "LAST7": "LETZTE 7 TAGE",
+      "NEXT_ALARM": "NÄCHSTER WECKER",
+      "COUNTDOWN": "COUNTDOWN",
+      "WORLD_CLOCKS": "WELTUHREN",
+      "DAY_TODAY": "Heute",
+      "DAY_TOMORROW": "Morgen",
+      "IN": "in"
+    },
+    "WEATHER": {
+      "SUNNY": "Klarer Himmel",
+      "CLEAR_NIGHT": "Klare Nacht",
+      "CLOUDY": "Bewölkt",
+      "RAINY": "Regen",
+      "SNOWY": "Schnee",
+      "STORMY": "Gewitter"
+    },
+    "DEMO": {
+      "TASK_1": "Wochenbericht schreiben",
+      "TASK_2": "Offene Pull Requests prüfen",
+      "TASK_3": "Den morgigen Tag planen",
+      "ALARM": "Morgenlauf",
+      "COUNTDOWN": "Teammeeting",
+      "CITY": "Lissabon"
+    },
+    "VIEWS": {
+      "AUTO": "Automatischer Wechsel",
+      "CLOCK": "Uhr",
+      "FOCUS": "Fokus (Pomodoro + Aufgaben)",
+      "WEEK": "Woche (letzte 7 Tage)",
+      "ALARM": "Nächster Wecker / Countdown",
+      "WORLD": "Weltuhren",
+      "WEATHER": "Wetter + Zitat"
+    },
+    "SEO": {
+      "TITLE": "Desk Display | USB-Bildschirm für AuraTime",
+      "DESCRIPTION": "Verwandle einen kleinen USB-Bildschirm in ein Live-Dashboard für AuraTime: Uhr, Pomodoro-Fokus, Aufgaben, Wecker, Weltuhren und Wetter. Läuft in Chrome oder Edge, ohne Treiber."
+    },
+    "APP": {
+      "TITLE": "Desk Display",
+      "ON": "Verbunden",
+      "OFF": "Nicht verbunden",
+      "OPEN": "Desk Display öffnen",
+      "HINT": "Zeige deine Uhr und deine Fokussitzung auf einem USB-Bildschirm."
+    },
+    "MSG": {
+      "UNSUPPORTED": "Dieser Browser unterstützt Web Serial nicht. Verwende Chrome oder Edge auf einem Computer.",
+      "UNPLUGGED": "Bildschirm getrennt. Warte, bis er wieder da ist...",
+      "BUSY": "Der Port konnte nicht geöffnet werden. Nutzt die Originalsoftware des Bildschirms (oder ein anderer Tab) ihn? Schließe sie und versuche es erneut.",
+      "STALLED": "Der Bildschirm nimmt keine Daten an. Schalte die Flusskontrolle aus und verbinde neu.",
+      "NOT_RESPONDING": "Der Bildschirm antwortet nicht mehr.",
+      "GENERIC": "Bei der Kommunikation mit dem Bildschirm ist etwas schiefgelaufen.",
+      "INSECURE": "Web Serial benötigt HTTPS oder localhost.",
+      "NO_HELLO": "Der Bildschirm hat den Handshake nicht beantwortet. Sieht das Bild falsch aus, ist es vielleicht kein unterstütztes Modell.",
+      "OTHER_WINDOW": "Desk Display ist in einem anderen Fenster aktiv."
+    },
+    "PAGE": {
+      "BACK": "Zurück zur Uhr",
+      "SUBTITLE": "Zeige Uhr, Fokussitzung, Aufgaben, Wecker und Wetter auf einem kleinen USB-Bildschirm.",
+      "LANGUAGE": "Sprache",
+      "PREVIEW": {
+        "LIVE": "Live-Vorschau",
+        "DEMO": "Demo-Vorschau",
+        "DEMO_NOTE": "Beispieldaten. Verbinde einen Bildschirm, um deine eigenen zu zeigen.",
+        "INFO": "Ansicht: {view} · Hintergrundbeleuchtung {level} %"
+      },
+      "STEP": "Schritt",
+      "S1": {
+        "TITLE": "Browser prüfen",
+        "OK": "Super: Dieser Browser kann mit USB-Bildschirmen kommunizieren.",
+        "TEXT": "Desk Display nutzt Web Serial, verfügbar in Google Chrome und Microsoft Edge auf dem Computer."
+      },
+      "S2": {
+        "TITLE": "Bildschirm verbinden",
+        "HINT": "Schließe den Bildschirm per USB-Kabel an und beende zuerst die Originalsoftware des Bildschirms: Nur ein Programm kann ihn gleichzeitig nutzen.",
+        "CONNECT": "Bildschirm verbinden",
+        "CONNECTING": "Verbinde...",
+        "DISCONNECT": "Trennen",
+        "STATUS": "Status",
+        "CONNECTED": "verbunden",
+        "DISCONNECTED": "nicht verbunden",
+        "ERROR": "Fehler",
+        "SENT": "{images} Bilder · {kb} KB gesendet",
+        "FIRST_TIME": "Der Browser bittet dich einmal, den Bildschirm auszuwählen. Danach verbindet er sich von selbst.",
+        "WINDOW_NOTE": "Lass diese Seite in einem eigenen, sichtbaren Fenster, oder nutze den Windows-Startstarter: Browser bremsen versteckte Seiten, und der Bildschirm würde nachhinken.",
+        "HIDDEN_WARNING": "Diese Seite ist verborgen, daher bremst der Browser sie und der Bildschirm kann nachhinken. Hole das Fenster nach vorn oder nutze den Startstarter.",
+        "OS_NOTE": "Linux: Dein Benutzer muss in der Gruppe dialout sein. macOS: Der USB-Seriell-Chip CH34x des Bildschirms braucht eventuell seinen Treiber."
+      },
+      "S3": {
+        "TITLE": "Anzeige auswählen",
+        "VIEW_MODE": "Ansichten",
+        "VIEW_MODE_NOTE": "Der automatische Wechsel ändert die Ansicht alle 20 Sekunden; die Fokusansicht bleibt, solange ein Pomodoro läuft.",
+        "ROTATION": "Im automatischen Wechsel",
+        "ROTATION_NOTE": "Ansichten ohne Daten (keine Wecker, kein aktiver Countdown, keine Weltuhren, kein Fokus diese Woche) werden automatisch übersprungen.",
+        "NO_DATA": "noch keine Daten",
+        "APPEARANCE": "Aussehen",
+        "THEME": "Design",
+        "FONT": "Schrift",
+        "FOLLOW": "App folgen",
+        "FOLLOW_NOTE": "Standardmäßig nutzt der Bildschirm dasselbe Design und dieselbe Schrift wie die Uhr. Wähle eines, um es festzulegen.",
+        "BACKLIGHT_DAY": "Hintergrundbeleuchtung (Tag)",
+        "NIGHT": "Nachtzeitplan",
+        "FROM": "Von",
+        "TO": "Bis",
+        "NIGHT_LEVEL": "Beleuchtung nachts",
+        "NIGHT_BLACK": "Schwarzer Bildschirm nachts"
+      },
+      "ADV": {
+        "TITLE": "Erweitert",
+        "FLOW": "Flusskontrolle (RTS/CTS)",
+        "FULL": "Immer den ganzen Bildschirm senden",
+        "SLOW": "Langsames Senden (3 ms pro Block)",
+        "DEMO_TOGGLE": "Beispieldaten zeigen, solange kein Bildschirm verbunden ist",
+        "REDRAW": "Alles neu zeichnen",
+        "HINT": "Verschwinden die Störungen mit „ganzer Bildschirm“, liegt das Problem an den Teilaktualisierungen; verschwinden sie mit „langsames Senden“, braucht der Bildschirm mehr Zeit zwischen den Blöcken.",
+        "LAST_SEND": "Letztes Bild: {w}×{h} px · {bytes} B · {ms} ms · längste Pause zwischen Blöcken {gap} ms",
+        "BAND_PAUSE": "Pause nach jedem Streifen",
+        "COUNTERS": "Gesendete Bilder: {frames} · Streifen: {bands} · Schreib-Timeouts: {timeouts} · erzwungene Vollbilder: {redraws} · Pause pro Streifen: {pause} ms"
+      },
+      "UNSUPPORTED": {
+        "TITLE": "Desk Display benötigt Chrome oder Edge auf einem Computer",
+        "TEXT": "Dieser Browser (Firefox, Safari oder ein Handy-Browser) kann nicht mit USB-Bildschirmen kommunizieren. Öffne AuraTime in Google Chrome oder Microsoft Edge auf einem Windows-, macOS- oder Linux-Computer, um einen Bildschirm zu verbinden.",
+        "PREVIEW": "So sieht die Anzeige aus:"
+      },
+      "COMPAT": "Kompatibel mit Bildschirmen der Klasse Turing Smart Screen 3,5\" (USB 1A86:5722, Rev. A).",
+      "DISCLAIMER": "AuraTime ist ein unabhängiges Projekt und steht in keiner Verbindung zu Bildschirmherstellern. Produktnamen gehören ihren jeweiligen Inhabern.",
+      "OTHER_WINDOW": {
+        "TITLE": "Desk Display in einem anderen Fenster aktiv",
+        "TEXT": "Nur ein Fenster kann den Bildschirm steuern. Schließe das andere; dieses übernimmt automatisch, sobald es geschlossen ist."
+      },
+      "INSECURE": {
+        "TITLE": "Web Serial benötigt HTTPS oder localhost",
+        "TEXT": "Diese Seite ist über einfaches http von einer Netzwerkadresse geöffnet, wo Browser Web Serial abschalten. Öffne sie mit https:// oder von localhost (zum Beispiel http://localhost:4200)."
+      }
+    },
+    "UI": {
+      "NAV": "Desk-Display-Navigation",
+      "HERO": {
+        "PREVIEW_NEXT": "Vorschau des Displays. Aktivieren, um die nächste Ansicht zu zeigen.",
+        "TRANSPORT": "Ansichtssteuerung",
+        "PREVIOUS": "Vorherige Ansicht",
+        "NEXT": "Nächste Ansicht",
+        "PAUSE": "Rotation anhalten",
+        "RESUME": "Rotation fortsetzen",
+        "PAUSE_PINNED": "Eine angeheftete Ansicht bleibt ohnehin stehen",
+        "PIN": "Diese Ansicht anheften",
+        "UNPIN": "Lösen: zurück zur Rotation",
+        "PROGRESS": "Zeit in dieser Ansicht",
+        "KEYS": "Tastatur: ← → wechseln die Ansicht · Leertaste pausiert",
+        "STATE_ROTATING": "Rotation · weiter in {seconds} s",
+        "STATE_PAUSED": "Rotation angehalten",
+        "STATE_PINNED": "An diese Ansicht angeheftet",
+        "STATE_HELD": "Von einem laufenden Pomodoro gehalten",
+        "STATE_SINGLE": "Nur eine Ansicht in der Rotation"
+      },
+      "PILL": {
+        "CONNECTED": "Verbunden",
+        "CONNECTED_MODEL": "Verbunden · {model}"
+      },
+      "CC": {
+        "NOT_CONNECTED": "Kein Display verbunden: Sie passen die Demo-Vorschau an.",
+        "BACK_TO_SETUP": "Zurück zur Einrichtung"
+      },
+      "SETUP": {
+        "STEP3_TEXT": "Ansichten, Aussehen und Nachtplan: alles in der Steuerzentrale.",
+        "CUSTOMIZE": "Anpassen"
+      },
+      "VIEWS": {
+        "EYEBROW": "Was angezeigt wird",
+        "TITLE": "Ansichten",
+        "HINT": "Ansichten ein- oder ausschalten, neu anordnen und festlegen, wie lange jede angezeigt wird.",
+        "THUMB": "Miniaturansicht: {view}",
+        "EMPTY_TITLE": "Noch nichts anzuzeigen",
+        "EMPTY": {
+          "WEEK": "Schließen Sie eine Fokus-Sitzung ab, dann erscheint die Woche hier.",
+          "ALARM": "Es ist kein Wecker und kein Countdown eingestellt.",
+          "WORLD": "Sie haben noch keine Weltzeituhren.",
+          "WEATHER": "Das Wetter ist aus oder hat noch keine Daten."
+        },
+        "EMPTY_LINK": {
+          "WEEK": "Fokus-Sitzung starten",
+          "ALARM": "Wecker stellen",
+          "WORLD": "Weltzeituhr hinzufügen",
+          "WEATHER": "Wetter einschalten"
+        },
+        "TOGGLE": "{view} in der Rotation anzeigen",
+        "DURATION": "Anzeigedauer",
+        "DURATION_FOR": "Sekunden auf dem Display: {view}",
+        "DRAG": "Zum Umordnen ziehen",
+        "MOVE_UP": "{view} nach oben",
+        "MOVE_DOWN": "{view} nach unten",
+        "MOVED": "{view} ist jetzt Nummer {position} von {total}"
+      },
+      "APPEARANCE": {
+        "EYEBROW": "Aussehen",
+        "TITLE": "Darstellung",
+        "FOLLOW": "Der App folgen",
+        "FOLLOW_ON": "Das Display nutzt Theme und Schrift, die Sie in der Uhr gewählt haben.",
+        "FOLLOW_OFF": "Das Display behält sein eigenes Theme und seine Schrift, egal was die App tut."
+      },
+      "SCHEDULE": {
+        "EYEBROW": "Tag und Nacht",
+        "TITLE": "Zeitplan",
+        "NIGHT_STARTS": "Nacht beginnt",
+        "NIGHT_ENDS": "Nacht endet",
+        "SUMMARY": "Nacht von {from} bis {to}, Hintergrundbeleuchtung {level} %.",
+        "NO_NIGHT": "Kein Nachtplan: Die Beleuchtung bleibt auf dem Tagesniveau.",
+        "BLACK_HINT": "Nachts ist der Bildschirm komplett schwarz und die Beleuchtung aus."
+      },
+      "HEALTH": {
+        "EYEBROW": "Verbindung",
+        "TITLE": "Zustand",
+        "STATE_OK": "Alles in Ordnung",
+        "STATE_WARN": "Achtung nötig",
+        "WARNING": "Die Verbindung hatte seit dem Öffnen dieser Seite {count} neue(s) Problem(e) (Schreib-Timeouts oder erzwungene Vollbilder). Das Display wurde jedes Mal komplett neu gezeichnet.",
+        "DISMISS": "Ausblenden",
+        "UPTIME": "Verbunden seit",
+        "FRAMES": "Bilder",
+        "LAST_FRAME": "Letztes Bild",
+        "PAUSE": "Pause pro Streifen",
+        "TIMEOUTS": "Schreib-Timeouts",
+        "REDRAWS": "Erzwungene Vollbilder",
+        "SPARK": "Bilddauer, letzte Minuten",
+        "SPARK_RANGE": "jetzt {last} ms · Spitze {max} ms",
+        "SPARK_LABEL": "Bilddauern der letzten Minuten: zuletzt {last} ms, Spitze {max} ms",
+        "SPARK_EMPTY": "Noch keine Bilder gesendet.",
+        "RESYNCS": "Neusynchronisierungen",
+        "RESETS": "Display-Resets"
+      }
+    },
+    "APP_BANNER": {
+      "TITLE": "Neu: AuraTime für Windows (Beta)",
+      "TEXT": "Steuert diesen Bildschirm ohne Browser, startet mit Windows und zeigt auch die Sensoren deines PCs. Schließe diese Seite, solange die App den Bildschirm nutzt.",
+      "DOWNLOAD": "Herunterladen",
+      "MORE": "Mehr erfahren"
+    }
+  }
+}

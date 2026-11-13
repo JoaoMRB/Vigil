@@ -1,0 +1,249 @@
+{
+  "SCREEN": {
+    "NAME": "Desk Display",
+    "LABELS": {
+      "FOCUS": "ENFOQUE",
+      "BREAK": "DESCANSO",
+      "PAUSED": "EN PAUSA",
+      "READY": "LISTO",
+      "NO_TASKS": "Sin tareas abiertas",
+      "TODAY": "HOY",
+      "STREAK": "DÍAS SEGUIDOS",
+      "MINUTES": "min",
+      "LAST7": "ÚLTIMOS 7 DÍAS",
+      "NEXT_ALARM": "PRÓXIMA ALARMA",
+      "COUNTDOWN": "CUENTA ATRÁS",
+      "WORLD_CLOCKS": "RELOJES MUNDIALES",
+      "DAY_TODAY": "Hoy",
+      "DAY_TOMORROW": "Mañana",
+      "IN": "en"
+    },
+    "WEATHER": {
+      "SUNNY": "Cielo despejado",
+      "CLEAR_NIGHT": "Noche despejada",
+      "CLOUDY": "Nublado",
+      "RAINY": "Lluvia",
+      "SNOWY": "Nieve",
+      "STORMY": "Tormenta"
+    },
+    "DEMO": {
+      "TASK_1": "Escribir el informe semanal",
+      "TASK_2": "Revisar los pull requests abiertos",
+      "TASK_3": "Planificar el día de mañana",
+      "ALARM": "Carrera de la mañana",
+      "COUNTDOWN": "Reunión de equipo",
+      "CITY": "Lisboa"
+    },
+    "VIEWS": {
+      "AUTO": "Rotación automática",
+      "CLOCK": "Reloj",
+      "FOCUS": "Enfoque (Pomodoro + tareas)",
+      "WEEK": "Semana (últimos 7 días)",
+      "ALARM": "Próxima alarma / cuenta atrás",
+      "WORLD": "Relojes mundiales",
+      "WEATHER": "Tiempo + frase"
+    },
+    "SEO": {
+      "TITLE": "Desk Display | Pantalla USB para AuraTime",
+      "DESCRIPTION": "Convierte una pequeña pantalla USB en un panel AuraTime en vivo: reloj, enfoque Pomodoro, tareas, alarmas, relojes mundiales y tiempo. Funciona en Chrome o Edge, sin controladores."
+    },
+    "APP": {
+      "TITLE": "Desk Display",
+      "ON": "Conectada",
+      "OFF": "No conectada",
+      "OPEN": "Abrir Desk Display",
+      "HINT": "Muestra tu reloj y tu sesión de enfoque en una pantalla USB."
+    },
+    "MSG": {
+      "UNSUPPORTED": "Este navegador no admite Web Serial. Usa Chrome o Edge en un ordenador.",
+      "UNPLUGGED": "Pantalla desconectada del USB. Esperando a que vuelva...",
+      "BUSY": "No se pudo abrir el puerto. ¿Lo está usando el software original de la pantalla (u otra pestaña)? Ciérralo e inténtalo de nuevo.",
+      "STALLED": "La pantalla no acepta datos. Prueba a desactivar el control de flujo y vuelve a conectar.",
+      "NOT_RESPONDING": "La pantalla dejó de responder.",
+      "GENERIC": "Algo salió mal al comunicarse con la pantalla.",
+      "INSECURE": "Web Serial necesita HTTPS o localhost.",
+      "NO_HELLO": "La pantalla no respondió al saludo inicial. Si la imagen se ve mal, puede que no sea un modelo compatible.",
+      "OTHER_WINDOW": "Desk Display está activo en otra ventana."
+    },
+    "PAGE": {
+      "BACK": "Volver al reloj",
+      "SUBTITLE": "Muestra tu reloj, tu sesión de enfoque, tareas, alarmas y el tiempo en una pequeña pantalla USB.",
+      "LANGUAGE": "Idioma",
+      "PREVIEW": {
+        "LIVE": "Vista previa en vivo",
+        "DEMO": "Vista previa de demostración",
+        "DEMO_NOTE": "Datos de ejemplo. Conecta una pantalla para mostrar los tuyos.",
+        "INFO": "Vista: {view} · retroiluminación {level}%"
+      },
+      "STEP": "Paso",
+      "S1": {
+        "TITLE": "Comprobar el navegador",
+        "OK": "Perfecto: este navegador puede comunicarse con pantallas USB.",
+        "TEXT": "Desk Display usa Web Serial, disponible en Google Chrome y Microsoft Edge en un ordenador."
+      },
+      "S2": {
+        "TITLE": "Conectar la pantalla",
+        "HINT": "Conecta la pantalla con su cable USB y cierra antes el software original de la pantalla: solo un programa puede usarla a la vez.",
+        "CONNECT": "Conectar pantalla",
+        "CONNECTING": "Conectando...",
+        "DISCONNECT": "Desconectar",
+        "STATUS": "Estado",
+        "CONNECTED": "conectada",
+        "DISCONNECTED": "no conectada",
+        "ERROR": "error",
+        "SENT": "{images} imágenes · {kb} KB enviados",
+        "FIRST_TIME": "El navegador te pide elegir la pantalla una sola vez. Después se reconecta sola.",
+        "WINDOW_NOTE": "Mantén esta página en una ventana propia y visible, o usa el lanzador de inicio de Windows: los navegadores ralentizan las páginas ocultas y la pantalla se retrasaría.",
+        "HIDDEN_WARNING": "Esta página está oculta, así que el navegador la ralentiza y la pantalla puede retrasarse. Trae la ventana al frente, o usa el lanzador de inicio.",
+        "OS_NOTE": "Linux: tu usuario debe estar en el grupo dialout. macOS: el chip USB-serie CH34x de la pantalla puede necesitar su controlador."
+      },
+      "S3": {
+        "TITLE": "Elegir qué mostrar",
+        "VIEW_MODE": "Vistas",
+        "VIEW_MODE_NOTE": "La rotación automática cambia de vista cada 20 segundos; la vista de enfoque se mantiene mientras corre un Pomodoro.",
+        "ROTATION": "En la rotación automática",
+        "ROTATION_NOTE": "Las vistas sin datos (sin alarmas, sin cuenta atrás activa, sin relojes mundiales, sin enfoque esta semana) se omiten automáticamente.",
+        "NO_DATA": "aún sin datos",
+        "APPEARANCE": "Apariencia",
+        "THEME": "Tema",
+        "FONT": "Fuente",
+        "FOLLOW": "Seguir la app",
+        "FOLLOW_NOTE": "Por defecto la pantalla usa el mismo tema y la misma fuente que el reloj. Elige uno para fijarlo.",
+        "BACKLIGHT_DAY": "Retroiluminación (día)",
+        "NIGHT": "Horario nocturno",
+        "FROM": "Desde",
+        "TO": "Hasta",
+        "NIGHT_LEVEL": "Retroiluminación nocturna",
+        "NIGHT_BLACK": "Pantalla negra por la noche"
+      },
+      "ADV": {
+        "TITLE": "Avanzado",
+        "FLOW": "Control de flujo (RTS/CTS)",
+        "FULL": "Enviar siempre la pantalla completa",
+        "SLOW": "Envío lento (3 ms por bloque)",
+        "DEMO_TOGGLE": "Mostrar datos de ejemplo mientras no haya pantalla conectada",
+        "REDRAW": "Redibujar todo",
+        "HINT": "Si los fallos desaparecen con \"pantalla completa\", el problema está en las actualizaciones parciales; si desaparecen con \"envío lento\", la pantalla necesita más tiempo entre bloques.",
+        "LAST_SEND": "Última imagen: {w}×{h} px · {bytes} B · {ms} ms · mayor pausa entre bloques {gap} ms",
+        "BAND_PAUSE": "Pausa tras cada banda",
+        "COUNTERS": "Fotogramas enviados: {frames} · bandas: {bands} · tiempos de escritura agotados: {timeouts} · redibujados completos forzados: {redraws} · pausa por banda: {pause} ms"
+      },
+      "UNSUPPORTED": {
+        "TITLE": "Desk Display necesita Chrome o Edge en un ordenador",
+        "TEXT": "Este navegador (Firefox, Safari o un navegador de móvil) no puede comunicarse con pantallas USB. Abre AuraTime en Google Chrome o Microsoft Edge en un ordenador con Windows, macOS o Linux para conectar una pantalla.",
+        "PREVIEW": "Esto es lo que muestra la pantalla:"
+      },
+      "COMPAT": "Compatible con pantallas de la clase Turing Smart Screen 3,5\" (USB 1A86:5722, rev. A).",
+      "DISCLAIMER": "AuraTime es un proyecto independiente, sin relación con ningún fabricante de pantallas. Los nombres de productos pertenecen a sus propietarios.",
+      "OTHER_WINDOW": {
+        "TITLE": "Desk Display activo en otra ventana",
+        "TEXT": "Solo una ventana puede controlar la pantalla. Cierra la otra; esta tomará el control sola cuando se cierre."
+      },
+      "INSECURE": {
+        "TITLE": "Web Serial necesita HTTPS o localhost",
+        "TEXT": "Esta página está abierta por http simple desde una dirección de red, donde los navegadores desactivan Web Serial. Ábrela con https:// o desde localhost (por ejemplo http://localhost:4200)."
+      }
+    },
+    "UI": {
+      "NAV": "Navegación de Desk Display",
+      "HERO": {
+        "PREVIEW_NEXT": "Vista previa de la pantalla. Actívala para mostrar la vista siguiente.",
+        "TRANSPORT": "Controles de vista",
+        "PREVIOUS": "Vista anterior",
+        "NEXT": "Vista siguiente",
+        "PAUSE": "Pausar la rotación",
+        "RESUME": "Reanudar la rotación",
+        "PAUSE_PINNED": "Una vista fijada ya permanece en pantalla",
+        "PIN": "Fijar esta vista",
+        "UNPIN": "Soltar: volver a la rotación",
+        "PROGRESS": "Tiempo en esta vista",
+        "KEYS": "Teclado: ← → cambian de vista · Espacio pausa",
+        "STATE_ROTATING": "Rotando · siguiente en {seconds} s",
+        "STATE_PAUSED": "Rotación en pausa",
+        "STATE_PINNED": "Fijada en esta vista",
+        "STATE_HELD": "Mantenida por un Pomodoro en curso",
+        "STATE_SINGLE": "Solo hay una vista en la rotación"
+      },
+      "PILL": {
+        "CONNECTED": "Conectado",
+        "CONNECTED_MODEL": "Conectado · {model}"
+      },
+      "CC": {
+        "NOT_CONNECTED": "Ninguna pantalla conectada: estás personalizando la vista previa de demostración.",
+        "BACK_TO_SETUP": "Volver a la configuración"
+      },
+      "SETUP": {
+        "STEP3_TEXT": "Vistas, aspecto y horario nocturno: todo en el centro de control.",
+        "CUSTOMIZE": "Personalizar"
+      },
+      "VIEWS": {
+        "EYEBROW": "Qué muestra",
+        "TITLE": "Vistas",
+        "HINT": "Activa o desactiva vistas, reordénalas y elige cuánto tiempo se queda cada una en pantalla.",
+        "THUMB": "Miniatura de la vista {view}",
+        "EMPTY_TITLE": "Nada que mostrar todavía",
+        "EMPTY": {
+          "WEEK": "Completa una sesión de enfoque y la semana aparecerá aquí.",
+          "ALARM": "No hay ninguna alarma ni cuenta atrás.",
+          "WORLD": "Todavía no tienes relojes mundiales.",
+          "WEATHER": "El tiempo está desactivado o aún sin datos."
+        },
+        "EMPTY_LINK": {
+          "WEEK": "Iniciar una sesión de enfoque",
+          "ALARM": "Poner una alarma",
+          "WORLD": "Añadir un reloj mundial",
+          "WEATHER": "Activar el tiempo"
+        },
+        "TOGGLE": "Mostrar {view} en la rotación",
+        "DURATION": "Tiempo en pantalla",
+        "DURATION_FOR": "Segundos en pantalla: {view}",
+        "DRAG": "Arrastra para reordenar",
+        "MOVE_UP": "Subir {view}",
+        "MOVE_DOWN": "Bajar {view}",
+        "MOVED": "{view} es ahora la número {position} de {total}"
+      },
+      "APPEARANCE": {
+        "EYEBROW": "Aspecto",
+        "TITLE": "Apariencia",
+        "FOLLOW": "Seguir la app",
+        "FOLLOW_ON": "La pantalla usa el tema y la fuente elegidos en el reloj.",
+        "FOLLOW_OFF": "La pantalla mantiene su propio tema y fuente, haga lo que haga la app."
+      },
+      "SCHEDULE": {
+        "EYEBROW": "Día y noche",
+        "TITLE": "Horario",
+        "NIGHT_STARTS": "La noche empieza",
+        "NIGHT_ENDS": "La noche termina",
+        "SUMMARY": "Noche de {from} a {to}, retroiluminación al {level}%.",
+        "NO_NIGHT": "Sin horario nocturno: la retroiluminación se queda en el nivel diurno.",
+        "BLACK_HINT": "De noche la pantalla queda totalmente negra y la retroiluminación apagada."
+      },
+      "HEALTH": {
+        "EYEBROW": "Conexión",
+        "TITLE": "Estado",
+        "STATE_OK": "Todo bien",
+        "STATE_WARN": "Requiere atención",
+        "WARNING": "La conexión tuvo {count} problema(s) nuevo(s) (tiempos de escritura agotados o redibujados completos forzados) desde que abriste esta página. La pantalla se redibujó entera cada vez.",
+        "DISMISS": "Descartar",
+        "UPTIME": "Conectado desde hace",
+        "FRAMES": "Imágenes",
+        "LAST_FRAME": "Última imagen",
+        "PAUSE": "Pausa por banda",
+        "TIMEOUTS": "Tiempos agotados",
+        "REDRAWS": "Redibujados forzados",
+        "SPARK": "Tiempo por imagen, últimos minutos",
+        "SPARK_RANGE": "ahora {last} ms · máx. {max} ms",
+        "SPARK_LABEL": "Tiempos por imagen en los últimos minutos: último {last} ms, máximo {max} ms",
+        "SPARK_EMPTY": "Aún no se ha enviado ninguna imagen.",
+        "RESYNCS": "Resincronizaciones",
+        "RESETS": "Reinicios de la pantalla"
+      }
+    },
+    "APP_BANNER": {
+      "TITLE": "Novedad: AuraTime para Windows (beta)",
+      "TEXT": "Controla esta pantalla sin navegador, se inicia con Windows y también muestra los sensores de tu PC. Cierra esta página mientras la app usa la pantalla.",
+      "DOWNLOAD": "Descargar",
+      "MORE": "Más información"
+    }
+  }
+}
