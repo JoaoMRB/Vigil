@@ -1,0 +1,89 @@
+{
+  "lang": { "code": "pt-PT", "short": "PT", "name": "Português", "ogLocale": "pt_PT" },
+  "meta": {
+    "title": "Vigil para Windows",
+    "description": "Um pequeno ecrã na tua secretária com as horas, os sinais vitais do teu PC e o tempo. O Vigil trata dele em silêncio, a partir da área de notificação.",
+    "shortDescription": "Um pequeno ecrã na tua secretária com as horas, os sinais vitais do teu PC e o tempo.",
+    "shareTitle": "Vigil para Windows: sempre de vigia.",
+    "imageAlt": "A vista do relógio do Vigil num ecrã USB de 3,5 polegadas, ao lado das palavras “Keeps watch.”"
+  },
+  "ui": {
+    "skip": "Saltar para o conteúdo",
+    "backToTop": "Vigil, voltar ao início",
+    "mainNav": "Principal",
+    "footerNav": "Rodapé",
+    "language": "Idioma",
+    "githubLabel": "O Vigil no GitHub",
+    "download": "Transferir",
+    "downloadWindows": "Transferir para Windows",
+    "releases": "Versões"
+  },
+  "nav": { "views": "Vistas", "designs": "Designs", "sensors": "Sensores", "privacy": "Privacidade" },
+  "cities": { "london": "Londres", "newYork": "Nova Iorque", "tokyo": "Tóquio" },
+  "hero": {
+    "eyebrow": "<span translate=\"no\">Vigil</span> para Windows · Beta",
+    "title": "Sempre de vigia.",
+    "lead": "Um pequeno ecrã na tua secretária com as horas, os sinais vitais do teu PC e o tempo. O <span translate=\"no\">Vigil</span> trata dele em silêncio, a partir da área de notificação, desde que o Windows arranca.",
+    "seeDesigns": "Ver os seis designs",
+    "fineprint": "Windows&nbsp;10 e&nbsp;11 · 64&nbsp;bits · Não precisa de direitos de administrador",
+    "source": "Gratuito e de código aberto no GitHub",
+    "screenLabel": "A vista do relógio do Vigil no ecrã USB: a hora e a data, com a temperatura do CPU e da GPU, a memória e a velocidade de transferência em baixo",
+    "date": "sex 13 nov",
+    "caption": "A vista do relógio num ecrã USB de 3,5 polegadas, 480&nbsp;×&nbsp;320 píxeis. Os valores são ilustrativos."
+  },
+  "statement": {
+    "label": "Para que serve o Vigil",
+    "text": "Um ecrã que nunca te pede atenção. <span>Simplesmente tem a resposta quando olhas.</span>"
+  },
+  "views": {
+    "title": "Quatro vistas.<br>À vez.",
+    "lead": "Deixa uma sempre no ecrã, ou deixa-as alternar sozinhas ao longo do dia.",
+    "clock": "Relógio",
+    "clockDate": "Sexta · 13 de novembro",
+    "clockText": "Dígitos grandes e calmos, que se leem do outro lado da sala.",
+    "system": "Sistema",
+    "systemText": "Temperaturas, carga, memória, disco, rede e volume, em direto.",
+    "weather": "Tempo",
+    "cloudy": "Nublado",
+    "quote": "«A simplicidade é o último grau da sofisticação.»",
+    "weatherText": "O céu lá fora, com uma frase do dia por baixo.",
+    "world": "Relógios mundiais",
+    "worldText": "As cidades que te importam, num relance."
+  },
+  "designs": {
+    "title": "Seis designs.<br>Seis personalidades.",
+    "lead": "A vista do sistema tem seis aspetos, cada um com cores que podes mudar. Os mesmos sensores. Outro estado de espírito."
+  },
+  "sensors": {
+    "title": "Tudo o que o teu PC sente.",
+    "tempLoad": "Temperatura e carga",
+    "memory": "Memória",
+    "memoryText": "Quanta está em uso",
+    "disk": "Disco",
+    "diskText": "Quão cheio está, e a sua temperatura",
+    "network": "Rede",
+    "networkText": "Velocidade de download e upload",
+    "volume": "Volume",
+    "volumeText": "O nível de som do teu PC",
+    "note": "Uma nota sobre a temperatura do CPU: o Windows só a dá a programas com direitos de administrador e um controlador. Liga <em>CPU temperature</em> nas definições de Sistema do <span translate=\"no\">Vigil</span> e instala o controlador gratuito <a href=\"https://pawnio.eu/\" translate=\"no\">PawnIO</a>. Sem eles, o <span translate=\"no\">Vigil</span> mostra a carga do CPU."
+  },
+  "quiet": {
+    "title": "Arranca com o Windows. <span class=\"dim\">Depois sai do caminho.</span>",
+    "startTitle": "Ligado desde o início",
+    "startText": "O <span translate=\"no\">Vigil</span> arranca com o Windows e põe o ecrã a funcionar antes de abrires seja o que for.",
+    "trayTitle": "Vive na área de notificação",
+    "trayText": "Fica à espera junto ao relógio do Windows. As definições estão a um clique.",
+    "browserTitle": "Sem browser",
+    "browserText": "O <span translate=\"no\">Vigil</span> fala com o ecrã diretamente por USB. Não há nada para manter aberto.",
+    "updatesTitle": "Atualizar não apaga nada",
+    "updatesText": "Corre o novo instalador por cima do antigo. As tuas definições ficam como estavam."
+  },
+  "privacy": {
+    "title": "Online só para uma coisa.",
+    "text": "O tempo. O <span translate=\"no\">Vigil</span> pergunta ao <span translate=\"no\">Open-Meteo</span> pela cidade que escolheres, com a tua posição arredondada a cerca de um quilómetro. Os teus sensores nunca saem do teu PC."
+  },
+  "cta": {
+    "title": "Põe a tua secretária<br>a pulsar.",
+    "fineprint": "Windows&nbsp;10 e&nbsp;11, 64&nbsp;bits · Para ecrãs USB de 3,5 polegadas · Versão&nbsp;{{VERSION}}"
+  }
+}

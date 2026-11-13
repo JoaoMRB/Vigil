@@ -1,0 +1,89 @@
+{
+  "lang": { "code": "fr", "short": "FR", "name": "Français", "ogLocale": "fr_FR" },
+  "meta": {
+    "title": "Vigil pour Windows",
+    "description": "Un petit écran sur votre bureau avec l’heure, les signes vitaux de votre PC et la météo. Vigil s’en occupe discrètement depuis la zone de notification.",
+    "shortDescription": "Un petit écran sur votre bureau avec l’heure, les signes vitaux de votre PC et la météo.",
+    "shareTitle": "Vigil pour Windows : il veille.",
+    "imageAlt": "La vue horloge de Vigil sur un écran USB de 3,5 pouces, à côté des mots « Keeps watch. »"
+  },
+  "ui": {
+    "skip": "Aller au contenu",
+    "backToTop": "Vigil, retour en haut",
+    "mainNav": "Principale",
+    "footerNav": "Pied de page",
+    "language": "Langue",
+    "githubLabel": "Vigil sur GitHub",
+    "download": "Télécharger",
+    "downloadWindows": "Télécharger pour Windows",
+    "releases": "Versions"
+  },
+  "nav": { "views": "Vues", "designs": "Designs", "sensors": "Capteurs", "privacy": "Confidentialité" },
+  "cities": { "london": "Londres", "newYork": "New York", "tokyo": "Tokyo" },
+  "hero": {
+    "eyebrow": "<span translate=\"no\">Vigil</span> pour Windows · Bêta",
+    "title": "Il veille.",
+    "lead": "Un petit écran sur votre bureau avec l’heure, les signes vitaux de votre PC et la météo. <span translate=\"no\">Vigil</span> s’en occupe discrètement depuis la zone de notification, dès le démarrage de Windows.",
+    "seeDesigns": "Voir les six designs",
+    "fineprint": "Windows&nbsp;10 et&nbsp;11 · 64&nbsp;bits · Aucun droit d’administrateur requis",
+    "source": "Gratuit et open source sur GitHub",
+    "screenLabel": "La vue horloge de Vigil sur l’écran USB : l’heure et la date, avec la température du CPU et du GPU, la mémoire et le débit descendant en bas",
+    "date": "ven 13 nov",
+    "caption": "La vue horloge sur un écran USB de 3,5&nbsp;pouces, 480&nbsp;×&nbsp;320&nbsp;pixels. Les valeurs sont données à titre d’exemple."
+  },
+  "statement": {
+    "label": "À quoi sert Vigil",
+    "text": "Un écran qui ne réclame jamais votre attention. <span>Il a simplement la réponse quand vous regardez.</span>"
+  },
+  "views": {
+    "title": "Quatre vues.<br>Chacune son tour.",
+    "lead": "Gardez-en une à l’écran, ou laissez-les se succéder d’elles-mêmes au fil de la journée.",
+    "clock": "Horloge",
+    "clockDate": "Vendredi · 13 novembre",
+    "clockText": "De grands chiffres calmes, lisibles depuis l’autre bout de la pièce.",
+    "system": "Système",
+    "systemText": "Températures, charge, mémoire, disque, réseau et volume, en direct.",
+    "weather": "Météo",
+    "cloudy": "Nuageux",
+    "quote": "«&nbsp;La simplicité est la sophistication suprême.&nbsp;»",
+    "weatherText": "Le ciel dehors, avec une citation du jour en dessous.",
+    "world": "Horloges du monde",
+    "worldText": "Les villes qui comptent pour vous, d’un coup d’œil."
+  },
+  "designs": {
+    "title": "Six designs.<br>Six caractères.",
+    "lead": "La vue système existe en six styles, chacun avec des couleurs que vous pouvez changer. Les mêmes capteurs. Une autre ambiance."
+  },
+  "sensors": {
+    "title": "Tout ce que ressent votre PC.",
+    "tempLoad": "Température et charge",
+    "memory": "Mémoire",
+    "memoryText": "La part utilisée",
+    "disk": "Disque",
+    "diskText": "Son taux de remplissage, et sa température",
+    "network": "Réseau",
+    "networkText": "Débit descendant et montant",
+    "volume": "Volume",
+    "volumeText": "Le niveau sonore de votre PC",
+    "note": "À propos de la température du CPU&nbsp;: Windows ne la donne qu’aux programmes qui ont les droits d’administrateur et un pilote. Activez <em>CPU temperature</em> dans les réglages Système de <span translate=\"no\">Vigil</span> et installez le pilote gratuit <a href=\"https://pawnio.eu/\" translate=\"no\">PawnIO</a>. Sans eux, <span translate=\"no\">Vigil</span> affiche la charge du CPU à la place."
+  },
+  "quiet": {
+    "title": "Démarre avec Windows. <span class=\"dim\">Puis se fait oublier.</span>",
+    "startTitle": "Actif dès le départ",
+    "startText": "<span translate=\"no\">Vigil</span> démarre avec Windows et fait fonctionner l’écran avant que vous n’ouvriez quoi que ce soit.",
+    "trayTitle": "Dans la zone de notification",
+    "trayText": "Il attend près de l’horloge de Windows. Les réglages sont à un clic.",
+    "browserTitle": "Sans navigateur",
+    "browserText": "<span translate=\"no\">Vigil</span> parle à l’écran directement par USB. Rien à garder ouvert.",
+    "updatesTitle": "Les mises à jour gardent tout",
+    "updatesText": "Lancez le nouvel installeur par-dessus l’ancien. Vos réglages restent en place."
+  },
+  "privacy": {
+    "title": "En ligne pour une seule chose.",
+    "text": "La météo. <span translate=\"no\">Vigil</span> interroge <span translate=\"no\">Open-Meteo</span> pour la ville que vous choisissez, avec votre position arrondie à environ un kilomètre. Vos capteurs ne quittent jamais votre PC."
+  },
+  "cta": {
+    "title": "Donnez vie<br>à votre bureau.",
+    "fineprint": "Windows&nbsp;10 et&nbsp;11, 64&nbsp;bits · Pour écrans USB de 3,5&nbsp;pouces · Version&nbsp;{{VERSION}}"
+  }
+}

@@ -1,0 +1,89 @@
+{
+  "lang": { "code": "en-GB", "short": "EN", "name": "English", "ogLocale": "en_GB" },
+  "meta": {
+    "title": "Vigil for Windows",
+    "description": "A small screen on your desk with the time, your PC’s vital signs and the weather. Vigil runs it quietly from the tray.",
+    "shortDescription": "A small screen on your desk with the time, your PC’s vital signs and the weather.",
+    "shareTitle": "Vigil for Windows: keeps watch.",
+    "imageAlt": "Vigil’s clock view on a 3.5-inch USB screen, next to the words “Keeps watch.”"
+  },
+  "ui": {
+    "skip": "Skip to content",
+    "backToTop": "Vigil, back to top",
+    "mainNav": "Main",
+    "footerNav": "Footer",
+    "language": "Language",
+    "githubLabel": "Vigil on GitHub",
+    "download": "Download",
+    "downloadWindows": "Download for Windows",
+    "releases": "Releases"
+  },
+  "nav": { "views": "Views", "designs": "Designs", "sensors": "Sensors", "privacy": "Privacy" },
+  "cities": { "london": "London", "newYork": "New York", "tokyo": "Tokyo" },
+  "hero": {
+    "eyebrow": "<span translate=\"no\">Vigil</span> for Windows · Beta",
+    "title": "Keeps watch.",
+    "lead": "A small screen on your desk with the time, your PC’s vital signs and the weather. <span translate=\"no\">Vigil</span> runs it quietly from the tray, from the moment Windows starts.",
+    "seeDesigns": "See the six designs",
+    "fineprint": "Windows&nbsp;10 and&nbsp;11 · 64-bit · No administrator rights needed",
+    "source": "Free and open source on GitHub",
+    "screenLabel": "Vigil’s clock view on the USB screen: the time and date, with CPU and GPU temperature, memory and download speed along the bottom",
+    "date": "Fri 13 Nov",
+    "caption": "The clock view on a 3.5-inch USB screen, 480&nbsp;×&nbsp;320 pixels. Readings are illustrative."
+  },
+  "statement": {
+    "label": "What Vigil is for",
+    "text": "A screen that never asks for your attention. <span>It simply has the answer when you look.</span>"
+  },
+  "views": {
+    "title": "Four views.<br>Taking turns.",
+    "lead": "Keep one on screen, or let them rotate on their own through the day.",
+    "clock": "Clock",
+    "clockDate": "Friday · 13 November",
+    "clockText": "Big, calm digits you can read from across the room.",
+    "system": "System",
+    "systemText": "Temperatures, load, memory, disk, network and volume, live.",
+    "weather": "Weather",
+    "cloudy": "Cloudy",
+    "quote": "“Simplicity is the ultimate sophistication.”",
+    "weatherText": "The sky outside, with a quote of the day beneath it.",
+    "world": "World clocks",
+    "worldText": "The cities you care about, at a glance."
+  },
+  "designs": {
+    "title": "Six designs.<br>Six personalities.",
+    "lead": "The system view comes in six looks, each with colours you can change. Same sensors. Different mood."
+  },
+  "sensors": {
+    "title": "Everything your PC feels.",
+    "tempLoad": "Temperature and load",
+    "memory": "Memory",
+    "memoryText": "How much is in use",
+    "disk": "Disk",
+    "diskText": "How full it is, and its temperature",
+    "network": "Network",
+    "networkText": "Download and upload speed",
+    "volume": "Volume",
+    "volumeText": "Your PC’s sound level",
+    "note": "A note on CPU temperature: Windows only shares it with programs that have administrator rights and a driver. Turn on <em>CPU temperature</em> in <span translate=\"no\">Vigil</span>’s System settings and install the free <a href=\"https://pawnio.eu/\" translate=\"no\">PawnIO</a> driver. Without them, <span translate=\"no\">Vigil</span> shows the CPU’s load instead."
+  },
+  "quiet": {
+    "title": "Starts with Windows. <span class=\"dim\">Then gets out of the way.</span>",
+    "startTitle": "On from the start",
+    "startText": "<span translate=\"no\">Vigil</span> starts with Windows and drives the screen before you open anything.",
+    "trayTitle": "Lives in the tray",
+    "trayText": "It waits in the notification area. Settings are one click away.",
+    "browserTitle": "No browser needed",
+    "browserText": "<span translate=\"no\">Vigil</span> talks to the screen directly over USB. Nothing to keep open.",
+    "updatesTitle": "Updates keep your setup",
+    "updatesText": "Run the new installer over the old one. Your settings stay put."
+  },
+  "privacy": {
+    "title": "Online for one thing only.",
+    "text": "The weather. <span translate=\"no\">Vigil</span> asks <span translate=\"no\">Open-Meteo</span> about the city you pick, with your position rounded to about a kilometre. Your sensors never leave your PC."
+  },
+  "cta": {
+    "title": "Give your desk<br>a pulse.",
+    "fineprint": "Windows&nbsp;10 and&nbsp;11, 64-bit · For 3.5-inch USB screens · Version&nbsp;{{VERSION}}"
+  }
+}

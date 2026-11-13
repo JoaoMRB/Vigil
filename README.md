@@ -79,6 +79,8 @@ Vigil/
   Sensors.cs   PC sensors (LibreHardwareMonitor)
   Settings.cs  the settings file
 installer/     Inno Setup script
+site/          the website: static HTML and CSS, deployed on Vercel (see site/README.md)
+docs/brand/    the icon and the mark, as SVG
 ```
 
 Built with C# on .NET 9, [SkiaSharp](https://github.com/mono/SkiaSharp),

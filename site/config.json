@@ -1,0 +1,8 @@
+{
+  "siteUrl": "https://vigil-app.vercel.app",
+  "owner": "JoaoMRB",
+  "repo": "Vigil",
+  "installer": "Vigil-Setup.exe",
+  "version": "0.1.0",
+  "languages": ["en", "pt", "es", "fr"]
+}

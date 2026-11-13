@@ -1,0 +1,89 @@
+{
+  "lang": { "code": "es", "short": "ES", "name": "Español", "ogLocale": "es_ES" },
+  "meta": {
+    "title": "Vigil para Windows",
+    "description": "Una pequeña pantalla en tu escritorio con la hora, las constantes vitales de tu PC y el tiempo. Vigil la gestiona en silencio desde la bandeja del sistema.",
+    "shortDescription": "Una pequeña pantalla en tu escritorio con la hora, las constantes vitales de tu PC y el tiempo.",
+    "shareTitle": "Vigil para Windows: siempre alerta.",
+    "imageAlt": "La vista de reloj de Vigil en una pantalla USB de 3,5 pulgadas, junto a las palabras “Keeps watch.”"
+  },
+  "ui": {
+    "skip": "Saltar al contenido",
+    "backToTop": "Vigil, volver arriba",
+    "mainNav": "Principal",
+    "footerNav": "Pie de página",
+    "language": "Idioma",
+    "githubLabel": "Vigil en GitHub",
+    "download": "Descargar",
+    "downloadWindows": "Descargar para Windows",
+    "releases": "Versiones"
+  },
+  "nav": { "views": "Vistas", "designs": "Diseños", "sensors": "Sensores", "privacy": "Privacidad" },
+  "cities": { "london": "Londres", "newYork": "Nueva York", "tokyo": "Tokio" },
+  "hero": {
+    "eyebrow": "<span translate=\"no\">Vigil</span> para Windows · Beta",
+    "title": "Siempre alerta.",
+    "lead": "Una pequeña pantalla en tu escritorio con la hora, las constantes vitales de tu PC y el tiempo. <span translate=\"no\">Vigil</span> la gestiona en silencio desde la bandeja del sistema, desde que arranca Windows.",
+    "seeDesigns": "Ver los seis diseños",
+    "fineprint": "Windows&nbsp;10 y&nbsp;11 · 64&nbsp;bits · No necesita permisos de administrador",
+    "source": "Gratis y de código abierto en GitHub",
+    "screenLabel": "La vista de reloj de Vigil en la pantalla USB: la hora y la fecha, con la temperatura de la CPU y la GPU, la memoria y la velocidad de descarga en la parte inferior",
+    "date": "vie 13 nov",
+    "caption": "La vista de reloj en una pantalla USB de 3,5 pulgadas, 480&nbsp;×&nbsp;320 píxeles. Los valores son ilustrativos."
+  },
+  "statement": {
+    "label": "Para qué sirve Vigil",
+    "text": "Una pantalla que nunca te pide atención. <span>Simplemente tiene la respuesta cuando miras.</span>"
+  },
+  "views": {
+    "title": "Cuatro vistas.<br>Por turnos.",
+    "lead": "Deja una fija en pantalla, o deja que se alternen solas a lo largo del día.",
+    "clock": "Reloj",
+    "clockDate": "Viernes · 13 de noviembre",
+    "clockText": "Dígitos grandes y tranquilos que se leen desde el otro lado de la habitación.",
+    "system": "Sistema",
+    "systemText": "Temperaturas, carga, memoria, disco, red y volumen, en directo.",
+    "weather": "Tiempo",
+    "cloudy": "Nublado",
+    "quote": "«La simplicidad es la máxima sofisticación.»",
+    "weatherText": "El cielo de fuera, con una frase del día debajo.",
+    "world": "Relojes mundiales",
+    "worldText": "Las ciudades que te importan, de un vistazo."
+  },
+  "designs": {
+    "title": "Seis diseños.<br>Seis personalidades.",
+    "lead": "La vista del sistema tiene seis estilos, cada uno con colores que puedes cambiar. Los mismos sensores. Otro carácter."
+  },
+  "sensors": {
+    "title": "Todo lo que siente tu PC.",
+    "tempLoad": "Temperatura y carga",
+    "memory": "Memoria",
+    "memoryText": "Cuánta está en uso",
+    "disk": "Disco",
+    "diskText": "Lo lleno que está, y su temperatura",
+    "network": "Red",
+    "networkText": "Velocidad de descarga y subida",
+    "volume": "Volumen",
+    "volumeText": "El nivel de sonido de tu PC",
+    "note": "Una nota sobre la temperatura de la CPU: Windows solo la comparte con programas que tienen permisos de administrador y un controlador. Activa <em>CPU temperature</em> en los ajustes de Sistema de <span translate=\"no\">Vigil</span> e instala el controlador gratuito <a href=\"https://pawnio.eu/\" translate=\"no\">PawnIO</a>. Sin ellos, <span translate=\"no\">Vigil</span> muestra la carga de la CPU."
+  },
+  "quiet": {
+    "title": "Arranca con Windows. <span class=\"dim\">Y luego no molesta.</span>",
+    "startTitle": "Encendido desde el inicio",
+    "startText": "<span translate=\"no\">Vigil</span> arranca con Windows y pone la pantalla en marcha antes de que abras nada.",
+    "trayTitle": "Vive en la bandeja",
+    "trayText": "Espera en el área de notificación. Los ajustes están a un clic.",
+    "browserTitle": "Sin navegador",
+    "browserText": "<span translate=\"no\">Vigil</span> habla con la pantalla directamente por USB. No hay nada que mantener abierto.",
+    "updatesTitle": "Actualizar no borra nada",
+    "updatesText": "Ejecuta el nuevo instalador sobre el anterior. Tus ajustes se quedan como estaban."
+  },
+  "privacy": {
+    "title": "En línea solo para una cosa.",
+    "text": "El tiempo. <span translate=\"no\">Vigil</span> pregunta a <span translate=\"no\">Open-Meteo</span> por la ciudad que elijas, con tu posición redondeada a un kilómetro aproximadamente. Tus sensores nunca salen de tu PC."
+  },
+  "cta": {
+    "title": "Dale pulso<br>a tu escritorio.",
+    "fineprint": "Windows&nbsp;10 y&nbsp;11, 64&nbsp;bits · Para pantallas USB de 3,5 pulgadas · Versión&nbsp;{{VERSION}}"
+  }
+}

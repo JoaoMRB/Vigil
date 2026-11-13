@@ -1,0 +1,366 @@
+<!doctype html>
+<html lang="{{LANG}}">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{{t.meta.title}}</title>
+<meta name="description" content="{{t.meta.description}}">
+<meta name="theme-color" content="#08080A">
+<meta name="color-scheme" content="dark">
+<link rel="canonical" href="{{PAGE_URL}}">
+{{ALTERNATES}}
+
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Vigil">
+<meta property="og:title" content="{{t.meta.shareTitle}}">
+<meta property="og:description" content="{{t.meta.description}}">
+<meta property="og:locale" content="{{OG_LOCALE}}">
+<meta property="og:url" content="{{PAGE_URL}}">
+<meta property="og:image" content="{{SITE_URL}}/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="{{t.meta.imageAlt}}">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="{{t.meta.shareTitle}}">
+<meta name="twitter:description" content="{{t.meta.shortDescription}}">
+<meta name="twitter:image" content="{{SITE_URL}}/og.png">
+<meta name="twitter:image:alt" content="{{t.meta.imageAlt}}">
+
+<link rel="icon" href="/favicon.ico" sizes="16x16 32x32 48x48">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+<link rel="stylesheet" href="/styles.css">
+<script>document.documentElement.classList.add('js')</script>
+<script src="/main.js" defer></script>
+</head>
+<body>
+<a class="skip-link" href="#main">{{t.ui.skip}}</a>
+
+<header class="site-header">
+  <div class="wrap header-inner">
+    <a class="brand" href="#top" aria-label="{{t.ui.backToTop}}">
+      <svg class="brand-mark" viewBox="6 10 52 46" width="26" height="23" aria-hidden="true">
+        <rect x="8" y="12" width="48" height="32" rx="7.5" fill="none" stroke="currentColor" stroke-width="3.5"/>
+        <path d="M14.5 29.5 C20 22.5 26 20.5 32.5 20.5 C40 20.5 46 23 54.5 19.5 C51.5 24 49.5 27 47.5 30 C42.5 34.6 37.5 36.5 32.5 36.5 C26 36.5 20 34.5 14.5 29.5 Z" fill="currentColor"/>
+        <circle cx="33" cy="28.8" r="4.1" fill="var(--accent)"/>
+        <path d="M24.5 53 H39.5" stroke="currentColor" stroke-width="3.5" stroke-linecap="round"/>
+      </svg>
+      <span class="brand-name" translate="no">Vigil</span>
+    </a>
+    <nav class="nav" aria-label="{{t.ui.mainNav}}">
+      <a href="#views">{{t.nav.views}}</a>
+      <a href="#designs">{{t.nav.designs}}</a>
+      <a href="#sensors">{{t.nav.sensors}}</a>
+      <a href="#privacy">{{t.nav.privacy}}</a>
+    </nav>
+    <div class="header-actions">
+      <details class="lang">
+        <summary class="lang-button">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M3 12h18"/><path d="M12 3c2.5 2.6 3.8 5.6 3.8 9s-1.3 6.4-3.8 9c-2.5-2.6-3.8-5.6-3.8-9S9.5 5.6 12 3z"/></svg>
+          <span class="sr-only">{{t.ui.language}}: {{LANG_NAME}}</span><span aria-hidden="true">{{LANG_SHORT}}</span>
+          <svg class="lang-chevron" width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 3.5l3 3 3-3"/></svg>
+        </summary>
+        <ul class="lang-menu" role="list">
+{{LANG_MENU}}
+        </ul>
+      </details>
+      <a class="btn btn-ghost btn-sm btn-github" href="{{REPO_URL}}" aria-label="{{t.ui.githubLabel}}">
+        <svg width="18" height="18" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8z"/></svg>
+        <span class="btn-github-text" translate="no">GitHub</span>
+      </a>
+      <a class="btn btn-light btn-sm" href="#download">{{t.ui.download}}</a>
+    </div>
+  </div>
+</header>
+
+<main id="main">
+
+  <!-- HERO -->
+  <section id="top" class="hero">
+    <p class="eyebrow">{{t.hero.eyebrow}}</p>
+    <h1 class="hero-title">{{t.hero.title}}</h1>
+    <p class="hero-lead">{{t.hero.lead}}</p>
+    <div class="actions">
+      <a class="btn btn-accent btn-lg" href="{{DOWNLOAD_URL}}">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12"/><path d="M7 10l5 5 5-5"/><path d="M5 21h14"/></svg>
+        {{t.ui.downloadWindows}}
+      </a>
+      <a class="btn btn-ghost btn-lg" href="#designs">{{t.hero.seeDesigns}}</a>
+    </div>
+    <p class="fineprint">{{t.hero.fineprint}}<br><a class="fineprint-link" href="{{REPO_URL}}">{{t.hero.source}}</a></p>
+
+    <figure class="device">
+      <div class="device-glow" aria-hidden="true"></div>
+      <div class="device-frame">
+        <div class="device-screen" role="img" aria-label="{{t.hero.screenLabel}}">
+          <div class="screen-top">
+            <span data-clock-date>{{t.hero.date}}</span>
+            <span>{{t.cities.london}} 14°</span>
+          </div>
+          <div class="screen-time tnum"><span data-clock-h>21</span><span class="colon">:</span><span data-clock-m>47</span></div>
+          <div class="screen-bottom">
+            <span><span class="dot">●</span> CPU&nbsp;41°C</span>
+            <span><span class="dot">●</span> GPU&nbsp;38°C</span>
+            <span><span class="dot">●</span> RAM&nbsp;34%</span>
+            <span><span class="dot">●</span> ↓&nbsp;4.1&nbsp;MB/s</span>
+          </div>
+        </div>
+      </div>
+      <div class="device-stand" aria-hidden="true"></div>
+      <figcaption class="caption">{{t.hero.caption}}</figcaption>
+    </figure>
+  </section>
+
+  <!-- STATEMENT -->
+  <section class="statement reveal" aria-label="{{t.statement.label}}">
+    <p>{{t.statement.text}}</p>
+  </section>
+
+  <!-- VIEWS -->
+  <section id="views" class="section reveal" aria-labelledby="views-title">
+    <div class="wrap">
+      <p class="eyebrow">{{t.nav.views}}</p>
+      <h2 id="views-title" class="h2">{{t.views.title}}</h2>
+      <p class="lead">{{t.views.lead}}</p>
+
+      <div class="grid grid-views">
+        <article class="card">
+          <div class="mock mock-center" aria-hidden="true">
+            <div class="mock-clock tnum">21:47</div>
+            <div class="mono-xs upper muted">{{t.views.clockDate}}</div>
+          </div>
+          <h3 class="h3">{{t.views.clock}}</h3>
+          <p class="card-text">{{t.views.clockText}}</p>
+        </article>
+
+        <article class="card">
+          <div class="mock mock-pad mock-tiles" aria-hidden="true">
+            <div class="tile"><span class="mono-xxs muted">CPU</span><span class="tile-value tnum">41°</span></div>
+            <div class="tile"><span class="mono-xxs muted">GPU</span><span class="tile-value tnum">38°</span></div>
+            <div class="tile"><span class="mono-xxs muted">MEMORY</span><span class="tile-value tnum">34%</span></div>
+            <div class="tile"><span class="mono-xxs muted">NETWORK</span><span class="tile-value tnum">4.1<small> MB/s</small></span></div>
+          </div>
+          <h3 class="h3">{{t.views.system}}</h3>
+          <p class="card-text">{{t.views.systemText}}</p>
+        </article>
+
+        <article class="card">
+          <div class="mock mock-pad mock-weather" aria-hidden="true">
+            <div class="weather-now">
+              <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M7 19h10a4 4 0 0 0 0-8 5 5 0 0 0-9.6 1.5A3.3 3.3 0 0 0 7 19z"/></svg>
+              <div>
+                <div class="weather-temp tnum">14°</div>
+                <div class="weather-place">{{t.cities.london}} · {{t.views.cloudy}}</div>
+              </div>
+            </div>
+            <div class="weather-quote">{{t.views.quote}}<span>Leonardo da Vinci</span></div>
+          </div>
+          <h3 class="h3">{{t.views.weather}}</h3>
+          <p class="card-text">{{t.views.weatherText}}</p>
+        </article>
+
+        <article class="card">
+          <div class="mock mock-pad mock-world" aria-hidden="true">
+            <div class="world-row"><span>{{t.cities.london}}</span><span class="tnum">21:47</span></div>
+            <div class="world-row"><span>{{t.cities.newYork}}</span><span class="tnum">16:47</span></div>
+            <div class="world-row"><span>São Paulo</span><span class="tnum">18:47</span></div>
+            <div class="world-row"><span>{{t.cities.tokyo}}</span><span class="tnum">06:47</span></div>
+          </div>
+          <h3 class="h3">{{t.views.world}}</h3>
+          <p class="card-text">{{t.views.worldText}}</p>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- DESIGNS -->
+  <section id="designs" class="section section-raised reveal" aria-labelledby="designs-title">
+    <div class="wrap">
+      <div class="center">
+        <p class="eyebrow">{{t.nav.designs}}</p>
+        <h2 id="designs-title" class="h2">{{t.designs.title}}</h2>
+        <p class="lead lead-center">{{t.designs.lead}}</p>
+      </div>
+
+      <div class="grid grid-designs">
+        <figure class="design t-amber">
+          <div class="mock mock-pad mock-dashboard" aria-hidden="true">
+            <div class="dtile span-2"><span class="mono-xxs t">CPU</span><span class="dval dval-lg tnum">41°<small> 23%</small></span></div>
+            <div class="dtile"><span class="mono-xxs t">GPU</span><span class="dval dval-md tnum">38°</span></div>
+            <div class="dtile"><span class="mono-xxs t">RAM</span><span class="dval tnum">11.2&nbsp;GB</span></div>
+            <div class="dtile"><span class="mono-xxs t">DISK</span><span class="dval tnum">62%</span></div>
+            <div class="dtile"><span class="mono-xxs t">NET</span><span class="dval tnum">↓4.1</span></div>
+          </div>
+          <figcaption class="design-name"><span class="swatch" aria-hidden="true"></span>Dashboard</figcaption>
+        </figure>
+
+        <figure class="design t-sky">
+          <div class="mock mock-panel" aria-hidden="true">
+            <div class="prow"><span>CPU temp</span><span class="tnum">41&nbsp;°C</span></div>
+            <div class="prow"><span>CPU load</span><span class="tnum">23&nbsp;%</span></div>
+            <div class="prow"><span>GPU temp</span><span class="tnum">38&nbsp;°C</span></div>
+            <div class="prow"><span>GPU load</span><span class="tnum">9&nbsp;%</span></div>
+            <div class="prow"><span>Memory</span><span class="tnum">11.2 / 32&nbsp;GB</span></div>
+            <div class="prow"><span>Disk C:</span><span class="tnum">62&nbsp;%</span></div>
+            <div class="prow"><span>Network</span><span class="tnum">↓&nbsp;4.1 ↑&nbsp;0.3&nbsp;MB/s</span></div>
+          </div>
+          <figcaption class="design-name"><span class="swatch" aria-hidden="true"></span>Full panel</figcaption>
+        </figure>
+
+        <figure class="design t-lime">
+          <div class="mock mock-pad mock-gauges" aria-hidden="true">
+            <div class="gauge">
+              <svg width="84" height="84" viewBox="0 0 84 84"><circle cx="42" cy="42" r="34" class="g-track"/><circle cx="42" cy="42" r="34" class="g-fill" stroke-dasharray="49 214" transform="rotate(-90 42 42)"/><text x="42" y="48" text-anchor="middle">23%</text></svg>
+              <span class="mono-xxs t">CPU</span>
+            </div>
+            <div class="gauge">
+              <svg width="84" height="84" viewBox="0 0 84 84"><circle cx="42" cy="42" r="34" class="g-track"/><circle cx="42" cy="42" r="34" class="g-fill" stroke-dasharray="19 214" transform="rotate(-90 42 42)"/><text x="42" y="48" text-anchor="middle">9%</text></svg>
+              <span class="mono-xxs t">GPU</span>
+            </div>
+            <div class="gauge">
+              <svg width="84" height="84" viewBox="0 0 84 84"><circle cx="42" cy="42" r="34" class="g-track"/><circle cx="42" cy="42" r="34" class="g-fill" stroke-dasharray="73 214" transform="rotate(-90 42 42)"/><text x="42" y="48" text-anchor="middle">34%</text></svg>
+              <span class="mono-xxs t">RAM</span>
+            </div>
+          </div>
+          <figcaption class="design-name"><span class="swatch" aria-hidden="true"></span>Gauges</figcaption>
+        </figure>
+
+        <figure class="design t-violet">
+          <div class="mock mock-bars" aria-hidden="true">
+            <div class="bar"><div class="bar-head"><span>CPU</span><span class="tnum">23%</span></div><div class="bar-track"><div class="bar-fill" style="--v:23%"></div></div></div>
+            <div class="bar"><div class="bar-head"><span>GPU</span><span class="tnum">9%</span></div><div class="bar-track"><div class="bar-fill" style="--v:9%"></div></div></div>
+            <div class="bar"><div class="bar-head"><span>MEMORY</span><span class="tnum">34%</span></div><div class="bar-track"><div class="bar-fill" style="--v:34%"></div></div></div>
+            <div class="bar"><div class="bar-head"><span>DISK</span><span class="tnum">62%</span></div><div class="bar-track"><div class="bar-fill" style="--v:62%"></div></div></div>
+          </div>
+          <figcaption class="design-name"><span class="swatch" aria-hidden="true"></span>Bars</figcaption>
+        </figure>
+
+        <figure class="design t-blue">
+          <div class="mock mock-graphs" aria-hidden="true">
+            <div>
+              <div class="bar-head"><span>CPU · recent</span><span class="tnum v">23%</span></div>
+              <svg width="100%" height="52" viewBox="0 0 300 52" preserveAspectRatio="none"><polyline points="0,40 20,36 40,38 60,30 80,34 100,22 120,28 140,18 160,26 180,30 200,20 220,24 240,14 260,22 280,26 300,20"/></svg>
+            </div>
+            <div>
+              <div class="bar-head"><span>NETWORK · recent</span><span class="tnum v">↓&nbsp;4.1&nbsp;MB/s</span></div>
+              <svg width="100%" height="52" viewBox="0 0 300 52" preserveAspectRatio="none"><polyline points="0,46 20,44 40,45 60,40 80,30 100,12 120,16 140,34 160,42 180,44 200,38 220,26 240,30 260,40 280,44 300,42"/></svg>
+            </div>
+          </div>
+          <figcaption class="design-name"><span class="swatch" aria-hidden="true"></span>Graphs</figcaption>
+        </figure>
+
+        <figure class="design t-white">
+          <div class="mock mock-center mock-minimal" aria-hidden="true">
+            <div class="minimal-value tnum">41°</div>
+            <div class="mono-xxs muted wide">CPU</div>
+          </div>
+          <figcaption class="design-name"><span class="swatch" aria-hidden="true"></span>Minimal</figcaption>
+        </figure>
+      </div>
+    </div>
+  </section>
+
+  <!-- SENSORS -->
+  <section id="sensors" class="section reveal" aria-labelledby="sensors-title">
+    <div class="wrap">
+      <p class="eyebrow">{{t.nav.sensors}}</p>
+      <h2 id="sensors-title" class="h2 h2-spaced">{{t.sensors.title}}</h2>
+
+      <dl class="sensors">
+        <div class="sensor"><dt>CPU</dt><dd class="sensor-what">{{t.sensors.tempLoad}}</dd><dd class="sensor-value tnum">41&nbsp;°C · 23&nbsp;%</dd></div>
+        <div class="sensor"><dt>GPU</dt><dd class="sensor-what">{{t.sensors.tempLoad}}</dd><dd class="sensor-value tnum">38&nbsp;°C · 9&nbsp;%</dd></div>
+        <div class="sensor"><dt>{{t.sensors.memory}}</dt><dd class="sensor-what">{{t.sensors.memoryText}}</dd><dd class="sensor-value tnum">11.2 / 32&nbsp;GB</dd></div>
+        <div class="sensor"><dt>{{t.sensors.disk}}</dt><dd class="sensor-what">{{t.sensors.diskText}}</dd><dd class="sensor-value tnum">62&nbsp;% · 38&nbsp;°C</dd></div>
+        <div class="sensor"><dt>{{t.sensors.network}}</dt><dd class="sensor-what">{{t.sensors.networkText}}</dd><dd class="sensor-value tnum">↓&nbsp;4.1 ↑&nbsp;0.3&nbsp;MB/s</dd></div>
+        <div class="sensor"><dt>{{t.sensors.volume}}</dt><dd class="sensor-what">{{t.sensors.volumeText}}</dd><dd class="sensor-value tnum">40&nbsp;%</dd></div>
+      </dl>
+
+      <p class="note">{{t.sensors.note}}</p>
+    </div>
+  </section>
+
+  <!-- QUIET -->
+  <section class="section section-top-0 reveal" aria-labelledby="quiet-title">
+    <div class="wrap">
+      <h2 id="quiet-title" class="h2 h2-spaced h2-narrow">{{t.quiet.title}}</h2>
+
+      <div class="grid grid-features">
+        <div class="card card-feature">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v8"/><path d="M6.3 6.3a8 8 0 1 0 11.4 0"/></svg>
+          <h3 class="h3">{{t.quiet.startTitle}}</h3>
+          <p class="card-text">{{t.quiet.startText}}</p>
+        </div>
+        <div class="card card-feature">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="14" rx="2"/><path d="M15 15h3"/><path d="M8 21h8"/></svg>
+          <h3 class="h3">{{t.quiet.trayTitle}}</h3>
+          <p class="card-text">{{t.quiet.trayText}}</p>
+        </div>
+        <div class="card card-feature">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 7V4h6v3"/><rect x="6" y="7" width="12" height="7" rx="1.5"/><path d="M12 14v7"/></svg>
+          <h3 class="h3">{{t.quiet.browserTitle}}</h3>
+          <p class="card-text">{{t.quiet.browserText}}</p>
+        </div>
+        <div class="card card-feature">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 12a8 8 0 1 1-2.3-5.7"/><path d="M20 4v5h-5"/></svg>
+          <h3 class="h3">{{t.quiet.updatesTitle}}</h3>
+          <p class="card-text">{{t.quiet.updatesText}}</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- PRIVACY -->
+  <section id="privacy" class="section section-raised center reveal" aria-labelledby="privacy-title">
+    <div class="wrap">
+      <svg class="privacy-icon" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l7 3v6c0 4.4-3 7.7-7 9-4-1.3-7-4.6-7-9V6z"/><path d="M9 12l2 2 4-4"/></svg>
+      <h2 id="privacy-title" class="h2 h2-narrow h2-center">{{t.privacy.title}}</h2>
+      <p class="lead lead-center lead-big">{{t.privacy.text}}</p>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <section id="download" class="cta reveal" aria-labelledby="cta-title">
+    <div class="cta-glow" aria-hidden="true"></div>
+    <div class="cta-inner">
+      <h2 id="cta-title" class="cta-title">{{t.cta.title}}</h2>
+      <div class="actions actions-cta">
+        <a class="btn btn-accent btn-xl" href="{{DOWNLOAD_URL}}">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12"/><path d="M7 10l5 5 5-5"/><path d="M5 21h14"/></svg>
+          {{t.ui.downloadWindows}}
+        </a>
+      </div>
+      <p class="fineprint">{{t.cta.fineprint}}</p>
+    </div>
+  </section>
+
+</main>
+
+<footer class="site-footer">
+  <div class="wrap footer-inner">
+    <span class="footer-brand">
+      <svg viewBox="6 10 52 46" width="18" height="16" aria-hidden="true">
+        <rect x="8" y="12" width="48" height="32" rx="7.5" fill="none" stroke="currentColor" stroke-width="4"/>
+        <path d="M14.5 29.5 C20 22.5 26 20.5 32.5 20.5 C40 20.5 46 23 54.5 19.5 C51.5 24 49.5 27 47.5 30 C42.5 34.6 37.5 36.5 32.5 36.5 C26 36.5 20 34.5 14.5 29.5 Z" fill="currentColor"/>
+        <circle cx="33" cy="28.8" r="4.1" fill="var(--accent)"/>
+        <path d="M24.5 53 H39.5" stroke="currentColor" stroke-width="4" stroke-linecap="round"/>
+      </svg>
+      <span><span translate="no">Vigil</span> · © {{YEAR}}</span>
+    </span>
+    <nav class="footer-nav" aria-label="{{t.ui.footerNav}}">
+      <a href="{{REPO_URL}}" translate="no">GitHub</a>
+      <a href="{{RELEASES_URL}}">{{t.ui.releases}}</a>
+      <a href="#privacy">{{t.nav.privacy}}</a>
+    </nav>
+    <nav class="footer-langs" aria-label="{{t.ui.language}}">
+{{LANG_LINKS}}
+    </nav>
+  </div>
+</footer>
+<!-- Web fonts. With JavaScript, main.js loads them just after the first paint (the fallbacks in styles.css are
+     sized like them, so nothing moves when they swap in); without it, this loads them directly. -->
+<noscript data-fonts><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@200..600&amp;family=Inter:wght@400..600&amp;family=JetBrains+Mono:wght@400..500&amp;display=swap"></noscript>
+</body>
+</html>

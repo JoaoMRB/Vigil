@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <title>Vigil</title>
+  <!-- App icon for 16 and 24 px (the tray): the same silhouette, flat, bold enough for a few pixels. -->
+  <defs>
+    <linearGradient id="vs-tile" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#2c2c2e"/><stop offset="1" stop-color="#050506"/>
+    </linearGradient>
+  </defs>
+  <rect width="64" height="64" rx="14.5" fill="url(#vs-tile)"/>
+  <rect x=".5" y=".5" width="63" height="63" rx="14" fill="none" stroke="#ffffff" stroke-opacity=".16"/>
+  <g transform="translate(6.4 6.4) scale(.8)">
+    <rect x="8" y="12" width="48" height="32" rx="7.5" fill="none" stroke="#ffffff" stroke-width="4.5"/>
+    <path d="M14.5 29.5 C20 22.5 26 20.5 32.5 20.5 C40 20.5 46 23 54.5 19.5 C51.5 24 49.5 27 47.5 30 C42.5 34.6 37.5 36.5 32.5 36.5 C26 36.5 20 34.5 14.5 29.5 Z" fill="#ffffff"/>
+    <circle cx="33" cy="28.8" r="4.1" fill="#0b0b0c"/>
+    <path d="M24.5 53 H39.5" stroke="#ffffff" stroke-width="4.5" stroke-linecap="round"/>
+  </g>
+</svg>
