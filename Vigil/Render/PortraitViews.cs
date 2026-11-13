@@ -152,18 +152,4 @@ public sealed partial class ScreenRenderer
         _canvas.DrawText(TrackTime(position), left, barY + 24, SKTextAlign.Left, timeFont, paint);
         _canvas.DrawText(TrackTime(music.Duration), left + width, barY + 24, SKTextAlign.Right, timeFont, paint);
     }
-
-    /// <summary>
-    /// The system view standing upright. Until each design has an upright layout of its own, the landscape one,
-    /// shrunk to the width and centred.
-    /// </summary>
-    private void DrawSystemPortrait(SystemSnapshot s, RenderOptions o, DateTime now)
-    {
-        float scale = W / (float)PanelW;
-        _canvas.Save();
-        _canvas.Translate(0, (H - PanelH * scale) / 2);
-        _canvas.Scale(scale);
-        DrawSystem(s, o, now);
-        _canvas.Restore();
-    }
 }

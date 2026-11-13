@@ -18,7 +18,8 @@ All notable changes to Vigil are listed here. Versions follow [Semantic Versioni
   under System), turns off before the PC sleeps, and comes back by itself on wake-up, without waiting for an error.
 - *How the screen stands* under Appearance: landscape, upside down, or upright turned either way. Upright, the
   clock stacks the hours over the minutes, and the weather, world clocks and now playing views have layouts of their
-  own. The preview in the window stands the same way.
+  own. The preview in the window stands the same way. So do the seven system designs: the CPU over the GPU, the
+  meters and charts as wide as the screen, and the Custom design's cards two across.
 - Updates: once a day Vigil asks GitHub for the latest release. A newer one shows in the tray, with a notification.
   Choosing it downloads the installer, checks it against the SHA-256 GitHub lists, and installs it silently, and then
   Vigil starts again. You can switch the check off with *Check for updates* under System.
