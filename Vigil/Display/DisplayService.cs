@@ -54,11 +54,18 @@ public sealed class DisplayService : IDisposable
     /// <summary>Set by the loop once the screen is off and the port closed, so the PC can go to sleep.</summary>
     private readonly ManualResetEventSlim _readyToSleep = new(true);
 
+    private readonly Func<bool> _fullScreen;
+    private volatile bool _gaming;
+    /// <summary>When the full-screen state started to differ from <see cref="Gaming"/> (Environment.TickCount64), or -1.</summary>
+    private long _gameChangeSince = -1;
+
     /// <param name="newLink">The display to drive. The real one over USB unless given (the simulator passes its own).</param>
-    public DisplayService(Settings settings, Func<IDisplayLink>? newLink = null)
+    /// <param name="fullScreen">Whether a game fills the PC's screen. Windows is asked unless given (the simulator pretends).</param>
+    public DisplayService(Settings settings, Func<IDisplayLink>? newLink = null, Func<bool>? fullScreen = null)
     {
         _settings = settings;
         _newLink = newLink ?? (() => new DisplayLink());
+        _fullScreen = fullScreen ?? GameDetector.FullScreenAppRunning;
         ConfigureSources();
         _thread = new Thread(Run) { IsBackground = true, Name = "Display" };
     }
@@ -78,6 +85,15 @@ public sealed class DisplayService : IDisposable
     public DisplayStatus Status { get; private set; } = DisplayStatus.NotFound;
     /// <summary>Detail for the status: the model and port when connected, the error text otherwise.</summary>
     public string Detail { get; private set; } = "";
+
+    /// <summary>
+    /// A game has filled the PC's screen for <see cref="GameHoldMs"/>, so the screen shows
+    /// <see cref="Settings.GameView"/>. It goes back to the usual views once the game has been out of full screen as long.
+    /// </summary>
+    public bool Gaming => _gaming;
+
+    /// <summary>How long a game must be in full screen, or out of it, before the screen follows. Alt+Tab is shorter.</summary>
+    public int GameHoldMs { get; init; } = 5000;
 
     /// <summary>Raised on the display thread whenever <see cref="Status"/> changes.</summary>
     public event Action? StatusChanged;
@@ -150,7 +166,33 @@ public sealed class DisplayService : IDisposable
         Theme theme = Themes.Resolve(s.Theme);
         SystemStyle style = SystemDesigns.Resolve(theme, s.SystemDesign, s.Designs.GetValueOrDefault(s.SystemDesign));
         var options = new RenderOptions(theme, ClockFonts.Resolve(s.Font), s.Use24h, CultureInfo.CurrentCulture, _text, style);
-        return (ViewFor(s, now, data), options, data);
+        ScreenView view = _gaming
+            ? s.GameView == "system" ? ScreenView.System : ScreenView.Clock
+            : ViewFor(s, now, data);
+        return (view, options, data);
+    }
+
+    /// <summary>Follows full-screen games, with a hold either way so a quick Alt+Tab does not flip the screen.</summary>
+    private void UpdateGaming()
+    {
+        if (_settings.GameView == "off")
+        {
+            _gaming = false;
+            _gameChangeSince = -1;
+            return;
+        }
+        bool full = _fullScreen();
+        if (full == _gaming)
+        {
+            _gameChangeSince = -1;
+            return;
+        }
+        long now = Environment.TickCount64;
+        if (_gameChangeSince < 0) _gameChangeSince = now;
+        if (now - _gameChangeSince < GameHoldMs) return;
+        _gaming = full;
+        _gameChangeSince = -1;
+        Log.Info(full ? $"full-screen game: showing {_settings.GameView}" : "full-screen game: over");
     }
 
     /// <summary>
@@ -177,7 +219,7 @@ public sealed class DisplayService : IDisposable
 
     private void ConfigureSources()
     {
-        Sensors.SetEnabled(_settings.Views.Contains("system"));
+        Sensors.SetEnabled(_settings.Views.Contains("system") || _settings.GameView == "system");
         Weather.Configure(_settings.Views.Contains("weather"), _settings.WeatherCity);
     }
 
@@ -306,6 +348,7 @@ public sealed class DisplayService : IDisposable
                 continue;
             }
 
+            UpdateGaming();
             DateTime now = DateTime.Now;
             // The lowest of what applies: the user's brightness, the night's, and the locked screen's.
             bool night = _settings.IsNight(now);

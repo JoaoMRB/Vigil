@@ -16,6 +16,8 @@ All notable changes to Vigil are listed here. Versions follow [Semantic Versioni
   and the settings window next to the name.
 - The screen follows the PC: it dims to just the time while the PC is locked (or turns off, or keeps going, as set
   under System), turns off before the PC sleeps, and comes back by itself on wake-up, without waiting for an error.
+- *During a full-screen game* under Views: after 5 seconds of a game or video filling the PC's screen, the display
+  shows the system view (or the clock), and goes back to your views 5 seconds after you leave it.
 - *Dim at night* under Appearance: the backlight goes down between two times, such as 22:00 to 07:00. While the PC is
   locked, the lower of the two brightness levels applies.
 - The display is found the moment its cable goes in, and a pulled cable is noticed at once instead of after a

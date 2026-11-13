@@ -2,6 +2,7 @@ using System.Diagnostics;
 using System.Drawing.Imaging;
 using System.Runtime.InteropServices;
 using Vigil.Display;
+using Vigil.Render;
 
 namespace Vigil;
 
@@ -26,7 +27,7 @@ public static class Simulator
         Settings settings = Settings.Load();
         settings.Views = [.. settings.Views];
         var link = new SimulatedLink();
-        using var display = new DisplayService(settings, () => link);
+        using var display = new DisplayService(settings, () => link, () => link.GameFullScreen);
         using var form = new SimulatorForm(settings, display, link);
         display.Start();
         Application.Run(form);
@@ -44,7 +45,7 @@ public static class Simulator
         bool allPassed = true;
         var settings = new Settings { Brightness = 60, LockScreen = "dim" }; // never saved
         var link = new SimulatedLink();
-        var display = new DisplayService(settings, () => link);
+        var display = new DisplayService(settings, () => link, () => link.GameFullScreen) { GameHoldMs = 1000 };
         display.Start();
 
         void Check(string name, Func<bool> done, int timeoutMs)
@@ -99,6 +100,23 @@ public static class Simulator
             settings.NightDim = false;
             display.ApplySettings();
             Check("night off: back to its own brightness", () => link.Brightness == 60, 3000);
+
+            // A full-screen game, with the usual view the clock and the system view set for games.
+            ScreenView Showing() => display.Frame(DateTime.Now).View;
+            settings.GameView = "system";
+            display.ApplySettings();
+            link.GameFullScreen = true;
+            Thread.Sleep(500);
+            Check("game, briefly (Alt+Tab): still the usual view", () => Showing() == ScreenView.Clock, 0);
+            Check("game: the system view after the hold", () => display.Gaming && Showing() == ScreenView.System, 3000);
+            link.GameFullScreen = false;
+            Check("game over: the usual view after the hold", () => !display.Gaming && Showing() == ScreenView.Clock, 3000);
+            link.GameFullScreen = true;
+            Check("game again", () => display.Gaming, 3000);
+            settings.GameView = "off";
+            display.ApplySettings();
+            Check("games set to the usual views: at once", () => !display.Gaming, 1500);
+            link.GameFullScreen = false;
 
             seen.Clear();
             link.Plugged = false;
@@ -212,6 +230,7 @@ internal sealed class SimulatorForm : Form
             Toggle("Refuse to connect", "Accept connections", on => _link.RefuseConnect = on),
             Toggle("Lock the PC", "Unlock the PC", on => _display.SetLocked(on)),
             Toggle("Sleep", "Wake up", on => { if (on) Task.Run(_display.Sleep); else _display.WakeUp(); }),
+            Toggle("Start a full-screen game", "Leave the game", on => _link.GameFullScreen = on),
             Button("Settings…", (_, _) => OpenSettings())
         ]);
 

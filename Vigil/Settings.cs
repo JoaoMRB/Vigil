@@ -44,6 +44,10 @@ public sealed class Settings
     public string LockScreen { get; set; } = "dim";
     public static readonly string[] LockScreenChoices = ["dim", "off", "keep"];
 
+    /// <summary>What the screen shows while a game fills the PC's screen: "off" (the usual views), "system" or "clock".</summary>
+    public string GameView { get; set; } = "off";
+    public static readonly string[] GameViewChoices = ["off", "system", "clock"];
+
     /// <summary>Turn the backlight down to <see cref="NightBrightness"/> between <see cref="NightStart"/> and <see cref="NightEnd"/>.</summary>
     public bool NightDim { get; set; }
     /// <summary>"HH:mm", local time. The night may run past midnight (22:00 to 07:00).</summary>
@@ -135,6 +139,7 @@ public sealed class Settings
         ViewSeconds = Math.Clamp(ViewSeconds, MinViewSeconds, MaxViewSeconds);
         Brightness = Math.Clamp(Brightness, 0, 100);
         if (!LockScreenChoices.Contains(LockScreen)) LockScreen = "dim";
+        if (!GameViewChoices.Contains(GameView)) GameView = "off";
         NightStart = ParseTime(NightStart, 22).ToString("HH:mm", System.Globalization.CultureInfo.InvariantCulture);
         NightEnd = ParseTime(NightEnd, 7).ToString("HH:mm", System.Globalization.CultureInfo.InvariantCulture);
         NightBrightness = Math.Clamp(NightBrightness, 0, 100);

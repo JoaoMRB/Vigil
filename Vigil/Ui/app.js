@@ -129,7 +129,7 @@ function setSwitch(button, on) {
 
 /* ------------------------------ build ------------------------------ */
 
-let markSeconds, markTheme, markFont, markLock;
+let markSeconds, markTheme, markFont, markLock, markGame;
 const viewSwitches = new Map();
 const worldSelects = [];
 
@@ -158,6 +158,10 @@ function build() {
   markLock = radioGroup($('lock'), [
     { value: 'dim', label: 'Dim' }, { value: 'off', label: 'Turn off' }, { value: 'keep', label: 'Keep showing' }
   ], value => { set('lockScreen', value); markLock(value); }, (button, option) => { button.textContent = option.label; });
+
+  markGame = radioGroup($('game'), [
+    { value: 'off', label: 'Your views' }, { value: 'system', label: 'System' }, { value: 'clock', label: 'Clock' }
+  ], value => { set('gameView', value); markGame(value); }, (button, option) => { button.textContent = option.label; });
 
   markSeconds = radioGroup($('seconds'), model.secondsChoices.map(s => ({ value: s, label: `${s}s` })),
     value => { set('viewSeconds', value); markSeconds(value); },
@@ -269,6 +273,7 @@ function sync() {
   if (document.activeElement !== $('night-brightness')) $('night-brightness').value = settings.nightBrightness;
   showNightBrightness(+$('night-brightness').value);
   markLock(settings.lockScreen);
+  markGame(settings.gameView);
   syncDesign();
 
   worldSelects.forEach((select, slot) => {

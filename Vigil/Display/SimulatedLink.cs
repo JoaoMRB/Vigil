@@ -45,6 +45,9 @@ public sealed class SimulatedLink : IDisplayLink
     /// <summary>The port is there but connecting fails, as with a display that does not answer.</summary>
     public bool RefuseConnect { get; set; }
 
+    /// <summary>Not the display but the pretend PC: a game fills its screen.</summary>
+    public bool GameFullScreen { get; set; }
+
     public string Model => _open ? "Simulated 3.5" : "";
     public string PortName => _open ? SimulatedPort : "";
 
