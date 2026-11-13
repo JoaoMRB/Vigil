@@ -74,7 +74,7 @@ Root: HKCU; Subkey: "Software\Microsoft\Windows\CurrentVersion\Run"; ValueType: 
 Filename: "{app}\{#AppExe}"; Description: "{cm:LaunchProgram,{#AppName}}"; Flags: nowait postinstall skipifsilent
 
 [UninstallRun]
-; "Start with Windows" in administrator mode is a scheduled task (Settings.cs). Removing it needs the rights it
+; Administrator mode with "Start with Windows" adds a scheduled task (Settings.cs). Removing it needs the rights it
 ; was created with: when that fails the task is left behind, pointing at a file that no longer exists.
 Filename: "{sys}\schtasks.exe"; Parameters: "/Delete /TN ""{#AppName}"" /F"; Flags: runhidden; RunOnceId: "RemoveStartupTask"
 
@@ -88,5 +88,9 @@ Type: dirifempty; Name: "{localappdata}\{#AppName}"
 procedure CurUninstallStepChanged(CurUninstallStep: TUninstallStep);
 begin
   if CurUninstallStep = usPostUninstall then
+  begin
     RegDeleteValue(HKEY_CURRENT_USER, 'Software\Microsoft\Windows\CurrentVersion\Run', '{#AppName}');
+    // What Task Manager remembers when the entry was switched off under Startup apps.
+    RegDeleteValue(HKEY_CURRENT_USER, 'Software\Microsoft\Windows\CurrentVersion\Explorer\StartupApproved\Run', '{#AppName}');
+  end;
 end;

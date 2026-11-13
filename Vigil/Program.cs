@@ -48,9 +48,12 @@ internal static class Program
 
         bool tray = args.Contains(Autostart.TrayArgument);
         Settings settings = Settings.Load();
-        if (settings.RunAsAdmin && !Elevation.IsElevated && Elevation.Relaunch(tray ? Autostart.TrayArgument : ""))
+        // A copy started by the task is as elevated as it will get: it must not ask again (that would loop).
+        if (settings.RunAsAdmin && !Elevation.IsElevated && !args.Contains(Autostart.FromTaskArgument))
         {
-            return 0;
+            // At sign-in, the task hands over to a copy with administrator rights without a Windows prompt.
+            if (tray && Autostart.StartElevated()) return 0;
+            if (Elevation.Relaunch(tray ? Autostart.TrayArgument : "")) return 0;
         }
         // (When the user says no to the Windows prompt, the app carries on without the CPU temperature.)
 

@@ -14,7 +14,7 @@
     <Product>Vigil</Product>
     <Company>Vigil</Company>
     <Description>Vigil: your PC on a USB desk display</Description>
-    <Copyright>MIT License</Copyright>
+    <Copyright>© 2026 Malog. MIT License.</Copyright>
     <SatelliteResourceLanguages>en</SatelliteResourceLanguages>
     <!-- The app sits in the tray all day: favour a small footprint over throughput. -->
     <ConcurrentGarbageCollection>false</ConcurrentGarbageCollection>

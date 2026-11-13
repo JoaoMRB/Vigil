@@ -186,38 +186,61 @@ public static class Elevation
 }
 
 /// <summary>
-/// "Start with Windows". Normally the current user's Run key (no admin rights needed). With administrator mode on,
-/// a scheduled task instead: it starts the app elevated at sign-in without a Windows prompt every time.
+/// "Start with Windows": always the current user's Run key, so Vigil is listed under Startup apps in Task Manager
+/// and in Windows' settings, and can be switched on and off there as well as here.
+///
+/// With administrator mode on there is also a scheduled task, which starts nothing by itself: the copy started at
+/// sign-in runs it to get a copy with administrator rights without a Windows prompt every time.
 /// </summary>
 public static class Autostart
 {
     private const string RunKey = @"Software\Microsoft\Windows\CurrentVersion\Run";
+    /// <summary>Where Windows keeps what the user switched off under Startup apps.</summary>
+    private const string ApprovedKey = @"Software\Microsoft\Windows\CurrentVersion\Explorer\StartupApproved\Run";
     private const string Name = "Vigil";
 
     /// <summary>Passed at sign-in so the app starts in the tray without opening its window.</summary>
     public const string TrayArgument = "--tray";
 
+    /// <summary>Passed by the task: this copy is as elevated as it will get, so it must not ask again.</summary>
+    public const string FromTaskArgument = "--from-task";
+
     private static string Command => $"\"{Environment.ProcessPath}\" {TrayArgument}";
 
-    public static bool IsEnabled => RunValueIsSet || TaskExists();
+    /// <summary>On when the entry is there and the user has not switched it off in Task Manager.</summary>
+    public static bool IsEnabled => (RunValueIsSet && !DisabledInWindows) || TaskStartsAtSignIn();
 
     public static void Set(bool enabled, Settings settings)
     {
-        // The task can only be created with administrator rights: without them, the Run key is the fallback.
-        bool useTask = enabled && settings.RunAsAdmin && Elevation.IsElevated;
-        if (useTask) CreateTask();
-        else if (TaskExists()) DeleteTask();
+        using (RegistryKey key = Registry.CurrentUser.CreateSubKey(RunKey))
+        {
+            if (enabled) key.SetValue(Name, Command);
+            else key.DeleteValue(Name, throwOnMissingValue: false);
+        }
+        // Dropping Windows' own note switches the entry back on there too.
+        using (RegistryKey? approved = Registry.CurrentUser.OpenSubKey(ApprovedKey, writable: true))
+        {
+            approved?.DeleteValue(Name, throwOnMissingValue: false);
+        }
 
-        using RegistryKey key = Registry.CurrentUser.CreateSubKey(RunKey);
-        if (enabled && !useTask) key.SetValue(Name, Command);
-        else key.DeleteValue(Name, throwOnMissingValue: false);
+        // The task needs administrator rights to be created, changed or removed. Without them it stays as it is:
+        // harmless when unused, since it starts nothing on its own.
+        if (!Elevation.IsElevated) return;
+        if (enabled && settings.RunAsAdmin) CreateTask();
+        else if (TaskExists()) DeleteTask();
     }
 
-    /// <summary>Moves an existing "start with Windows" to the mechanism that fits the current mode.</summary>
+    /// <summary>Brings an existing "start with Windows" in line with the current mode (and with this version).</summary>
     public static void Sync(Settings settings)
     {
         if (IsEnabled) Set(true, settings);
     }
+
+    /// <summary>
+    /// Starts a copy with administrator rights through the task, without a Windows prompt. False when there is no
+    /// task to do it (administrator mode was never on with "start with Windows", or the task was removed).
+    /// </summary>
+    public static bool StartElevated() => Schtasks($"/Run /TN \"{Name}\"") == 0;
 
     private static bool RunValueIsSet
     {
@@ -228,7 +251,24 @@ public static class Autostart
         }
     }
 
+    /// <summary>Task Manager marks an entry it switched off with an odd first byte (3), and one left on with 2.</summary>
+    private static bool DisabledInWindows
+    {
+        get
+        {
+            using RegistryKey? key = Registry.CurrentUser.OpenSubKey(ApprovedKey);
+            return key?.GetValue(Name) is byte[] { Length: > 0 } state && (state[0] & 1) == 1;
+        }
+    }
+
     private static bool TaskExists() => Schtasks($"/Query /TN \"{Name}\"") == 0;
+
+    /// <summary>
+    /// Earlier versions used the task itself to start at sign-in, which Task Manager does not list. Such a task
+    /// still counts as "on", and is replaced the next time the app runs with administrator rights.
+    /// </summary>
+    private static bool TaskStartsAtSignIn() =>
+        Schtasks($"/Query /TN \"{Name}\" /XML", out string xml) == 0 && xml.Contains("<LogonTrigger>", StringComparison.OrdinalIgnoreCase);
 
     private static void DeleteTask() => Schtasks($"/Delete /TN \"{Name}\" /F");
 
@@ -236,12 +276,12 @@ public static class Autostart
     {
         string user = SecurityElement.Escape(WindowsIdentity.GetCurrent().Name);
         string exe = SecurityElement.Escape(Environment.ProcessPath!);
-        // Unlike `schtasks /Create /SC ONLOGON`, the XML lets the task start on battery power and run for ever.
+        // No trigger: the task only runs when the app asks. The XML form (unlike plain schtasks switches) lets it
+        // start on battery power and run for ever.
         string xml = $"""
             <?xml version="1.0" encoding="UTF-16"?>
             <Task version="1.2" xmlns="http://schemas.microsoft.com/windows/2004/02/mit/task">
-              <RegistrationInfo><Description>Starts Vigil at sign-in, with administrator rights for the CPU temperature.</Description></RegistrationInfo>
-              <Triggers><LogonTrigger><Enabled>true</Enabled><UserId>{user}</UserId></LogonTrigger></Triggers>
+              <RegistrationInfo><Description>Lets Vigil start with administrator rights, for the CPU temperature, without asking every time.</Description></RegistrationInfo>
               <Principals>
                 <Principal id="Author"><UserId>{user}</UserId><LogonType>InteractiveToken</LogonType><RunLevel>HighestAvailable</RunLevel></Principal>
               </Principals>
@@ -252,7 +292,7 @@ public static class Autostart
                 <ExecutionTimeLimit>PT0S</ExecutionTimeLimit>
                 <Priority>7</Priority>
               </Settings>
-              <Actions Context="Author"><Exec><Command>{exe}</Command><Arguments>{TrayArgument}</Arguments></Exec></Actions>
+              <Actions Context="Author"><Exec><Command>{exe}</Command><Arguments>{TrayArgument} {FromTaskArgument}</Arguments></Exec></Actions>
             </Task>
             """;
         string file = Path.Combine(Path.GetTempPath(), $"Vigil-task-{Environment.ProcessId}.xml");
@@ -270,7 +310,9 @@ public static class Autostart
         }
     }
 
-    private static int Schtasks(string arguments)
+    private static int Schtasks(string arguments) => Schtasks(arguments, out _);
+
+    private static int Schtasks(string arguments, out string output)
     {
         var info = new ProcessStartInfo("schtasks.exe", arguments)
         {
@@ -280,8 +322,10 @@ public static class Autostart
             RedirectStandardError = true
         };
         using Process process = Process.Start(info)!;
-        process.StandardOutput.ReadToEnd();
-        process.StandardError.ReadToEnd();
+        // Read both streams at once: reading one to the end first can block when the other fills its buffer.
+        Task<string> errors = process.StandardError.ReadToEndAsync();
+        output = process.StandardOutput.ReadToEnd();
+        errors.Wait();
         process.WaitForExit();
         return process.ExitCode;
     }

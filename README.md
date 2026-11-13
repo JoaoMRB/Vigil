@@ -41,7 +41,7 @@ To update, run the new installer over the old one. Your settings are kept.
   it, turn on *CPU temperature* in the System settings and install the free [PawnIO](https://pawnio.eu/)
   driver. Without these, Vigil shows the CPU load instead.
 - **Start with Windows:** Vigil waits in the notification area and draws on the screen as soon as the screen
-  is plugged in.
+  is plugged in. You can switch this on and off in Vigil, or under *Startup apps* in Task Manager.
 
 ## Privacy
 
