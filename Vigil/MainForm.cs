@@ -179,6 +179,7 @@ public sealed class MainForm : Form
             case "brightness": s.Brightness = value.GetInt32(); break;
             case "use24h": s.Use24h = value.GetBoolean(); break;
             case "lockScreen": s.LockScreen = value.GetString() ?? ""; break;
+            case "checkUpdates": s.CheckUpdates = value.GetBoolean(); break;
             case "gameView": s.GameView = value.GetString() ?? ""; break;
             case "nightDim": s.NightDim = value.GetBoolean(); break;
             case "nightStart": s.NightStart = value.GetString() ?? ""; break;
@@ -350,6 +351,7 @@ public sealed class MainForm : Form
         brightness = _settings.Brightness,
         use24h = _settings.Use24h,
         lockScreen = _settings.LockScreen,
+        checkUpdates = _settings.CheckUpdates,
         gameView = _settings.GameView,
         nightDim = _settings.NightDim,
         nightStart = _settings.NightStart,

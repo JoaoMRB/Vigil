@@ -40,6 +40,12 @@ internal static class Program
         if (simulateTest >= 0 && simulateTest + 1 < args.Length) return Simulator.Test(args[simulateTest + 1]);
         if (args.Contains("--simulate")) return Simulator.Run();
 
+        // --update-feed path-or-url : where to look for a newer version (a local JSON file for checks).
+        if (Option(args, "--update-feed") is { } feed) Updater.Feed = feed;
+        // Vigil.exe --update-test report.txt : check for an update, download and verify it, but do not install it.
+        int updateTest = Array.IndexOf(args, "--update-test");
+        if (updateTest >= 0 && updateTest + 1 < args.Length) return UpdateTest(args[updateTest + 1]);
+
         // Vigil.exe --sensors out.txt : list every sensor the app can read on this PC and exit.
         int sensors = Array.IndexOf(args, "--sensors");
         if (sensors >= 0 && sensors + 1 < args.Length)
@@ -176,6 +182,34 @@ internal static class Program
     {
         int i = Array.IndexOf(args, name);
         return i >= 0 && i + 1 < args.Length ? args[i + 1] : null;
+    }
+
+    private static int UpdateTest(string reportPath)
+    {
+        var report = new List<string> { $"This version: {Updater.Current}", $"Feed: {Log.Scrub(Updater.Feed)}" };
+        int result = 0;
+        try
+        {
+            UpdateInfo? update = Updater.CheckAsync().GetAwaiter().GetResult();
+            if (update is null)
+            {
+                report.Add("No newer version with an installer and a checksum.");
+            }
+            else
+            {
+                report.Add($"Newer version: {update.Version}, installer {Log.Scrub(update.Installer.ToString())}");
+                string installer = Updater.DownloadAsync(update).GetAwaiter().GetResult();
+                report.Add($"Downloaded and the checksum matches: {Log.Scrub(installer)}");
+                File.Delete(installer);
+            }
+        }
+        catch (Exception e) when (e is HttpRequestException or TaskCanceledException or System.Text.Json.JsonException or IOException or InvalidDataException or KeyNotFoundException or InvalidOperationException)
+        {
+            report.Add($"Failed: {e.GetType().Name}: {e.Message}");
+            result = 1;
+        }
+        File.WriteAllLines(reportPath, report);
+        return result;
     }
 
     private static int WritePng(string path, string[] args)

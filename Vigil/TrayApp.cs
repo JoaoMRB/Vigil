@@ -20,6 +20,8 @@ public sealed class TrayApp : ApplicationContext
     private readonly RegisteredWaitHandle _showWait;
     private readonly Control _ui = new();
     private readonly DeviceWatcher _devices;
+    private readonly Updater _updater;
+    private readonly ToolStripMenuItem _updateItem = new() { Visible = false };
     private MainForm? _window;
 
     public TrayApp(Settings settings, bool openWindow)
@@ -42,6 +44,8 @@ public sealed class TrayApp : ApplicationContext
         _autostartItem.Click += (_, _) => Autostart.Set(_autostartItem.Checked, _settings);
 
         var menu = new ContextMenuStrip();
+        _updateItem.Click += async (_, _) => await UpdateAsync();
+        menu.Items.Add(_updateItem);
         menu.Items.Add("Open Vigil", null, (_, _) => ShowWindow());
         menu.Items.Add(_autostartItem);
         menu.Items.Add(new ToolStripSeparator());
@@ -66,6 +70,39 @@ public sealed class TrayApp : ApplicationContext
 
         _display.Start();
         if (openWindow) ShowWindow();
+
+        _updater = new Updater(_settings);
+        _updater.Found += update => _ui.BeginInvoke(() => OfferUpdate(update));
+        _updater.Start();
+    }
+
+    /// <summary>A newer version: an item at the top of the menu, and one notification.</summary>
+    private void OfferUpdate(UpdateInfo update)
+    {
+        _updateItem.Text = $"Update to Vigil {update.Version}";
+        _updateItem.Font = new Font(_updateItem.Font, FontStyle.Bold);
+        _updateItem.Visible = true;
+        _tray.ShowBalloonTip(10000, "Vigil", $"Version {update.Version} is available. Right-click the icon to update.", ToolTipIcon.Info);
+    }
+
+    private async Task UpdateAsync()
+    {
+        if (_updater.Available is not { } update) return;
+        _updateItem.Enabled = false;
+        _updateItem.Text = "Downloading the update…";
+        try
+        {
+            string installer = await Updater.DownloadAsync(update);
+            Updater.RunInstaller(installer);
+            ExitThread(); // the installer replaces the files and starts Vigil again
+        }
+        catch (Exception e) when (e is HttpRequestException or TaskCanceledException or IOException or InvalidDataException or UnauthorizedAccessException or System.ComponentModel.Win32Exception)
+        {
+            Log.Warn("update", e);
+            _updateItem.Text = $"Update to Vigil {update.Version}";
+            _updateItem.Enabled = true;
+            _tray.ShowBalloonTip(10000, "Vigil", $"The update could not be installed: {e.Message}", ToolTipIcon.Warning);
+        }
     }
 
     private void OnSessionSwitch(object? sender, SessionSwitchEventArgs e)
@@ -133,6 +170,7 @@ public sealed class TrayApp : ApplicationContext
         {
             SystemEvents.SessionSwitch -= OnSessionSwitch;
             SystemEvents.PowerModeChanged -= OnPowerModeChanged;
+            _updater.Dispose();
             _devices.Dispose();
             _showWait.Unregister(null);
             _showEvent.Dispose();

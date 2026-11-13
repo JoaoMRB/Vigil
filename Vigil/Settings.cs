@@ -65,6 +65,9 @@ public sealed class Settings
         TimeOnly.TryParseExact(text, "HH:mm", System.Globalization.CultureInfo.InvariantCulture,
             System.Globalization.DateTimeStyles.None, out TimeOnly time) ? time : new TimeOnly(fallbackHour, 0);
 
+    /// <summary>Ask GitHub once a day whether there is a newer version, and offer it in the tray.</summary>
+    public bool CheckUpdates { get; set; } = true;
+
     /// <summary>Run with administrator rights, so the CPU's temperature can be read. Off by default.</summary>
     public bool RunAsAdmin { get; set; }
 

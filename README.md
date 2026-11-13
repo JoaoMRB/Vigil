@@ -58,9 +58,12 @@ To update, run the new installer over the old one. Your settings are kept.
 
 ## Privacy
 
-The only thing Vigil gets from the internet is the weather, from [Open-Meteo](https://open-meteo.com/), for the
-city you pick. Before it is sent, your position is rounded to about 1 km. Vigil has no analytics and no
-telemetry. Your settings stay in `%AppData%\Vigil\settings.json`.
+Vigil gets two things from the internet. The weather comes from [Open-Meteo](https://open-meteo.com/), for the
+city you pick, and your position is rounded to about 1 km before it is sent. Once a day, Vigil also asks GitHub
+whether there is a newer version. That request carries only the app's name and version, and you can switch it
+off under System. An update is installed only when you choose it from the tray icon, and only after the download
+matches the checksum GitHub lists for it. Vigil has no analytics and no telemetry. Your settings stay in
+`%AppData%\Vigil\settings.json`.
 
 Vigil keeps a small log of what it did and the errors it met, in `%LocalAppData%\Vigil\logs`, so a problem can
 still be looked at later. It never leaves your PC, holds no city or readings, and your user name is replaced in
@@ -77,7 +80,8 @@ dotnet run --project Vigil          # run the app
 ```
 
 To publish a version, attach `Vigil-Setup.exe` to a GitHub release that is **not** marked as a pre-release. The
-download link points at the latest release, and GitHub skips pre-releases when it picks that one.
+download link points at the latest release, and GitHub skips pre-releases when it picks that one. The app finds
+updates the same way: the release's tag is the version (`v0.2.0`), and the installer must be named `Vigil-Setup.exe`.
 
 Tools for checking your work, with no screen attached:
 
@@ -86,7 +90,11 @@ Vigil.exe --png out.png --view system --design dashboard --sample   # draw one s
 Vigil.exe --sensors sensors.txt                                     # list every sensor found on this PC
 Vigil.exe --simulate                                                # a pretend display in a window
 Vigil.exe --simulate-test report.txt                                # check the link logic, PASS or FAIL per case
+Vigil.exe --update-test report.txt [--update-feed release.json]     # look for an update, download and verify it
 ```
+
+`--update-test` does everything an update does except run the installer. With `--update-feed`, it reads a release
+from a local JSON file shaped like GitHub's, so the check can be tried before anything is published.
 
 `--simulate` drives a pretend display with buttons to pull the cable, stall the link, refuse connections, lock the
 PC and put it to sleep, so all of that can be tried without the hardware. `--simulate-test` runs those cases on its

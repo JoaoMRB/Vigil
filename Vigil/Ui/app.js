@@ -222,6 +222,7 @@ function build() {
   });
   night.addEventListener('change', () => set('nightBrightness', +night.value));
   $('diagnostics').addEventListener('click', () => send({ type: 'diagnostics' }));
+  bindSwitch($('updates'), on => { set('checkUpdates', on); sync(); });
   bindSwitch($('autostart'), on => { setSwitch($('autostart'), on); send({ type: 'autostart', value: on }); });
   bindSwitch($('admin'), on => { setSwitch($('admin'), on); send({ type: 'admin', value: on }); });
 
@@ -265,6 +266,7 @@ function sync() {
   if (document.activeElement !== $('brightness')) $('brightness').value = settings.brightness;
   showBrightness(+$('brightness').value);
   setSwitch($('use24h'), settings.use24h);
+  setSwitch($('updates'), settings.checkUpdates);
   setSwitch($('night'), settings.nightDim);
   $('night-options').hidden = !settings.nightDim;
   for (const [id, key] of [['night-start', 'nightStart'], ['night-end', 'nightEnd']]) {

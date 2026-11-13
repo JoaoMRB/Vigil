@@ -27,6 +27,7 @@ public static class Diagnostics
         text.AppendLine($"Look: theme {settings.Theme} · font {settings.Font} · design {settings.SystemDesign}" +
             $" · brightness {settings.Brightness} · {(settings.Use24h ? "24" : "12")}-hour");
         if (settings.SystemDesign == "custom") text.AppendLine($"Custom cards: {string.Join(", ", settings.CustomTiles)}");
+        text.AppendLine($"Check for updates: {(settings.CheckUpdates ? "on" : "off")}");
         text.AppendLine($"During games: {settings.GameView} · game now: {(display.Gaming ? "yes" : "no")}");
         text.AppendLine(settings.NightDim
             ? $"Night: {settings.NightStart} to {settings.NightEnd} at {settings.NightBrightness} · now {(settings.IsNight(DateTime.Now) ? "night" : "day")}"

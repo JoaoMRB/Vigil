@@ -16,6 +16,9 @@ All notable changes to Vigil are listed here. Versions follow [Semantic Versioni
   and the settings window next to the name.
 - The screen follows the PC: it dims to just the time while the PC is locked (or turns off, or keeps going, as set
   under System), turns off before the PC sleeps, and comes back by itself on wake-up, without waiting for an error.
+- Updates: once a day Vigil asks GitHub for the latest release. A newer one shows in the tray, with a notification.
+  Choosing it downloads the installer, checks it against the SHA-256 GitHub lists, and installs it silently, and then
+  Vigil starts again. You can switch the check off with *Check for updates* under System.
 - A *Custom* system design: six cards, and you pick what each one shows. Besides the readings the other designs
   use, it can show the CPU and GPU clocks, their power, and their fans (the CPU fan in administrator mode).
 - A *Now playing* view: the cover, title, artist, album and progress of what plays, from Windows' media controls

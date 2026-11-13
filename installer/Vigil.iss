@@ -74,6 +74,8 @@ Root: HKCU; Subkey: "Software\Microsoft\Windows\CurrentVersion\Run"; ValueType: 
 
 [Run]
 Filename: "{app}\{#AppExe}"; Description: "{cm:LaunchProgram,{#AppName}}"; Flags: nowait postinstall skipifsilent
+; An update started from the tray (Updater.cs) runs silently with /update=1: start the app again afterwards.
+Filename: "{app}\{#AppExe}"; Parameters: "--tray"; Flags: nowait; Check: IsUpdate
 
 [UninstallRun]
 ; Administrator mode with "Start with Windows" adds a scheduled task (Settings.cs). Removing it needs the rights it
@@ -87,6 +89,11 @@ Type: filesandordirs; Name: "{localappdata}\{#AppName}\logs"
 Type: dirifempty; Name: "{localappdata}\{#AppName}"
 
 [Code]
+function IsUpdate: Boolean;
+begin
+  Result := ExpandConstant('{param:update|0}') = '1';
+end;
+
 // "Start with Windows" switched on inside the app, without the installer task, is not known to the uninstaller.
 procedure CurUninstallStepChanged(CurUninstallStep: TUninstallStep);
 begin
