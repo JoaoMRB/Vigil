@@ -14,6 +14,8 @@ All notable changes to Vigil are listed here. Versions follow [Semantic Versioni
 - The first time it runs, Vigil copies the settings from `%AppData%\AuraTime`, so you don't have to set it up again.
 - Vigil has its own icon: a screen with a lined eye in it. The Dashboard design shows it in place of AuraTime's clock,
   and the settings window next to the name.
+- The screen follows the PC: it dims to just the time while the PC is locked (or turns off, or keeps going, as set
+  under System), turns off before the PC sleeps, and comes back by itself on wake-up, without waiting for an error.
 - A log of what the app did and the errors it met, in `%LocalAppData%\Vigil\logs`. It stays on the PC, holds no
   personal data, and keeps itself small.
 - A website for the app in English, Portuguese, Spanish and French, in `site/`.

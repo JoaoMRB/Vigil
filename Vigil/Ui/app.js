@@ -113,7 +113,7 @@ function setSwitch(button, on) {
 
 /* ------------------------------ build ------------------------------ */
 
-let markSeconds, markTheme, markFont;
+let markSeconds, markTheme, markFont, markLock;
 const viewSwitches = new Map();
 const worldSelects = [];
 
@@ -138,6 +138,10 @@ function build() {
       sw
     ]));
   }
+
+  markLock = radioGroup($('lock'), [
+    { value: 'dim', label: 'Dim' }, { value: 'off', label: 'Turn off' }, { value: 'keep', label: 'Keep showing' }
+  ], value => { set('lockScreen', value); markLock(value); }, (button, option) => { button.textContent = option.label; });
 
   markSeconds = radioGroup($('seconds'), model.secondsChoices.map(s => ({ value: s, label: `${s}s` })),
     value => { set('viewSeconds', value); markSeconds(value); },
@@ -226,6 +230,7 @@ function sync() {
   if (document.activeElement !== $('brightness')) $('brightness').value = settings.brightness;
   showBrightness(+$('brightness').value);
   setSwitch($('use24h'), settings.use24h);
+  markLock(settings.lockScreen);
   syncDesign();
 
   worldSelects.forEach((select, slot) => {

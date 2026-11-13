@@ -27,6 +27,7 @@ public static class TuringProtocol
 
     private const byte CmdHello = 69;
     private const byte CmdReset = 101;
+    private const byte CmdScreenOff = 108;
     private const byte CmdScreenOn = 109;
     private const byte CmdSetBrightness = 110;
     private const byte CmdSetOrientation = 121;
@@ -51,6 +52,9 @@ public static class TuringProtocol
     public static byte[] Reset() => PackCommand(CmdReset, 0, 0, 0, 0);
 
     public static byte[] ScreenOn() => PackCommand(CmdScreenOn, 0, 0, 0, 0);
+
+    /// <summary>Turns the panel off. It keeps its picture and shows it again on <see cref="ScreenOn"/>.</summary>
+    public static byte[] ScreenOff() => PackCommand(CmdScreenOff, 0, 0, 0, 0);
 
     /// <param name="level">Backlight 0..100 (%). The display takes an inverted 0..255 value.</param>
     public static byte[] Brightness(int level)

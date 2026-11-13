@@ -16,17 +16,28 @@ public enum DisplayStatus
 
 /// <summary>
 /// Background loop that owns the display: finds it, connects, draws one frame per second and sends only the
-/// pixels that changed, and reconnects by itself after any failure.
+/// pixels that changed, and reconnects by itself after any failure. It also follows the PC: the screen turns off
+/// before the PC sleeps, dims (or turns off) while it is locked, and comes back by itself.
 /// </summary>
 public sealed class DisplayService : IDisposable
 {
     private const int RetryMs = 5000;
+    /// <summary>Backlight while the PC is locked and the screen is set to dim (at most the user's own level).</summary>
+    private const int DimBrightness = 8;
+    /// <summary>How long the PC's sleep waits for the screen to be turned off.</summary>
+    private const int SleepWaitMs = 2000;
 
     private readonly Settings _settings;
     private readonly CancellationTokenSource _stop = new();
     private readonly Thread _thread;
     private readonly ScreenText _text = ScreenText.ForCurrentCulture();
     private volatile bool _settingsChanged;
+    private volatile bool _locked;
+    private volatile bool _asleep;
+    /// <summary>Wakes the loop early: the PC is going to sleep, waking up, or was locked or unlocked.</summary>
+    private readonly AutoResetEvent _wake = new(false);
+    /// <summary>Set by the loop once the screen is off and the port closed, so the PC can go to sleep.</summary>
+    private readonly ManualResetEventSlim _readyToSleep = new(true);
 
     public DisplayService(Settings settings)
     {
@@ -63,13 +74,45 @@ public sealed class DisplayService : IDisposable
         _settingsChanged = true;
     }
 
+    /// <summary>
+    /// The PC is about to sleep or hibernate: turn the screen off and let go of the port. Waits a moment for it,
+    /// since the USB link is gone once the PC is asleep and the screen would stay lit all night.
+    /// </summary>
+    public void Sleep()
+    {
+        if (_asleep) return;
+        _readyToSleep.Reset();
+        _asleep = true;
+        _wake.Set();
+        if (!_readyToSleep.Wait(SleepWaitMs)) Log.Warn("display: did not turn off before sleep");
+    }
+
+    /// <summary>The PC woke up: connect again straight away rather than wait for a write to fail.</summary>
+    public void WakeUp()
+    {
+        if (!_asleep) return;
+        _asleep = false;
+        _wake.Set();
+    }
+
+    /// <summary>The session was locked or unlocked: the next frame follows <see cref="Settings.LockScreen"/>.</summary>
+    public void SetLocked(bool locked)
+    {
+        if (_locked == locked) return;
+        _locked = locked;
+        _wake.Set();
+    }
+
     public void Dispose()
     {
         _stop.Cancel();
+        _wake.Set();
         if (_thread.IsAlive) _thread.Join(3000);
         Sensors.Dispose();
         Weather.Dispose();
         _stop.Dispose();
+        _wake.Dispose();
+        _readyToSleep.Dispose();
     }
 
     /// <summary>What to draw now: the view whose turn it is, its options and its data.</summary>
@@ -122,6 +165,13 @@ public sealed class DisplayService : IDisposable
 
         while (!cancel.IsCancellationRequested)
         {
+            if (_asleep)
+            {
+                _readyToSleep.Set();
+                SetStatus(DisplayStatus.NotFound, "");
+                WaitHandle.WaitAny([cancel.WaitHandle, _wake]);
+                continue;
+            }
             if (DisplayLink.FindPortName() is null)
             {
                 SetStatus(DisplayStatus.NotFound, "");
@@ -155,7 +205,8 @@ public sealed class DisplayService : IDisposable
                 }
                 link.Close();
             }
-            cancel.WaitHandle.WaitOne(RetryMs);
+            if (_asleep) continue; // let go of the port and say so before waiting
+            WaitHandle.WaitAny([cancel.WaitHandle, _wake], RetryMs);
         }
     }
 
@@ -166,21 +217,52 @@ public sealed class DisplayService : IDisposable
         var current = new ushort[pixels];
         ushort[]? previous = null;
         int brightness = _settings.Brightness;
+        bool screenOn = true;
 
         while (!cancel.IsCancellationRequested)
         {
-            if (_settingsChanged)
+            if (_asleep)
+            {
+                // Off before the PC sleeps; the port is closed by Run, and the next connection starts afresh.
+                link.SetScreen(false);
+                Log.Info("display: off for sleep");
+                return;
+            }
+
+            string lockMode = _locked ? _settings.LockScreen : "keep";
+            bool wantOn = lockMode != "off";
+            if (wantOn != screenOn)
+            {
+                link.SetScreen(wantOn);
+                screenOn = wantOn;
+                Log.Info(wantOn ? "display: on" : "display: off while locked");
+                if (wantOn)
+                {
+                    brightness = -1; // set again below
+                    previous = null; // send the whole picture: the panel may have dropped it
+                }
+            }
+            if (!screenOn)
+            {
+                WaitHandle.WaitAny([cancel.WaitHandle, _wake], 1000);
+                continue;
+            }
+
+            int wanted = lockMode == "dim" ? Math.Min(DimBrightness, _settings.Brightness) : _settings.Brightness;
+            if (_settingsChanged || brightness != wanted)
             {
                 _settingsChanged = false;
-                if (brightness != _settings.Brightness)
+                if (brightness != wanted)
                 {
-                    brightness = _settings.Brightness;
+                    brightness = wanted;
                     link.SetBrightness(brightness);
                 }
             }
 
             DateTime now = DateTime.Now;
             (ScreenView view, RenderOptions options, ScreenData data) = Frame(now);
+            // Locked and dimmed: only the time, nothing about the PC or where you are.
+            if (lockMode == "dim") view = ScreenView.Clock;
             renderer.Draw(now, options, view, data);
             renderer.CopyRgb565(current);
             if (TuringProtocol.DiffRect(previous, current, TuringProtocol.ScreenWidth, TuringProtocol.ScreenHeight) is { } rect)
@@ -190,7 +272,7 @@ public sealed class DisplayService : IDisposable
             previous ??= new ushort[pixels];
             current.CopyTo(previous, 0);
 
-            cancel.WaitHandle.WaitOne(1000 - DateTime.Now.Millisecond);
+            WaitHandle.WaitAny([cancel.WaitHandle, _wake], 1000 - DateTime.Now.Millisecond);
         }
     }
 

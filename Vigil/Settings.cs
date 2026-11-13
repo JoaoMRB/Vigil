@@ -40,6 +40,10 @@ public sealed class Settings
     public bool Use24h { get; set; } = true;
     /// <summary>Hardware (RTS/CTS) flow control on the serial port, as in the web app.</summary>
     public bool FlowControl { get; set; } = true;
+    /// <summary>What the screen does while the PC is locked: "dim" (the clock, with the backlight low), "off" or "keep".</summary>
+    public string LockScreen { get; set; } = "dim";
+    public static readonly string[] LockScreenChoices = ["dim", "off", "keep"];
+
     /// <summary>Run with administrator rights, so the CPU's temperature can be read. Off by default.</summary>
     public bool RunAsAdmin { get; set; }
 
@@ -115,6 +119,7 @@ public sealed class Settings
         WorldClocks = (WorldClocks ?? []).Where(id => global::Vigil.WorldClocks.Cities.Any(c => c.TimeZoneId == id)).Take(global::Vigil.WorldClocks.Max).ToList();
         ViewSeconds = Math.Clamp(ViewSeconds, MinViewSeconds, MaxViewSeconds);
         Brightness = Math.Clamp(Brightness, 0, 100);
+        if (!LockScreenChoices.Contains(LockScreen)) LockScreen = "dim";
         if (WeatherCity is { } city && (string.IsNullOrWhiteSpace(city.Name) || Math.Abs(city.Latitude) > 90 || Math.Abs(city.Longitude) > 180))
         {
             WeatherCity = null;

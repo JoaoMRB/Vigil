@@ -174,6 +174,7 @@ public sealed class MainForm : Form
             case "font": s.Font = ClockFonts.Resolve(value.GetString()).Id; break;
             case "brightness": s.Brightness = value.GetInt32(); break;
             case "use24h": s.Use24h = value.GetBoolean(); break;
+            case "lockScreen": s.LockScreen = value.GetString() ?? ""; break;
             case "viewSeconds": s.ViewSeconds = value.GetInt32(); break;
             case "views": s.Views = Strings(value); break;
             case "worldClocks": s.WorldClocks = Strings(value); break;
@@ -319,6 +320,7 @@ public sealed class MainForm : Form
         font = _settings.Font,
         brightness = _settings.Brightness,
         use24h = _settings.Use24h,
+        lockScreen = _settings.LockScreen,
         worldClocks = _settings.WorldClocks,
         weatherCity = _settings.WeatherCity,
         systemDesign = _settings.SystemDesign,

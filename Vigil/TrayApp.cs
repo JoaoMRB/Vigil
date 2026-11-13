@@ -1,3 +1,4 @@
+using Microsoft.Win32;
 using Vigil.Display;
 
 namespace Vigil;
@@ -56,8 +57,42 @@ public sealed class TrayApp : ApplicationContext
         _showWait = ThreadPool.RegisterWaitForSingleObject(
             _showEvent, (_, _) => _ui.BeginInvoke(ShowWindow), null, Timeout.Infinite, executeOnlyOnce: false);
 
+        // SystemEvents keeps static references: these are removed again in Dispose.
+        SystemEvents.SessionSwitch += OnSessionSwitch;
+        SystemEvents.PowerModeChanged += OnPowerModeChanged;
+
         _display.Start();
         if (openWindow) ShowWindow();
+    }
+
+    private void OnSessionSwitch(object? sender, SessionSwitchEventArgs e)
+    {
+        switch (e.Reason)
+        {
+            case SessionSwitchReason.SessionLock:
+                Log.Info("PC locked");
+                _display.SetLocked(true);
+                break;
+            case SessionSwitchReason.SessionUnlock:
+                Log.Info("PC unlocked");
+                _display.SetLocked(false);
+                break;
+        }
+    }
+
+    private void OnPowerModeChanged(object? sender, PowerModeChangedEventArgs e)
+    {
+        switch (e.Mode)
+        {
+            case PowerModes.Suspend:
+                Log.Info("PC going to sleep");
+                _display.Sleep();
+                break;
+            case PowerModes.Resume:
+                Log.Info("PC woke up");
+                _display.WakeUp();
+                break;
+        }
     }
 
     private static void TrySyncAutostart(Settings settings)
@@ -93,6 +128,8 @@ public sealed class TrayApp : ApplicationContext
     {
         if (disposing)
         {
+            SystemEvents.SessionSwitch -= OnSessionSwitch;
+            SystemEvents.PowerModeChanged -= OnPowerModeChanged;
             _showWait.Unregister(null);
             _showEvent.Dispose();
             _tray.Visible = false;

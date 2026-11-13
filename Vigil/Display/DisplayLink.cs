@@ -85,6 +85,20 @@ public sealed class DisplayLink : IDisposable
 
     public void SetBrightness(int level) => Write(TuringProtocol.Brightness(level));
 
+    /// <summary>Backlight and panel off, or back on.</summary>
+    public void SetScreen(bool on)
+    {
+        if (on)
+        {
+            Write(TuringProtocol.ScreenOn());
+        }
+        else
+        {
+            Write(TuringProtocol.Brightness(0));
+            Write(TuringProtocol.ScreenOff());
+        }
+    }
+
     public void Close()
     {
         SerialPort? port = _port;
