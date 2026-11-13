@@ -33,6 +33,13 @@ internal static class Program
         int windowPng = Array.IndexOf(args, "--window-png");
         if (windowPng >= 0 && windowPng + 1 < args.Length) return WriteWindowPng(args[windowPng + 1], Option(args, "--script"));
 
+        // Vigil.exe --simulate : a pretend display in a window, with buttons to pull the cable, lock the PC and so on.
+        // Vigil.exe --simulate-test report.txt : run those cases on their own, write PASS or FAIL for each, and exit.
+        // Neither touches the real display, the start-up entry or the settings file.
+        int simulateTest = Array.IndexOf(args, "--simulate-test");
+        if (simulateTest >= 0 && simulateTest + 1 < args.Length) return Simulator.Test(args[simulateTest + 1]);
+        if (args.Contains("--simulate")) return Simulator.Run();
+
         // Vigil.exe --sensors out.txt : list every sensor the app can read on this PC and exit.
         int sensors = Array.IndexOf(args, "--sensors");
         if (sensors >= 0 && sensors + 1 < args.Length)

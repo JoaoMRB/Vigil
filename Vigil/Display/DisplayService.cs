@@ -39,6 +39,7 @@ public sealed class DisplayService : IDisposable
     private readonly Settings _settings;
     private readonly CancellationTokenSource _stop = new();
     private readonly Thread _thread;
+    private readonly Func<IDisplayLink> _newLink;
     private readonly ScreenText _text = ScreenText.ForCurrentCulture();
     private volatile bool _settingsChanged;
     private volatile bool _locked;
@@ -49,9 +50,11 @@ public sealed class DisplayService : IDisposable
     /// <summary>Set by the loop once the screen is off and the port closed, so the PC can go to sleep.</summary>
     private readonly ManualResetEventSlim _readyToSleep = new(true);
 
-    public DisplayService(Settings settings)
+    /// <param name="newLink">The display to drive. The real one over USB unless given (the simulator passes its own).</param>
+    public DisplayService(Settings settings, Func<IDisplayLink>? newLink = null)
     {
         _settings = settings;
+        _newLink = newLink ?? (() => new DisplayLink());
         ConfigureSources();
         _thread = new Thread(Run) { IsBackground = true, Name = "Display" };
     }
@@ -178,7 +181,7 @@ public sealed class DisplayService : IDisposable
     {
         CancellationToken cancel = _stop.Token;
         using var renderer = new ScreenRenderer();
-        using var link = new DisplayLink();
+        using IDisplayLink link = _newLink();
         int failures = 0;
 
         while (!cancel.IsCancellationRequested)
@@ -192,7 +195,7 @@ public sealed class DisplayService : IDisposable
                 continue;
             }
             _devicesChanged = false;
-            if (DisplayLink.FindPortName() is null)
+            if (link.FindPortName() is null)
             {
                 plugged = false;
                 failures = 0; // a display plugged in later is tried at once
@@ -218,8 +221,18 @@ public sealed class DisplayService : IDisposable
                 }
                 catch (Exception e) when (e is IOException or TimeoutException or InvalidOperationException)
                 {
-                    failures++;
-                    SetStatus(DisplayStatus.Error, e.Message);
+                    if (link.FindPortName() is null)
+                    {
+                        // The cable was pulled: not a failure, just wait for it to come back.
+                        plugged = false;
+                        failures = 0;
+                        SetStatus(DisplayStatus.NotFound, "");
+                    }
+                    else
+                    {
+                        failures++;
+                        SetStatus(DisplayStatus.Error, e.Message);
+                    }
                 }
                 catch (Exception e) when (e is not OutOfMemoryException)
                 {
@@ -239,7 +252,7 @@ public sealed class DisplayService : IDisposable
     }
 
     /// <summary>One frame per second, aligned to the clock.</summary>
-    private void SendLoop(ScreenRenderer renderer, DisplayLink link, CancellationToken cancel)
+    private void SendLoop(ScreenRenderer renderer, IDisplayLink link, CancellationToken cancel)
     {
         const int pixels = TuringProtocol.ScreenWidth * TuringProtocol.ScreenHeight;
         var current = new ushort[pixels];
@@ -262,7 +275,7 @@ public sealed class DisplayService : IDisposable
             if (_devicesChanged)
             {
                 _devicesChanged = false;
-                if (!string.Equals(DisplayLink.FindPortName(), link.PortName, StringComparison.OrdinalIgnoreCase))
+                if (!string.Equals(link.FindPortName(), link.PortName, StringComparison.OrdinalIgnoreCase))
                 {
                     throw new IOException("The display was unplugged.");
                 }

@@ -104,7 +104,7 @@ public static class Log
                 var text = new StringBuilder();
                 if (_repeats > 0) text.AppendLine($"{_lastTime:yyyy-MM-dd HH:mm:ss} [info] (the line above came {_repeats} more time(s))");
                 text.AppendLine($"{now:yyyy-MM-dd HH:mm:ss} {line}");
-                File.AppendAllText(path, text.ToString(), Encoding.UTF8);
+                File.AppendAllText(path, text.ToString(), new UTF8Encoding(encoderShouldEmitUTF8Identifier: false));
             }
             catch (Exception e) when (e is IOException or UnauthorizedAccessException)
             {

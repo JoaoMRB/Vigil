@@ -7,7 +7,7 @@ namespace Vigil.Display;
 /// The serial link to the display, on the operating system's own serial port. Same command sequence as the
 /// web app's Web Serial link: RESET, wait for the display to come back, HELLO, screen on, orientation, brightness.
 /// </summary>
-public sealed class DisplayLink : IDisposable
+public sealed class DisplayLink : IDisplayLink
 {
     private const int WriteTimeoutMs = 4000;
     private const int HelloTimeoutMs = 1000;
@@ -39,6 +39,8 @@ public sealed class DisplayLink : IDisposable
         }
         return null;
     }
+
+    string? IDisplayLink.FindPortName() => FindPortName();
 
     /// <summary>Resets and initialises the display. Throws when it cannot (not plugged in, port in use...).</summary>
     public void Connect(int brightness, bool flowControl, CancellationToken cancel)
