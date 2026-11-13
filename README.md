@@ -1,127 +1,257 @@
-# Vigil
-
-Your PC on a small USB screen: clock, CPU and GPU temperatures, memory, network, weather and world clocks.
-Runs in the background on Windows. You don't need a browser or an account.
-
-[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
-![Windows 10 and 11](https://img.shields.io/badge/Windows-10%20%7C%2011-0078d4.svg)
-![.NET 9](https://img.shields.io/badge/.NET-9-512bd4.svg)
-
 <p align="center">
-  <img src="docs/images/system-dashboard.webp" alt="The Dashboard design, drawn by the app with sample numbers" width="480">
+  <img src="docs/brand/vigil-icon.svg" alt="" width="88">
 </p>
 
-> Vigil started as the Windows app of [AuraTime](https://github.com/JoaoMRB/AuraTime), a focus clock for the
-> browser. It now goes on here on its own. If you used the AuraTime app, Vigil picks up your settings the
-> first time it runs.
+<h1 align="center">Vigil</h1>
+
+<p align="center">
+  <strong>Your PC, at a glance, on a small USB screen.</strong><br>
+  Temperatures, load, memory, network, what's playing, the weather and the time.<br>
+  A Windows app that runs in the tray. No account, no cloud, no telemetry.
+</p>
+
+<p align="center">
+  <a href="https://github.com/JoaoMRB/Vigil/releases/latest/download/Vigil-Setup.exe"><strong>Download for Windows</strong></a>
+  &nbsp;·&nbsp;
+  <a href="#getting-started">Getting started</a>
+  &nbsp;·&nbsp;
+  <a href="CHANGELOG.md">What's new</a>
+  &nbsp;·&nbsp;
+  <a href="#troubleshooting">Troubleshooting</a>
+</p>
+
+<p align="center">
+  <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="License: MIT"></a>
+  <img src="https://img.shields.io/badge/Windows-10%202004%2B%20%7C%2011-0078d4.svg" alt="Windows 10 version 2004 or later, and Windows 11">
+  <img src="https://img.shields.io/badge/.NET-9-512bd4.svg" alt=".NET 9">
+</p>
+
+<p align="center">
+  <img src="docs/images/hero.webp" alt="A 3.5-inch screen on a desk, in front of a PC, showing Vigil's Custom design: six cards with the CPU and GPU temperatures and load, the memory and the download speed" width="800">
+</p>
+
+## Why Vigil
+
+**At a glance.** CPU and GPU temperatures and load, clocks, power and fans, memory, the network, the volume, what's
+playing, the weather and clocks around the world. One view, or several taking turns.
+
+**It follows what you do.** Start a game and it shows the system view. Lock the PC and it dims to just the time.
+Before the PC sleeps the screen turns off, and it comes back by itself when the PC wakes. At night it can turn
+itself down.
+
+**Yours to shape.** Seven designs for the system view, one of them with six cards you fill yourself. Five themes,
+four clock fonts, your own colours. Stand the screen upright and every view has a layout made for it.
+
+**Private and light.** No account and no telemetry. Vigil only goes online for the weather and to check for updates,
+and you can turn off either one. It waits in the tray and stays out of the way.
+
+## Gallery
+
+### Views
+
+| Clock | Weather and quote | World clocks |
+| :---: | :---: | :---: |
+| <img src="docs/images/view-clock.webp" alt="Clock view: the date over a large time, with a line that fills with the seconds" width="260"> | <img src="docs/images/view-weather.webp" alt="Weather view: a sun icon, 21 degrees, clear sky in Lisbon, and the quote of the day" width="260"> | <img src="docs/images/view-world.webp" alt="World clocks view: New York, London and Tokyo with their UTC offsets and times" width="260"> |
+| **Now playing** | **System** | |
+| <img src="docs/images/view-music.webp" alt="Now playing view: the album cover, the title, the artist, the album and a progress bar" width="260"> | <img src="docs/images/system-dashboard.webp" alt="System view, Dashboard design: cards for the CPU, GPU, network, volume, time, memory and disk" width="260"> | |
+
+### System designs
+
+| Dashboard | Custom | Full panel | Gauges |
+| :---: | :---: | :---: | :---: |
+| <img src="docs/images/system-dashboard.webp" alt="Dashboard design" width="200"> | <img src="docs/images/system-custom.webp" alt="Custom design: six cards, each with a reading you pick" width="200"> | <img src="docs/images/system-panel.webp" alt="Full panel design: the CPU and GPU side by side, memory, disk and network under them" width="200"> | <img src="docs/images/system-gauges.webp" alt="Gauges design: two dials for the CPU and the GPU" width="200"> |
+| **Bars** | **Graphs** | **Minimal** | |
+| <img src="docs/images/system-bars.webp" alt="Bars design: a meter per line for the CPU, GPU, memory, video memory, disk and network" width="200"> | <img src="docs/images/system-graphs.webp" alt="Graphs design: the last minutes of CPU load, GPU load and download speed" width="200"> | <img src="docs/images/system-minimal.webp" alt="Minimal design: three big numbers for the CPU, the GPU and the memory" width="200"> | |
+
+### Standing upright
+
+| Clock | Dashboard | Now playing |
+| :---: | :---: | :---: |
+| <img src="docs/images/portrait-clock.webp" alt="The clock upright: the hours over the minutes" width="160"> | <img src="docs/images/portrait-dashboard.webp" alt="The Dashboard design upright: CPU over GPU, a strip with the network and time, memory and disk side by side" width="160"> | <img src="docs/images/portrait-music.webp" alt="Now playing upright: a large cover over the title and the progress" width="160"> |
+
+### The settings window
+
+<p align="center">
+  <img src="docs/images/app-window.webp" alt="Vigil's settings window: a live preview of the screen on the left, the views and their options on the right" width="720">
+</p>
+
+The preview on the left is the exact picture sent to the screen, refreshed every second. Every change shows on the
+screen at once, and there is nothing to save.
+
+## Getting started
+
+**You need**
+
+- A 3.5" **Turing Smart Screen** or **UsbMonitor** (see [supported screens](#supported-screens))
+- Windows 10 version 2004 or later, or Windows 11, 64-bit
+
+**Install**
+
+1. Download **[Vigil-Setup.exe](https://github.com/JoaoMRB/Vigil/releases/latest/download/Vigil-Setup.exe)** and
+   run it. It doesn't need administrator rights.
+2. The installer isn't code-signed yet, so Windows may show *Windows protected your PC*. Choose
+   **More info → Run anyway**.
+3. Plug the screen in. Vigil finds it by itself, usually within a few seconds.
+
+**Set it up**
+
+1. Under **Views**, switch on what you want to see. With several views on, they take turns.
+2. Under **System screen**, pick a design. With *Custom*, choose what each of the six cards shows.
+3. Under **System**, switch on **Start with Windows**, so Vigil is there every time you sign in.
+4. Optional: to see the CPU temperature, switch on **CPU temperature** and install [PawnIO](https://pawnio.eu/).
+   See [the sensors](#the-sensors) below.
+
+To update, run a newer installer over the old one, or take the update from the tray icon when Vigil offers it.
+Your settings are kept.
+
+## Features
+
+### On the screen
+
+- **Five views:** clock; system; weather with the quote of the day; up to three world clocks; and now playing.
+  *Now playing* shows the cover, title, artist and progress of anything in Windows' media controls, such as Spotify,
+  a browser or the Media Player. It takes its turn only while something plays.
+- **Seven system designs:** Dashboard, Custom, Full panel, Gauges, Bars, Graphs and Minimal. Each one has its own
+  colours, and you can change them, along with the temperature from which a reading counts as hot.
+- **Custom:** six cards. Each card shows one of 18 readings, from the GPU fan to the upload speed.
+- **Themes and fonts:** five themes (Emerald Gold, Liquid Glass, Obsidian Platinum, Dark Glass, Light Glass), four
+  clock fonts, and a 12 or 24-hour clock.
+- **Any way up:** landscape, upside down, or upright turned either way.
+- **Languages:** the screen follows Windows' language: English, Portuguese, Spanish, French, German or Italian.
+
+### On its own
+
+- **Locked:** while the PC is locked, the screen dims to just the time. It can also turn off, or keep going.
+- **Asleep:** before the PC sleeps, the screen turns off. It comes back by itself when the PC wakes.
+- **Games:** after a game or a video has filled the screen for 5 seconds, the display switches to the system view or
+  the clock. It goes back to your views once you leave.
+- **Night:** between two times you set, the backlight goes down.
+- **Unplugged:** Vigil notices the moment the cable comes out, and draws again as soon as it goes back in.
+- **Start with Windows:** Vigil waits in the tray. You can switch this in Vigil, or under *Startup apps* in Task
+  Manager.
+- **Updates:** once a day, Vigil checks GitHub for a newer version. When there is one, it offers it in the tray and
+  installs it only if you agree.
+
+### The sensors
+
+Windows only lets programs read some sensors when they run as administrator with a driver. To read those, switch
+on **CPU temperature** under System and install the free [PawnIO](https://pawnio.eu/) driver. Without them, Vigil
+shows the CPU load where the temperature would be, and a Custom card names what it is missing.
+
+| Reading | Standard | CPU temperature mode + PawnIO |
+| --- | :---: | :---: |
+| CPU load | ✓ | ✓ |
+| CPU temperature, clock and power | | ✓ |
+| CPU fan (from the motherboard) | | ✓ |
+| GPU temperature, load, clock, power, fan and video memory | ✓ | ✓ |
+| Memory, system drive, network, volume | ✓ | ✓ |
+| Drive temperature | | ✓ |
 
 ## Supported screens
 
-Vigil works with the 3.5" USB screens sold as **Turing Smart Screen** or **UsbMonitor** ("rev. A", USB `1A86:5722`,
-480×320). Vigil is an independent project and is not affiliated with the makers of these screens.
+| Screen | Size | USB ID | Status |
+| --- | --- | --- | --- |
+| Turing Smart Screen 3.5" / UsbMonitor 3.5" ("rev. A") | 480 × 320 | `1A86:5722` | ✓ Supported |
+| Turing Smart Screen 3.5" "rev. B" (XuanFang) | 480 × 320 | | Not yet |
+| Turing Smart Screen 5" and 8.8" ("rev. C") | 800 × 480, 1920 × 480 | | Not yet |
 
-## Download
-
-**[Vigil-Setup.exe](https://github.com/JoaoMRB/Vigil/releases/latest/download/Vigil-Setup.exe)** ·
-Windows 10 (version 2004 or later) and 11, 64-bit · no administrator rights needed to install
-
-To update, run the new installer over the old one. Your settings are kept.
-
-## What it shows
-
-| Clock | System | Weather | World clocks |
-| :---: | :---: | :---: | :---: |
-| ![Clock view](docs/images/view-clock.webp) | ![System view](docs/images/system-panel.webp) | ![Weather view](docs/images/view-weather.webp) | ![World clocks view](docs/images/view-world.webp) |
-
-- **Views:** clock; system; weather with the quote of the day; world clocks; and now playing. The screen can
-  show one view, or take turns between several.
-- **Now playing:** the cover, title, artist and progress of what plays in Spotify, a browser, the Media Player or any
-  app that shows in Windows' media controls. It takes its turn only while something plays.
-- **System:** CPU and GPU temperature and load, memory, disk, network speed and volume. There are seven designs
-  (Dashboard, Full panel, Gauges, Bars, Graphs, Minimal and Custom), and you can change each design's colours.
-  *Custom* has six cards, and you pick what each one shows: temperatures, load, clocks, power and fans of the CPU and
-  the GPU, video memory, memory, the system drive, download, upload, volume or the time.
-- **CPU temperature:** Windows only shows this to programs that run as administrator and use a driver. To see
-  it, turn on *CPU temperature* in the System settings and install the free [PawnIO](https://pawnio.eu/)
-  driver. Without these, Vigil shows the CPU load instead. The CPU fan and the drive's temperature need them too.
-- **Locked or asleep:** while the PC is locked the screen dims to just the time (or turns off, or keeps going, as you
-  choose in the System settings). Before the PC sleeps it turns off, and it comes back by itself when the PC wakes.
-- **Upright or upside down:** stand the screen upright and every view has a layout of its own for it; or turn it
-  upside down, to have the cable come out the other side.
-- **Games:** while a game or video fills the PC's screen, the display can switch to the system view (or the clock),
-  and go back to your views when you leave it.
-- **Dim at night:** the backlight goes down between two times you set, such as 22:00 to 07:00.
-- **Start with Windows:** Vigil waits in the notification area and draws on the screen as soon as the screen
-  is plugged in. You can switch this on and off in Vigil, or under *Startup apps* in Task Manager.
-
-<p align="center">
-  <img src="docs/images/app-window.webp" alt="Vigil's settings window: a live preview of the screen next to the views and themes" width="720">
-</p>
+The others need a screen to test with. If you have one and want to help, open an issue. Vigil is an independent
+project, and isn't affiliated with the makers of these screens.
 
 ## Privacy
 
-Vigil gets two things from the internet. The weather comes from [Open-Meteo](https://open-meteo.com/), for the
-city you pick, and your position is rounded to about 1 km before it is sent. Once a day, Vigil also asks GitHub
-whether there is a newer version. That request carries only the app's name and version, and you can switch it
-off under System. An update is installed only when you choose it from the tray icon, and only after the download
-matches the checksum GitHub lists for it. Vigil has no analytics and no telemetry. Your settings stay in
-`%AppData%\Vigil\settings.json`.
+| What leaves your PC | When | To | Turn it off |
+| --- | --- | --- | --- |
+| Your city's position, rounded to about 1 km | Every 30 minutes, while the weather view is on | [Open-Meteo](https://open-meteo.com/) | Switch the weather view off |
+| The app's name and version | Once a day | GitHub | *Check for updates*, under System |
 
-Vigil keeps a small log of what it did and the errors it met, in `%LocalAppData%\Vigil\logs`, so a problem can
-still be looked at later. It never leaves your PC, holds no city or readings, and your user name is replaced in
-any path it writes down. It stays under about 0.5 MB. *Diagnostics → Copy*, under System in the settings, puts
-the versions, the display's state, the settings and the end of this log on the clipboard, to paste into a bug report.
+That is all. There are no analytics, no telemetry and no account. Your settings stay in
+`%AppData%\Vigil\settings.json`. What's playing is read on the PC, and it is never sent or logged.
 
-## Building
+Vigil also keeps a small log of what it did and the errors it met, in `%LocalAppData%\Vigil\logs`. The log stays on
+your PC and stays under about 0.5 MB. It holds no city and no readings, and your user name is taken out of any path
+in it.
 
-You need the .NET 9 SDK. The installer also needs Inno Setup 6 (`winget install JRSoftware.InnoSetup`).
+## Troubleshooting
+
+<details>
+<summary><strong>The status says "Display not found"</strong></summary>
+
+Check that the cable is in, and try a USB port on the PC itself rather than a hub. In Device Manager, the screen
+should show under *Ports (COM & LPT)*, and it should appear and disappear as you plug and unplug it. If it never
+appears, try another cable: some USB-C cables only carry power.
+</details>
+
+<details>
+<summary><strong>The status says "Display in use by another program"</strong></summary>
+
+Only one program at a time can talk to the screen. Close the screen maker's app, or any other monitoring app that
+drives these screens, including one in the tray. Vigil connects by itself a few seconds later.
+</details>
+
+<details>
+<summary><strong>The CPU shows its load, or "Admin mode only", instead of the temperature</strong></summary>
+
+Switch on **CPU temperature** under System, and install [PawnIO](https://pawnio.eu/). Windows asks once for
+administrator rights, then Vigil restarts. See [the sensors](#the-sensors).
+</details>
+
+<details>
+<summary><strong>Standing upright, the picture is sideways</strong></summary>
+
+Under Appearance → *How the screen stands*, pick the other *Upright* choice. Which one is right depends on which
+way you turned the screen.
+</details>
+
+<details>
+<summary><strong>Now playing never shows up</strong></summary>
+
+The view takes its turn only while something plays, and only for apps that show in Windows' media controls (the
+box that appears next to the volume when you press a media key). Some players don't report to them.
+</details>
+
+<details>
+<summary><strong>Windows says "Windows protected your PC" when I run the installer</strong></summary>
+
+The installer isn't code-signed yet, so SmartScreen doesn't know it. Choose **More info → Run anyway**. The
+installer's SHA-256 is listed on each release, so you can check the file you downloaded.
+</details>
+
+<details>
+<summary><strong>Something else</strong></summary>
+
+Under System, choose **Diagnostics → Copy**, and paste the result into a [new issue](https://github.com/JoaoMRB/Vigil/issues/new).
+It holds the versions, the screen's state, the settings and the end of the log. It never holds your city, your
+user name, your hardware's names or any readings.
+</details>
+
+## Roadmap
+
+- The settings window in Portuguese, Spanish and French, like the website.
+- The other screen models, once there is hardware to test them with.
+- Several screens at once.
+
+## Building from source
+
+You need the .NET 9 SDK, and Inno Setup 6 for the installer.
 
 ```powershell
-dotnet run --project Vigil          # run the app
-.\build-installer.ps1               # writes dist\Vigil-Setup-<version>.exe and dist\Vigil-Setup.exe
+dotnet run --project Vigil        # run the app
+.\build-installer.ps1             # build the installer into dist\
 ```
 
-To publish a version, attach `Vigil-Setup.exe` to a GitHub release that is **not** marked as a pre-release. The
-download link points at the latest release, and GitHub skips pre-releases when it picks that one. The app finds
-updates the same way: the release's tag is the version (`v0.2.0`), and the installer must be named `Vigil-Setup.exe`.
+[docs/DEVELOPMENT.md](docs/DEVELOPMENT.md) covers the rest: the project's layout, the tools for checking a change
+without a screen (a simulator among them), the README's pictures and how a version is released.
 
-Tools for checking your work, with no screen attached:
-
-```powershell
-Vigil.exe --png out.png --view system --design dashboard --sample   # draw one screen to a file
-Vigil.exe --sensors sensors.txt                                     # list every sensor found on this PC
-Vigil.exe --simulate                                                # a pretend display in a window
-Vigil.exe --simulate-test report.txt                                # check the link logic, PASS or FAIL per case
-Vigil.exe --update-test report.txt [--update-feed release.json]     # look for an update, download and verify it
-```
-
-`--update-test` does everything an update does except run the installer. With `--update-feed`, it reads a release
-from a local JSON file shaped like GitHub's, so the check can be tried before anything is published.
-
-`--simulate` drives a pretend display with buttons to pull the cable, stall the link, refuse connections, lock the
-PC and put it to sleep, so all of that can be tried without the hardware. `--simulate-test` runs those cases on its
-own in about 30 seconds and exits with 0 when every one passes. Neither touches the real display, the start-up
-entry or the settings file; both log to `%LocalAppData%\Vigil\logs\simulate`, or next to the report.
-
-## Project structure
-
-```
-Vigil/
-  Display/     the USB screen's serial protocol and connection
-  Render/      the drawing (SkiaSharp): views, system designs and themes
-  Ui/          the settings window, a page shown in WebView2
-  i18n/        the texts on the screen, in en, pt, es, fr, de and it
-  Sensors.cs   PC sensors (LibreHardwareMonitor)
-  Settings.cs  the settings file
-installer/     Inno Setup script
-site/          the website: static HTML and CSS, deployed on Vercel (see site/README.md)
-docs/brand/    the icon and the mark, as SVG
-```
+## Credits
 
 Built with C# on .NET 9, [SkiaSharp](https://github.com/mono/SkiaSharp),
 [LibreHardwareMonitorLib](https://github.com/LibreHardwareMonitor/LibreHardwareMonitor),
-[NAudio](https://github.com/naudio/NAudio) and WebView2.
+[NAudio](https://github.com/naudio/NAudio) and WebView2. Weather by [Open-Meteo](https://open-meteo.com/).
+
+Vigil started as the Windows app of [AuraTime](https://github.com/JoaoMRB/AuraTime), a focus clock for the browser,
+and goes on here on its own. If you used the AuraTime app, Vigil picks up your settings the first time it runs.
 
 ## License
 
-[MIT](LICENSE). The fonts are under the SIL Open Font License, see [Vigil/Ui/fonts/README.md](Vigil/Ui/fonts/README.md).
+[MIT](LICENSE). The fonts are under the SIL Open Font License; see [Vigil/Ui/fonts/README.md](Vigil/Ui/fonts/README.md).

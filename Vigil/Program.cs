@@ -40,6 +40,10 @@ internal static class Program
         if (simulateTest >= 0 && simulateTest + 1 < args.Length) return Simulator.Test(args[simulateTest + 1]);
         if (args.Contains("--simulate")) return Simulator.Run();
 
+        // Vigil.exe --readme-images docs/images [--window shot.png] [--photo desk.png] : draw the README's pictures.
+        int readme = Array.IndexOf(args, "--readme-images");
+        if (readme >= 0 && readme + 1 < args.Length) return ReadmeImages.Run(args[readme + 1], Option(args, "--window"), Option(args, "--photo"));
+
         // --update-feed path-or-url : where to look for a newer version (a local JSON file for checks).
         if (Option(args, "--update-feed") is { } feed) Updater.Feed = feed;
         // Vigil.exe --update-test report.txt : check for an update, download and verify it, but do not install it.
@@ -234,6 +238,11 @@ internal static class Program
             if (args.Contains("--sample"))
             {
                 system = SystemSnapshot.Sample;
+                // --sample-names "Ryzen 7 7700,RTX 4070" : names for the made-up CPU and GPU (pictures for the README).
+                if (Option(args, "--sample-names")?.Split(',') is [string cpuName, string gpuName])
+                {
+                    system = system with { CpuName = cpuName.Trim(), GpuName = gpuName.Trim() };
+                }
             }
             else
             {
