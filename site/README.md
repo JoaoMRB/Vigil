@@ -50,7 +50,7 @@ After the first deploy, put the real address in `siteUrl` if it is different, th
 src/index.html     the page, with {{t.…}} where the translated text goes
 i18n/*.json        the text of the page in each language
 src/styles.css     styles, with the colours and fonts as tokens at the top (--accent, --glow, …)
-src/main.js        the sections fading in as you scroll, the hero clock and closing the language menu
+src/main.js        the motion (see below), the clocks and closing the language menu
 src/favicon.*      the app icon, small version (docs/brand/vigil-icon-small.svg)
 src/og.png         the 1200×630 picture shown when a link is shared
 tools/og.html      the source of og.png
@@ -65,9 +65,18 @@ chrome --headless=new --hide-scrollbars --force-device-scale-factor=1 --virtual-
 
 ## Motion
 
-There are only two animations:
+All of it is in `src/main.js` and at the end of `src/styles.css`, with no libraries:
 
-- Each section fades in and rises 16 px the first time it is seen.
+- The hero screen switches on: the backlight comes up with a short flicker and a band of light runs down it. The
+  device leans a little towards the pointer.
+- One set of made-up sensors drives every screen on the page. The readings wander like a PC at rest, every 2
+  seconds, and the graphs scroll along with them.
+- The clocks show the visitor's time, and the world clocks show the real time in each city.
+- Sections fade in and rise 16 px the first time they are seen. Graphs, gauges and bars draw themselves in, and the
+  sensor values count up.
+- The words of the statement light up one by one as it scrolls past.
 - The colon on the hero clock fades in and out.
 
-With *reduce motion* turned on in the system settings, neither one runs. Without JavaScript, the page shows everything and nothing moves.
+Only transform, opacity and colour change, and the readings pause while the tab is hidden. With *reduce motion*
+turned on in the system settings, none of this runs and only the clocks change. Without JavaScript, the page shows
+everything and nothing moves.

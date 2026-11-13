@@ -102,10 +102,10 @@
           </div>
           <div class="screen-time tnum"><span data-clock-h>21</span><span class="colon">:</span><span data-clock-m>47</span></div>
           <div class="screen-bottom">
-            <span><span class="dot">●</span> CPU&nbsp;41°C</span>
-            <span><span class="dot">●</span> GPU&nbsp;38°C</span>
-            <span><span class="dot">●</span> RAM&nbsp;34%</span>
-            <span><span class="dot">●</span> ↓&nbsp;4.1&nbsp;MB/s</span>
+            <span><span class="dot">●</span> CPU&nbsp;<span data-live="cpu">41</span>°C</span>
+            <span><span class="dot">●</span> GPU&nbsp;<span data-live="gpu">38</span>°C</span>
+            <span><span class="dot">●</span> RAM&nbsp;<span data-live="ram">34</span>%</span>
+            <span><span class="dot">●</span> ↓&nbsp;<span data-live="net">4.1</span>&nbsp;MB/s</span>
           </div>
         </div>
       </div>
@@ -116,7 +116,7 @@
 
   <!-- STATEMENT -->
   <section class="statement reveal" aria-label="{{t.statement.label}}">
-    <p>{{t.statement.text}}</p>
+    <p data-words>{{t.statement.text}}</p>
   </section>
 
   <!-- VIEWS -->
@@ -129,8 +129,8 @@
       <div class="grid grid-views">
         <article class="card">
           <div class="mock mock-center" aria-hidden="true">
-            <div class="mock-clock tnum">21:47</div>
-            <div class="mono-xs upper muted">{{t.views.clockDate}}</div>
+            <div class="mock-clock tnum" data-time>21:47</div>
+            <div class="mono-xs upper muted" data-long-date>{{t.views.clockDate}}</div>
           </div>
           <h3 class="h3">{{t.views.clock}}</h3>
           <p class="card-text">{{t.views.clockText}}</p>
@@ -138,10 +138,10 @@
 
         <article class="card">
           <div class="mock mock-pad mock-tiles" aria-hidden="true">
-            <div class="tile"><span class="mono-xxs muted">CPU</span><span class="tile-value tnum">41°</span></div>
-            <div class="tile"><span class="mono-xxs muted">GPU</span><span class="tile-value tnum">38°</span></div>
-            <div class="tile"><span class="mono-xxs muted">MEMORY</span><span class="tile-value tnum">34%</span></div>
-            <div class="tile"><span class="mono-xxs muted">NETWORK</span><span class="tile-value tnum">4.1<small> MB/s</small></span></div>
+            <div class="tile"><span class="mono-xxs muted">CPU</span><span class="tile-value tnum"><span data-live="cpu">41</span>°</span></div>
+            <div class="tile"><span class="mono-xxs muted">GPU</span><span class="tile-value tnum"><span data-live="gpu">38</span>°</span></div>
+            <div class="tile"><span class="mono-xxs muted">MEMORY</span><span class="tile-value tnum"><span data-live="ram">34</span>%</span></div>
+            <div class="tile"><span class="mono-xxs muted">NETWORK</span><span class="tile-value tnum"><span data-live="net">4.1</span><small> MB/s</small></span></div>
           </div>
           <h3 class="h3">{{t.views.system}}</h3>
           <p class="card-text">{{t.views.systemText}}</p>
@@ -164,10 +164,10 @@
 
         <article class="card">
           <div class="mock mock-pad mock-world" aria-hidden="true">
-            <div class="world-row"><span>{{t.cities.london}}</span><span class="tnum">21:47</span></div>
-            <div class="world-row"><span>{{t.cities.newYork}}</span><span class="tnum">16:47</span></div>
-            <div class="world-row"><span>São Paulo</span><span class="tnum">18:47</span></div>
-            <div class="world-row"><span>{{t.cities.tokyo}}</span><span class="tnum">06:47</span></div>
+            <div class="world-row"><span>{{t.cities.london}}</span><span class="tnum" data-zone="Europe/London">21:47</span></div>
+            <div class="world-row"><span>{{t.cities.newYork}}</span><span class="tnum" data-zone="America/New_York">16:47</span></div>
+            <div class="world-row"><span>São Paulo</span><span class="tnum" data-zone="America/Sao_Paulo">18:47</span></div>
+            <div class="world-row"><span>{{t.cities.tokyo}}</span><span class="tnum" data-zone="Asia/Tokyo">06:47</span></div>
           </div>
           <h3 class="h3">{{t.views.world}}</h3>
           <p class="card-text">{{t.views.worldText}}</p>
@@ -188,24 +188,24 @@
       <div class="grid grid-designs">
         <figure class="design t-amber">
           <div class="mock mock-pad mock-dashboard" aria-hidden="true">
-            <div class="dtile span-2"><span class="mono-xxs t">CPU</span><span class="dval dval-lg tnum">41°<small> 23%</small></span></div>
-            <div class="dtile"><span class="mono-xxs t">GPU</span><span class="dval dval-md tnum">38°</span></div>
+            <div class="dtile span-2"><span class="mono-xxs t">CPU</span><span class="dval dval-lg tnum"><span data-live="cpu">41</span>°<small> <span data-live="load">23</span>%</small></span></div>
+            <div class="dtile"><span class="mono-xxs t">GPU</span><span class="dval dval-md tnum"><span data-live="gpu">38</span>°</span></div>
             <div class="dtile"><span class="mono-xxs t">RAM</span><span class="dval tnum">11.2&nbsp;GB</span></div>
             <div class="dtile"><span class="mono-xxs t">DISK</span><span class="dval tnum">62%</span></div>
-            <div class="dtile"><span class="mono-xxs t">NET</span><span class="dval tnum">↓4.1</span></div>
+            <div class="dtile"><span class="mono-xxs t">NET</span><span class="dval tnum">↓<span data-live="net">4.1</span></span></div>
           </div>
           <figcaption class="design-name"><span class="swatch" aria-hidden="true"></span>Dashboard</figcaption>
         </figure>
 
         <figure class="design t-sky">
           <div class="mock mock-panel" aria-hidden="true">
-            <div class="prow"><span>CPU temp</span><span class="tnum">41&nbsp;°C</span></div>
-            <div class="prow"><span>CPU load</span><span class="tnum">23&nbsp;%</span></div>
-            <div class="prow"><span>GPU temp</span><span class="tnum">38&nbsp;°C</span></div>
+            <div class="prow"><span>CPU temp</span><span class="tnum"><span data-live="cpu">41</span>&nbsp;°C</span></div>
+            <div class="prow"><span>CPU load</span><span class="tnum"><span data-live="load">23</span>&nbsp;%</span></div>
+            <div class="prow"><span>GPU temp</span><span class="tnum"><span data-live="gpu">38</span>&nbsp;°C</span></div>
             <div class="prow"><span>GPU load</span><span class="tnum">9&nbsp;%</span></div>
             <div class="prow"><span>Memory</span><span class="tnum">11.2 / 32&nbsp;GB</span></div>
             <div class="prow"><span>Disk C:</span><span class="tnum">62&nbsp;%</span></div>
-            <div class="prow"><span>Network</span><span class="tnum">↓&nbsp;4.1 ↑&nbsp;0.3&nbsp;MB/s</span></div>
+            <div class="prow"><span>Network</span><span class="tnum">↓&nbsp;<span data-live="net">4.1</span> ↑&nbsp;0.3&nbsp;MB/s</span></div>
           </div>
           <figcaption class="design-name"><span class="swatch" aria-hidden="true"></span>Full panel</figcaption>
         </figure>
@@ -241,12 +241,12 @@
         <figure class="design t-blue">
           <div class="mock mock-graphs" aria-hidden="true">
             <div>
-              <div class="bar-head"><span>CPU · recent</span><span class="tnum v">23%</span></div>
-              <svg width="100%" height="52" viewBox="0 0 300 52" preserveAspectRatio="none"><polyline points="0,40 20,36 40,38 60,30 80,34 100,22 120,28 140,18 160,26 180,30 200,20 220,24 240,14 260,22 280,26 300,20"/></svg>
+              <div class="bar-head"><span>CPU · recent</span><span class="tnum v"><span data-live="load">23</span>%</span></div>
+              <svg width="100%" height="52" viewBox="0 0 300 52" preserveAspectRatio="none"><polyline data-graph="load" points="0,40 20,36 40,38 60,30 80,34 100,22 120,28 140,18 160,26 180,30 200,20 220,24 240,14 260,22 280,26 300,20"/></svg>
             </div>
             <div>
-              <div class="bar-head"><span>NETWORK · recent</span><span class="tnum v">↓&nbsp;4.1&nbsp;MB/s</span></div>
-              <svg width="100%" height="52" viewBox="0 0 300 52" preserveAspectRatio="none"><polyline points="0,46 20,44 40,45 60,40 80,30 100,12 120,16 140,34 160,42 180,44 200,38 220,26 240,30 260,40 280,44 300,42"/></svg>
+              <div class="bar-head"><span>NETWORK · recent</span><span class="tnum v">↓&nbsp;<span data-live="net">4.1</span>&nbsp;MB/s</span></div>
+              <svg width="100%" height="52" viewBox="0 0 300 52" preserveAspectRatio="none"><polyline data-graph="net" points="0,46 20,44 40,45 60,40 80,30 100,12 120,16 140,34 160,42 180,44 200,38 220,26 240,30 260,40 280,44 300,42"/></svg>
             </div>
           </div>
           <figcaption class="design-name"><span class="swatch" aria-hidden="true"></span>Graphs</figcaption>
@@ -254,7 +254,7 @@
 
         <figure class="design t-white">
           <div class="mock mock-center mock-minimal" aria-hidden="true">
-            <div class="minimal-value tnum">41°</div>
+            <div class="minimal-value tnum"><span data-live="cpu">41</span>°</div>
             <div class="mono-xxs muted wide">CPU</div>
           </div>
           <figcaption class="design-name"><span class="swatch" aria-hidden="true"></span>Minimal</figcaption>
@@ -270,12 +270,12 @@
       <h2 id="sensors-title" class="h2 h2-spaced">{{t.sensors.title}}</h2>
 
       <dl class="sensors">
-        <div class="sensor"><dt>CPU</dt><dd class="sensor-what">{{t.sensors.tempLoad}}</dd><dd class="sensor-value tnum">41&nbsp;°C · 23&nbsp;%</dd></div>
-        <div class="sensor"><dt>GPU</dt><dd class="sensor-what">{{t.sensors.tempLoad}}</dd><dd class="sensor-value tnum">38&nbsp;°C · 9&nbsp;%</dd></div>
-        <div class="sensor"><dt>{{t.sensors.memory}}</dt><dd class="sensor-what">{{t.sensors.memoryText}}</dd><dd class="sensor-value tnum">11.2 / 32&nbsp;GB</dd></div>
-        <div class="sensor"><dt>{{t.sensors.disk}}</dt><dd class="sensor-what">{{t.sensors.diskText}}</dd><dd class="sensor-value tnum">62&nbsp;% · 38&nbsp;°C</dd></div>
-        <div class="sensor"><dt>{{t.sensors.network}}</dt><dd class="sensor-what">{{t.sensors.networkText}}</dd><dd class="sensor-value tnum">↓&nbsp;4.1 ↑&nbsp;0.3&nbsp;MB/s</dd></div>
-        <div class="sensor"><dt>{{t.sensors.volume}}</dt><dd class="sensor-what">{{t.sensors.volumeText}}</dd><dd class="sensor-value tnum">40&nbsp;%</dd></div>
+        <div class="sensor"><dt>CPU</dt><dd class="sensor-what">{{t.sensors.tempLoad}}</dd><dd class="sensor-value tnum" data-count>41&nbsp;°C · 23&nbsp;%</dd></div>
+        <div class="sensor"><dt>GPU</dt><dd class="sensor-what">{{t.sensors.tempLoad}}</dd><dd class="sensor-value tnum" data-count>38&nbsp;°C · 9&nbsp;%</dd></div>
+        <div class="sensor"><dt>{{t.sensors.memory}}</dt><dd class="sensor-what">{{t.sensors.memoryText}}</dd><dd class="sensor-value tnum" data-count>11.2 / 32&nbsp;GB</dd></div>
+        <div class="sensor"><dt>{{t.sensors.disk}}</dt><dd class="sensor-what">{{t.sensors.diskText}}</dd><dd class="sensor-value tnum" data-count>62&nbsp;% · 38&nbsp;°C</dd></div>
+        <div class="sensor"><dt>{{t.sensors.network}}</dt><dd class="sensor-what">{{t.sensors.networkText}}</dd><dd class="sensor-value tnum" data-count>↓&nbsp;4.1 ↑&nbsp;0.3&nbsp;MB/s</dd></div>
+        <div class="sensor"><dt>{{t.sensors.volume}}</dt><dd class="sensor-what">{{t.sensors.volumeText}}</dd><dd class="sensor-value tnum" data-count>40&nbsp;%</dd></div>
       </dl>
 
       <p class="note">{{t.sensors.note}}</p>
