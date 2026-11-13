@@ -46,6 +46,8 @@ To update, run the new installer over the old one. Your settings are kept.
   driver. Without these, Vigil shows the CPU load instead. The CPU fan and the drive's temperature need them too.
 - **Locked or asleep:** while the PC is locked the screen dims to just the time (or turns off, or keeps going, as you
   choose in the System settings). Before the PC sleeps it turns off, and it comes back by itself when the PC wakes.
+- **Upright or upside down:** stand the screen upright and every view has a layout of its own for it; or turn it
+  upside down, to have the cable come out the other side.
 - **Games:** while a game or video fills the PC's screen, the display can switch to the system view (or the clock),
   and go back to your views when you leave it.
 - **Dim at night:** the backlight goes down between two times you set, such as 22:00 to 07:00.

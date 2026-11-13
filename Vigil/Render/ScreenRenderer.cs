@@ -13,7 +13,26 @@ public enum ScreenView
     Music
 }
 
-public sealed record RenderOptions(Theme Theme, ClockFont Font, bool Use24h, CultureInfo Culture, ScreenText Text, SystemStyle System);
+public sealed record RenderOptions(
+    Theme Theme, ClockFont Font, bool Use24h, CultureInfo Culture, ScreenText Text, SystemStyle System, string Orientation = "landscape");
+
+/// <summary>How the screen stands on the desk, and how far the picture is turned to look upright on it.</summary>
+public static class Orientations
+{
+    public const string Default = "landscape";
+    public static readonly string[] All = ["landscape", "landscape-flipped", "portrait-right", "portrait-left"];
+
+    /// <summary>Clockwise degrees from the upright picture to what the panel, always in landscape, is sent.</summary>
+    public static int Rotation(string? orientation) => orientation switch
+    {
+        "landscape-flipped" => 180,
+        "portrait-right" => 270, // the screen is turned clockwise: the picture turns back the other way
+        "portrait-left" => 90,
+        _ => 0
+    };
+
+    public static bool IsPortrait(string? orientation) => Rotation(orientation) is 90 or 270;
+}
 
 /// <summary>Everything the views show besides the time.</summary>
 public sealed record ScreenData(SystemSnapshot System, WeatherNow? Weather, IReadOnlyList<WorldClockRow> WorldClocks, NowPlaying? Music = null)
@@ -22,30 +41,54 @@ public sealed record ScreenData(SystemSnapshot System, WeatherNow? Weather, IRea
 }
 
 /// <summary>
-/// Draws the 480x320 screen. Started as a port of the AuraTime web app's canvas renderer:
-/// the clock, weather and world clock views come from there, the system view (PC sensors, five designs in SystemDesigns.cs) exists only here.
+/// Draws the screen: 480x320, or 320x480 when it stands upright (portrait layouts in PortraitViews.cs). Started as a
+/// port of the AuraTime web app's canvas renderer: the clock, weather and world clock views come from there, the
+/// system view (PC sensors, designs in SystemDesigns.cs) exists only here.
 /// </summary>
 public sealed partial class ScreenRenderer : IDisposable
 {
-    private const int W = TuringProtocol.ScreenWidth;
-    private const int H = TuringProtocol.ScreenHeight;
+    private const int PanelW = TuringProtocol.ScreenWidth;
+    private const int PanelH = TuringProtocol.ScreenHeight;
     private const float CardInset = 20;
     private const float CardRadius = 28;
 
-    private readonly SKBitmap _bitmap = new(new SKImageInfo(W, H, SKColorType.Rgba8888, SKAlphaType.Premul));
-    private readonly SKCanvas _canvas;
+    private SKBitmap _bitmap = NewBitmap(PanelW, PanelH);
+    private SKCanvas _canvas;
     private readonly Dictionary<string, SKTypeface> _typefaces = [];
+    /// <summary>The picture turned for the panel, when it has to be (<see cref="_rotation"/> not 0).</summary>
+    private SKBitmap? _turned;
+    private int _rotation;
 
     public ScreenRenderer()
     {
         _canvas = new SKCanvas(_bitmap);
     }
 
-    /// <summary>The last frame drawn. Owned by the renderer: copy it to keep it.</summary>
+    /// <summary>The last frame drawn, upright (320x480 in portrait). Owned by the renderer: copy it to keep it.</summary>
     public SKBitmap Bitmap => _bitmap;
+
+    private int W => _bitmap.Width;
+    private int H => _bitmap.Height;
+    private bool Portrait => H > W;
+
+    private static SKBitmap NewBitmap(int width, int height) =>
+        new(new SKImageInfo(width, height, SKColorType.Rgba8888, SKAlphaType.Premul));
+
+    /// <summary>Makes the picture the size the orientation needs.</summary>
+    private void SetOrientation(string orientation)
+    {
+        _rotation = Orientations.Rotation(orientation);
+        (int width, int height) = Orientations.IsPortrait(orientation) ? (PanelH, PanelW) : (PanelW, PanelH);
+        if (_bitmap.Width == width && _bitmap.Height == height) return;
+        _canvas.Dispose();
+        _bitmap.Dispose();
+        _bitmap = NewBitmap(width, height);
+        _canvas = new SKCanvas(_bitmap);
+    }
 
     public void Draw(DateTime now, RenderOptions options, ScreenView view, ScreenData data)
     {
+        SetOrientation(options.Orientation);
         Theme theme = options.Theme;
         DrawBackground(theme);
 
@@ -58,31 +101,53 @@ public sealed partial class ScreenRenderer : IDisposable
         switch (view)
         {
             case ScreenView.System:
-                DrawSystem(data.System, options, now);
+                if (Portrait) DrawSystemPortrait(data.System, options, now);
+                else DrawSystem(data.System, options, now);
                 break;
             case ScreenView.Weather when data.Weather is not null:
-                DrawWeather(now, data.Weather, options);
+                if (Portrait) DrawWeatherPortrait(now, data.Weather, options);
+                else DrawWeather(now, data.Weather, options);
                 break;
             case ScreenView.World when data.WorldClocks.Count > 0:
-                DrawWorld(data.WorldClocks, options);
+                if (Portrait) DrawWorldPortrait(data.WorldClocks, options);
+                else DrawWorld(data.WorldClocks, options);
                 break;
             case ScreenView.Music when data.Music is not null:
-                DrawMusic(now, data.Music, options);
+                if (Portrait) DrawMusicPortrait(now, data.Music, options);
+                else DrawMusic(now, data.Music, options);
                 break;
             default:
-                DrawClock(now, options);
+                if (Portrait) DrawClockPortrait(now, options);
+                else DrawClock(now, options);
                 break;
         }
         _canvas.Restore();
     }
 
-    /// <summary>The frame as RGB565, the display's pixel format.</summary>
-    public void CopyRgb565(ushort[] output) => TuringProtocol.RgbaToRgb565(_bitmap.GetPixelSpan(), output);
+    /// <summary>The frame as RGB565, the display's pixel format, turned the way the panel needs it.</summary>
+    public void CopyRgb565(ushort[] output)
+    {
+        if (_rotation == 0)
+        {
+            TuringProtocol.RgbaToRgb565(_bitmap.GetPixelSpan(), output);
+            return;
+        }
+        _turned ??= NewBitmap(PanelW, PanelH);
+        using (var canvas = new SKCanvas(_turned))
+        {
+            // Quarter turns about the centre land exactly on pixels: nothing is resampled.
+            canvas.Translate(PanelW / 2f, PanelH / 2f);
+            canvas.RotateDegrees(_rotation);
+            canvas.DrawBitmap(_bitmap, -_bitmap.Width / 2f, -_bitmap.Height / 2f);
+        }
+        TuringProtocol.RgbaToRgb565(_turned.GetPixelSpan(), output);
+    }
 
     public void Dispose()
     {
         _canvas.Dispose();
         _bitmap.Dispose();
+        _turned?.Dispose();
         foreach (SKTypeface typeface in _typefaces.Values) typeface.Dispose();
     }
 
@@ -98,7 +163,7 @@ public sealed partial class ScreenRenderer : IDisposable
     private void DrawClock(DateTime now, RenderOptions options)
     {
         Theme theme = options.Theme;
-        const float cx = W / 2f;
+        float cx = W / 2f;
 
         using var paint = new SKPaint { IsAntialias = true };
         using var labelFont = new SKFont(Typeface("inter-latin-500-normal.ttf"), 15);
@@ -125,7 +190,7 @@ public sealed partial class ScreenRenderer : IDisposable
     private void DrawWeather(DateTime now, WeatherNow weather, RenderOptions options)
     {
         Theme theme = options.Theme;
-        const float cx = W / 2f;
+        float cx = W / 2f;
         using var paint = new SKPaint { IsAntialias = true };
 
         // Icon + temperature, centred together
@@ -172,7 +237,7 @@ public sealed partial class ScreenRenderer : IDisposable
         DrawCentredText(options.Text.WorldClocks.ToUpper(options.Culture), W / 2f, 58, headerFont, paint, 3);
 
         const float left = 64;
-        const float right = W - 64;
+        float right = W - 64;
         const float pitch = 66;
         float top0 = 76 + (WorldClocks.Max - clocks.Count) * pitch / 2;
 
@@ -208,7 +273,7 @@ public sealed partial class ScreenRenderer : IDisposable
         DrawCover(music.Cover, coverRect, coverRadius, theme);
 
         const float textX = 218;
-        const float textWidth = W - 46 - textX;
+        float textWidth = W - 46 - textX;
         DrawLevelBars(textX, 74, theme, now, music.Playing);
 
         using var titleFont = new SKFont(TextTypeface("inter-latin-600-normal.ttf", music.Title), 24);
@@ -237,7 +302,7 @@ public sealed partial class ScreenRenderer : IDisposable
 
         if (!music.HasTimeline) return;
         TimeSpan position = music.PositionAt(now);
-        const float barX = coverX, barY = 236, barW = W - 2 * coverX, barH = 4;
+        float barX = coverX, barY = 236, barW = W - 2 * coverX, barH = 4;
         paint.Color = theme.Muted.WithAlpha(64);
         _canvas.DrawRoundRect(barX, barY, barW, barH, 2, 2, paint);
         float done = (float)Math.Clamp(position / music.Duration, 0, 1);

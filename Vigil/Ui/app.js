@@ -223,6 +223,7 @@ function build() {
   night.addEventListener('change', () => set('nightBrightness', +night.value));
   $('diagnostics').addEventListener('click', () => send({ type: 'diagnostics' }));
   bindSwitch($('updates'), on => { set('checkUpdates', on); sync(); });
+  $('orientation').addEventListener('change', event => { set('orientation', event.target.value); });
   bindSwitch($('autostart'), on => { setSwitch($('autostart'), on); send({ type: 'autostart', value: on }); });
   bindSwitch($('admin'), on => { setSwitch($('admin'), on); send({ type: 'admin', value: on }); });
 
@@ -267,6 +268,12 @@ function sync() {
   showBrightness(+$('brightness').value);
   setSwitch($('use24h'), settings.use24h);
   setSwitch($('updates'), settings.checkUpdates);
+  $('orientation').value = settings.orientation;
+  document.body.classList.toggle('portrait', settings.orientation.startsWith('portrait'));
+  for (const img of [$('preview'), ...document.querySelectorAll('.design-thumb')]) {
+    img.width = settings.orientation.startsWith('portrait') ? 320 : 480;
+    img.height = settings.orientation.startsWith('portrait') ? 480 : 320;
+  }
   setSwitch($('night'), settings.nightDim);
   $('night-options').hidden = !settings.nightDim;
   for (const [id, key] of [['night-start', 'nightStart'], ['night-end', 'nightEnd']]) {

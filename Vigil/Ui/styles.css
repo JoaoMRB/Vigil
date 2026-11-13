@@ -107,6 +107,10 @@ button, input, select { font: inherit; color: inherit; }
 }
 .preview img { display: block; width: 100%; height: auto; aspect-ratio: 3 / 2; }
 .preview img:not([src]) { visibility: hidden; }
+/* Standing upright: the preview and the design thumbnails stand too. */
+.portrait .preview { width: 66.7%; margin-inline: auto; }
+.portrait .preview img, .portrait .design-thumb { aspect-ratio: 2 / 3; }
+.portrait .designs { grid-template-columns: repeat(auto-fill, minmax(96px, 1fr)); }
 
 .trail-row { display: flex; align-items: center; gap: 12px; }
 .eyebrow { color: var(--subtle); font-size: 12px; font-weight: 500; letter-spacing: .04em; text-transform: uppercase; }

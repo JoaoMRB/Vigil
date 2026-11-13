@@ -376,9 +376,12 @@ public sealed partial class ScreenRenderer
     /// <summary>Six cards over the whole screen, three across and two down, each showing the reading the user picked.</summary>
     private void DrawCustom(SystemSnapshot s, RenderOptions o, DateTime now)
     {
+        // Three across and two down; standing upright, two across and three down.
+        int columns = Portrait ? 2 : 3;
+        int rows = SystemDesigns.TileCount / columns;
         const float margin = 12, gap = 8;
-        const float w = (W - 2 * margin - 2 * gap) / 3;
-        const float h = (H - 2 * margin - gap) / 2;
+        float w = (W - 2 * margin - (columns - 1) * gap) / columns;
+        float h = (H - 2 * margin - (rows - 1) * gap) / rows;
         IReadOnlyList<string> tiles = o.System.Tiles ?? SystemDesigns.DefaultTiles;
         Theme theme = o.Theme;
         using SKFont label = Font(Semibold, 12);
@@ -386,8 +389,8 @@ public sealed partial class ScreenRenderer
 
         for (int i = 0; i < SystemDesigns.TileCount; i++)
         {
-            float left = margin + i % 3 * (w + gap);
-            float top = margin + i / 3 * (h + gap);
+            float left = margin + i % columns * (w + gap);
+            float top = margin + i / columns * (h + gap);
             var r = new SKRect(left, top, left + w, top + h);
             Tile tile = TileFor(i < tiles.Count ? tiles[i] : SystemDesigns.DefaultTiles[i], s, o, now);
 

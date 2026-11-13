@@ -101,6 +101,36 @@ public static class Simulator
             display.ApplySettings();
             Check("night off: back to its own brightness", () => link.Brightness == 60, 3000);
 
+            // Turned screens: every pixel the panel gets comes from the right pixel of the upright picture.
+            foreach ((string orientation, Func<int, int, (int X, int Y)> source) in new (string, Func<int, int, (int, int)>)[]
+            {
+                ("portrait-left", (x, y) => (y, 479 - x)),
+                ("portrait-right", (x, y) => (319 - y, x)),
+                ("landscape-flipped", (x, y) => (479 - x, 319 - y))
+            })
+            {
+                settings.Orientation = orientation;
+                (ScreenView view, RenderOptions options, ScreenData data) = display.Frame(DateTime.Now);
+                using var renderer = new ScreenRenderer();
+                renderer.Draw(DateTime.Now, options, ScreenView.Clock, data);
+                int width = renderer.Bitmap.Width;
+                var upright = new ushort[width * renderer.Bitmap.Height];
+                TuringProtocol.RgbaToRgb565(renderer.Bitmap.GetPixelSpan(), upright);
+                var panel = new ushort[TuringProtocol.ScreenWidth * TuringProtocol.ScreenHeight];
+                renderer.CopyRgb565(panel);
+                int wrong = 0;
+                for (int y = 0; y < TuringProtocol.ScreenHeight; y++)
+                {
+                    for (int x = 0; x < TuringProtocol.ScreenWidth; x++)
+                    {
+                        (int sx, int sy) = source(x, y);
+                        if (panel[y * TuringProtocol.ScreenWidth + x] != upright[sy * width + sx]) wrong++;
+                    }
+                }
+                Check($"{orientation}: {width}x{renderer.Bitmap.Height}, turned pixel for pixel", () => wrong == 0, 0);
+            }
+            settings.Orientation = "landscape";
+
             // The music view takes its turn only while something plays.
             var musicOnly = new Settings { Views = ["music"] };
             NowPlaying paused = NowPlaying.Sample with { Playing = false };

@@ -179,6 +179,7 @@ public sealed class MainForm : Form
             case "brightness": s.Brightness = value.GetInt32(); break;
             case "use24h": s.Use24h = value.GetBoolean(); break;
             case "lockScreen": s.LockScreen = value.GetString() ?? ""; break;
+            case "orientation": s.Orientation = value.GetString() ?? ""; break;
             case "checkUpdates": s.CheckUpdates = value.GetBoolean(); break;
             case "gameView": s.GameView = value.GetString() ?? ""; break;
             case "nightDim": s.NightDim = value.GetBoolean(); break;
@@ -222,7 +223,7 @@ public sealed class MainForm : Form
         PostSettings();
         SendFrame();
         // The previews follow the theme, the clock font and the design's own colours.
-        if (key is "theme" or "font" or "systemDesign" or "designStyle" or "customTiles") SendThumbs();
+        if (key is "theme" or "font" or "systemDesign" or "designStyle" or "customTiles" or "orientation") SendThumbs();
     }
 
     private static string? OptionalString(JsonElement parent, string name) =>
@@ -351,6 +352,7 @@ public sealed class MainForm : Form
         brightness = _settings.Brightness,
         use24h = _settings.Use24h,
         lockScreen = _settings.LockScreen,
+        orientation = _settings.Orientation,
         checkUpdates = _settings.CheckUpdates,
         gameView = _settings.GameView,
         nightDim = _settings.NightDim,
@@ -398,7 +400,7 @@ public sealed class MainForm : Form
         foreach (DesignInfo design in SystemDesigns.Catalog)
         {
             SystemStyle style = SystemDesigns.Resolve(theme, design.Id, s.Designs.GetValueOrDefault(design.Id), s.CustomTiles);
-            var options = new RenderOptions(theme, ClockFonts.Resolve(s.Font), s.Use24h, CultureInfo.CurrentCulture, _display.Text, style);
+            var options = new RenderOptions(theme, ClockFonts.Resolve(s.Font), s.Use24h, CultureInfo.CurrentCulture, _display.Text, style, s.Orientation);
             _thumbRenderer.Draw(now, options, ScreenView.System, new ScreenData(SystemSnapshot.Sample, null, []));
             using SKData image = _thumbRenderer.Bitmap.Encode(SKEncodedImageFormat.Webp, 88);
             thumbs.Add(new { id = design.Id, image = "data:image/webp;base64," + Convert.ToBase64String(image.AsSpan()) });

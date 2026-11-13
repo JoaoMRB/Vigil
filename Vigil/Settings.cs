@@ -39,6 +39,8 @@ public sealed class Settings
     public string Theme { get; set; } = Render.Themes.DefaultId;
     public string Font { get; set; } = Render.ClockFonts.DefaultId;
     public int Brightness { get; set; } = 60;
+    /// <summary>How the screen stands: one of <see cref="Render.Orientations.All"/>.</summary>
+    public string Orientation { get; set; } = Render.Orientations.Default;
     public bool Use24h { get; set; } = true;
     /// <summary>Hardware (RTS/CTS) flow control on the serial port, as in the web app.</summary>
     public bool FlowControl { get; set; } = true;
@@ -145,6 +147,7 @@ public sealed class Settings
         Brightness = Math.Clamp(Brightness, 0, 100);
         if (!LockScreenChoices.Contains(LockScreen)) LockScreen = "dim";
         if (!GameViewChoices.Contains(GameView)) GameView = "off";
+        if (!Render.Orientations.All.Contains(Orientation)) Orientation = Render.Orientations.Default;
         NightStart = ParseTime(NightStart, 22).ToString("HH:mm", System.Globalization.CultureInfo.InvariantCulture);
         NightEnd = ParseTime(NightEnd, 7).ToString("HH:mm", System.Globalization.CultureInfo.InvariantCulture);
         NightBrightness = Math.Clamp(NightBrightness, 0, 100);

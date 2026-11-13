@@ -256,7 +256,9 @@ internal static class Program
             theme, ClockFonts.Resolve(settings.Font), settings.Use24h, System.Globalization.CultureInfo.CurrentCulture,
             ScreenText.ForCurrentCulture(), SystemDesigns.Resolve(theme, design, settings.Designs.GetValueOrDefault(design),
                 // --tiles cpu-temp,gpu-fan,... : the Custom design's cards, to check each reading.
-                Option(args, "--tiles")?.Split(',') ?? (IReadOnlyList<string>)settings.CustomTiles));
+                Option(args, "--tiles")?.Split(',') ?? (IReadOnlyList<string>)settings.CustomTiles),
+            // --orientation portrait-right : draw upright (the file shows the picture as it looks on the desk).
+            Option(args, "--orientation") ?? settings.Orientation);
         using var renderer = new ScreenRenderer();
         // The music view: the track playing now, or a made-up one with --sample (or when nothing plays).
         NowPlaying? music = null;
