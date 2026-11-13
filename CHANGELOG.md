@@ -20,6 +20,8 @@ All notable changes to Vigil are listed here. Versions follow [Semantic Versioni
   failed write. When connecting keeps failing, Vigil tries again after 1, 2, 5, 10 and then every 30 seconds, rather
   than every 5. Every 5 minutes the whole picture is sent again, so a byte lost on the way cannot leave a damaged
   band on the screen for good.
+- *Diagnostics → Copy* in the System settings: a report for bug reports, with the versions, the display's state, the
+  settings and the end of the log. No city, user name, hardware names or readings.
 - `--simulate` and `--simulate-test`: a pretend display, to try the cable, a stalled link, locking and sleeping
   without the hardware, by hand or as an automatic check.
 - A log of what the app did and the errors it met, in `%LocalAppData%\Vigil\logs`. It stays on the PC, holds no

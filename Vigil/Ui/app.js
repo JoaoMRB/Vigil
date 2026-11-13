@@ -5,7 +5,7 @@
  * message, and redraws from the settings the app sends back. Nothing is stored here.
  *
  * App -> page: init, settings, status, frame, cityResults, system
- * Page -> app: ready, set {key, value}, searchCity {id, name}, autostart {value}, admin {value}
+ * Page -> app: ready, set {key, value}, searchCity {id, name}, autostart {value}, admin {value}, diagnostics
  */
 
 const host = window.chrome && window.chrome.webview;
@@ -44,6 +44,9 @@ function receive(message) {
     case 'system':
       syncSystem(message);
       break;
+    case 'diagnostics':
+      showCopied(message.copied);
+      break;
     case 'designThumbs':
       for (const thumb of message.thumbs) {
         const img = document.querySelector('img[data-design="' + thumb.id + '"]');
@@ -51,6 +54,19 @@ function receive(message) {
       }
       break;
   }
+}
+
+let copiedTimer = null;
+function showCopied(copied) {
+  const button = $('diagnostics');
+  button.textContent = copied ? 'Copied' : 'Try again';
+  button.dataset.state = copied ? 'done' : 'failed';
+  $('diagnostics-result').textContent = copied ? 'Diagnostics copied to the clipboard.' : 'Could not copy: another program is using the clipboard.';
+  clearTimeout(copiedTimer);
+  copiedTimer = setTimeout(() => {
+    button.textContent = 'Copy';
+    delete button.dataset.state;
+  }, 2000);
 }
 
 function set(key, value) {
@@ -187,6 +203,7 @@ function build() {
   range.addEventListener('change', () => set('brightness', +range.value));
 
   bindSwitch($('use24h'), on => { set('use24h', on); sync(); });
+  $('diagnostics').addEventListener('click', () => send({ type: 'diagnostics' }));
   bindSwitch($('autostart'), on => { setSwitch($('autostart'), on); send({ type: 'autostart', value: on }); });
   bindSwitch($('admin'), on => { setSwitch($('admin'), on); send({ type: 'admin', value: on }); });
 

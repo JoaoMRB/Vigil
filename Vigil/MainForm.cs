@@ -152,6 +152,9 @@ public sealed class MainForm : Form
                 case "admin":
                     SetAdmin(message.GetProperty("value").GetBoolean());
                     break;
+                case "diagnostics":
+                    CopyDiagnostics();
+                    break;
                 case "searchCity":
                     _ = SearchCityAsync(message.GetProperty("id").GetInt32(), message.GetProperty("name").GetString() ?? "");
                     break;
@@ -231,6 +234,24 @@ public sealed class MainForm : Form
             MessageBox.Show(this, $"Could not change the start-up entry: {e.Message}", "Vigil", MessageBoxButtons.OK, MessageBoxIcon.Warning);
         }
         PostSystem();
+    }
+
+    /// <summary>Puts the diagnostics report on the clipboard and tells the page how that went.</summary>
+    private void CopyDiagnostics()
+    {
+        bool copied;
+        try
+        {
+            Clipboard.SetText(Diagnostics.Build(_settings, _display));
+            copied = true;
+        }
+        catch (Exception e) when (e is ExternalException or ThreadStateException)
+        {
+            // Another program is holding the clipboard.
+            Log.Warn("diagnostics", e);
+            copied = false;
+        }
+        Post(new { type = "diagnostics", copied });
     }
 
     /// <summary>

@@ -57,7 +57,8 @@ telemetry. Your settings stay in `%AppData%\Vigil\settings.json`.
 
 Vigil keeps a small log of what it did and the errors it met, in `%LocalAppData%\Vigil\logs`, so a problem can
 still be looked at later. It never leaves your PC, holds no city or readings, and your user name is replaced in
-any path it writes down. It stays under about 0.5 MB.
+any path it writes down. It stays under about 0.5 MB. *Diagnostics → Copy*, under System in the settings, puts
+the versions, the display's state, the settings and the end of this log on the clipboard, to paste into a bug report.
 
 ## Building
 
