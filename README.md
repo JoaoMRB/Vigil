@@ -23,7 +23,7 @@ Vigil works with the 3.5" USB screens sold as **Turing Smart Screen** or **UsbMo
 ## Download
 
 **[Vigil-Setup.exe](https://github.com/JoaoMRB/Vigil/releases/latest/download/Vigil-Setup.exe)** ·
-Windows 10 and 11, 64-bit · no administrator rights needed to install
+Windows 10 (version 2004 or later) and 11, 64-bit · no administrator rights needed to install
 
 To update, run the new installer over the old one. Your settings are kept.
 
@@ -33,8 +33,10 @@ To update, run the new installer over the old one. Your settings are kept.
 | :---: | :---: | :---: | :---: |
 | ![Clock view](docs/images/view-clock.webp) | ![System view](docs/images/system-panel.webp) | ![Weather view](docs/images/view-weather.webp) | ![World clocks view](docs/images/view-world.webp) |
 
-- **Views:** clock; system; weather with the quote of the day; and world clocks. The screen can show one
-  view, or take turns between several.
+- **Views:** clock; system; weather with the quote of the day; world clocks; and now playing. The screen can
+  show one view, or take turns between several.
+- **Now playing:** the cover, title, artist and progress of what plays in Spotify, a browser, the Media Player or any
+  app that shows in Windows' media controls. It takes its turn only while something plays.
 - **System:** CPU and GPU temperature and load, memory, disk, network speed and volume. There are six designs
   (Dashboard, Full panel, Gauges, Bars, Graphs and Minimal), and you can change each design's colours.
 - **CPU temperature:** Windows only shows this to programs that run as administrator and use a driver. To see

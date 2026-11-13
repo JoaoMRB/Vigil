@@ -101,6 +101,14 @@ public static class Simulator
             display.ApplySettings();
             Check("night off: back to its own brightness", () => link.Brightness == 60, 3000);
 
+            // The music view takes its turn only while something plays.
+            var musicOnly = new Settings { Views = ["music"] };
+            NowPlaying paused = NowPlaying.Sample with { Playing = false };
+            ScreenView playingView = DisplayService.ViewFor(musicOnly, DateTime.Now, ScreenData.Empty with { Music = NowPlaying.Sample });
+            ScreenView pausedView = DisplayService.ViewFor(musicOnly, DateTime.Now, ScreenData.Empty with { Music = paused });
+            Check("music: shown while playing, the clock when paused",
+                () => playingView == ScreenView.Music && pausedView == ScreenView.Clock, 0);
+
             // A full-screen game, with the usual view the clock and the system view set for games.
             ScreenView Showing() => display.Frame(DateTime.Now).View;
             settings.GameView = "system";

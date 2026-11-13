@@ -16,6 +16,10 @@ All notable changes to Vigil are listed here. Versions follow [Semantic Versioni
   and the settings window next to the name.
 - The screen follows the PC: it dims to just the time while the PC is locked (or turns off, or keeps going, as set
   under System), turns off before the PC sleeps, and comes back by itself on wake-up, without waiting for an error.
+- A *Now playing* view: the cover, title, artist, album and progress of what plays, from Windows' media controls
+  (Spotify, browsers, the Media Player and others). It takes its turn only while something plays. Titles in other
+  scripts, such as Japanese or Cyrillic, are drawn with a Windows font that has them.
+- Vigil now needs Windows 10 version 2004 or later, for the media API.
 - *During a full-screen game* under Views: after 5 seconds of a game or video filling the PC's screen, the display
   shows the system view (or the clock), and goes back to your views 5 seconds after you leave it.
 - *Dim at night* under Appearance: the backlight goes down between two times, such as 22:00 to 07:00. While the PC is

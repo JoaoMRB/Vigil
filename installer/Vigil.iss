@@ -25,6 +25,8 @@ DisableDirPage=auto
 PrivilegesRequired=lowest
 ArchitecturesAllowed=x64compatible
 ArchitecturesInstallIn64BitMode=x64compatible
+; Windows 10 version 2004: the media API behind the music view.
+MinVersion=10.0.19041
 WizardStyle=modern
 SetupIconFile=..\Vigil\app.ico
 UninstallDisplayIcon={app}\{#AppExe}

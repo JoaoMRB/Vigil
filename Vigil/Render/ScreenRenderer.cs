@@ -9,13 +9,14 @@ public enum ScreenView
     Clock,
     System,
     Weather,
-    World
+    World,
+    Music
 }
 
 public sealed record RenderOptions(Theme Theme, ClockFont Font, bool Use24h, CultureInfo Culture, ScreenText Text, SystemStyle System);
 
 /// <summary>Everything the views show besides the time.</summary>
-public sealed record ScreenData(SystemSnapshot System, WeatherNow? Weather, IReadOnlyList<WorldClockRow> WorldClocks)
+public sealed record ScreenData(SystemSnapshot System, WeatherNow? Weather, IReadOnlyList<WorldClockRow> WorldClocks, NowPlaying? Music = null)
 {
     public static readonly ScreenData Empty = new(SystemSnapshot.Empty, null, []);
 }
@@ -64,6 +65,9 @@ public sealed partial class ScreenRenderer : IDisposable
                 break;
             case ScreenView.World when data.WorldClocks.Count > 0:
                 DrawWorld(data.WorldClocks, options);
+                break;
+            case ScreenView.Music when data.Music is not null:
+                DrawMusic(now, data.Music, options);
                 break;
             default:
                 DrawClock(now, options);
@@ -191,6 +195,131 @@ public sealed partial class ScreenRenderer : IDisposable
 
             DrawTimeWithSuffix(theme, options.Font, clock.Time, clock.AmPm, right, top + 48, 190, 46, 15, alignRight: true);
         }
+    }
+
+    /// <summary>The cover on the left; title, artist and album on the right; the progress across the bottom.</summary>
+    private void DrawMusic(DateTime now, NowPlaying music, RenderOptions options)
+    {
+        Theme theme = options.Theme;
+        using var paint = new SKPaint { IsAntialias = true };
+
+        const float coverX = 46, coverY = 52, coverSize = 150, coverRadius = 16;
+        var coverRect = new SKRect(coverX, coverY, coverX + coverSize, coverY + coverSize);
+        DrawCover(music.Cover, coverRect, coverRadius, theme);
+
+        const float textX = 218;
+        const float textWidth = W - 46 - textX;
+        DrawLevelBars(textX, 74, theme, now, music.Playing);
+
+        using var titleFont = new SKFont(TextTypeface("inter-latin-600-normal.ttf", music.Title), 24);
+        List<string> title = WrapText(music.Title, titleFont, textWidth, 2);
+        paint.Color = StrongText(theme);
+        float y = 112;
+        foreach (string line in title)
+        {
+            _canvas.DrawText(line, textX, y, SKTextAlign.Left, titleFont, paint);
+            y += 29;
+        }
+
+        if (music.Artist.Length > 0)
+        {
+            using var artistFont = new SKFont(TextTypeface("inter-latin-500-normal.ttf", music.Artist), 16);
+            paint.Color = theme.Accent;
+            _canvas.DrawText(Ellipsize(music.Artist, artistFont, textWidth), textX, y + 2, SKTextAlign.Left, artistFont, paint);
+            y += 24;
+        }
+        if (music.Album.Length > 0 && music.Album != music.Title)
+        {
+            using var albumFont = new SKFont(TextTypeface("inter-latin-500-normal.ttf", music.Album), 13);
+            paint.Color = theme.Muted;
+            _canvas.DrawText(Ellipsize(music.Album, albumFont, textWidth), textX, y + 2, SKTextAlign.Left, albumFont, paint);
+        }
+
+        if (!music.HasTimeline) return;
+        TimeSpan position = music.PositionAt(now);
+        const float barX = coverX, barY = 236, barW = W - 2 * coverX, barH = 4;
+        paint.Color = theme.Muted.WithAlpha(64);
+        _canvas.DrawRoundRect(barX, barY, barW, barH, 2, 2, paint);
+        float done = (float)Math.Clamp(position / music.Duration, 0, 1);
+        paint.Color = theme.Accent;
+        if (done > 0) _canvas.DrawRoundRect(barX, barY, Math.Max(barH, barW * done), barH, 2, 2, paint);
+
+        using var timeFont = new SKFont(Typeface("inter-latin-500-normal.ttf"), 13);
+        paint.Color = theme.Muted;
+        _canvas.DrawText(TrackTime(position), barX, barY + 26, SKTextAlign.Left, timeFont, paint);
+        _canvas.DrawText(TrackTime(music.Duration), barX + barW, barY + 26, SKTextAlign.Right, timeFont, paint);
+    }
+
+    /// <summary>The cover, cropped to a rounded square; a note on the card's colours when the player gives none.</summary>
+    private void DrawCover(SKImage? cover, SKRect rect, float radius, Theme theme)
+    {
+        using var paint = new SKPaint { IsAntialias = true };
+        using var clip = new SKRoundRect(rect, radius);
+        if (cover is null)
+        {
+            paint.Color = theme.Muted.WithAlpha(40);
+            _canvas.DrawRoundRect(clip, paint);
+            // A quaver: a head and a stem with a flag.
+            float cx = rect.MidX, cy = rect.MidY, s = rect.Width;
+            paint.Color = theme.Accent;
+            _canvas.DrawOval(cx - s * 0.08f, cy + s * 0.14f, s * 0.11f, s * 0.08f, paint);
+            paint.Style = SKPaintStyle.Stroke;
+            paint.StrokeWidth = s * 0.035f;
+            paint.StrokeCap = SKStrokeCap.Round;
+            _canvas.DrawLine(cx + s * 0.02f, cy + s * 0.13f, cx + s * 0.02f, cy - s * 0.2f, paint);
+            _canvas.DrawLine(cx + s * 0.02f, cy - s * 0.2f, cx + s * 0.14f, cy - s * 0.1f, paint);
+            return;
+        }
+
+        // Centre crop: the cover fills the square whatever its shape.
+        float side = Math.Min(cover.Width, cover.Height);
+        var source = SKRect.Create((cover.Width - side) / 2, (cover.Height - side) / 2, side, side);
+        _canvas.Save();
+        _canvas.ClipRoundRect(clip, SKClipOperation.Intersect, antialias: true);
+        _canvas.DrawImage(cover, source, rect, new SKSamplingOptions(SKCubicResampler.Mitchell), paint);
+        _canvas.Restore();
+        paint.Style = SKPaintStyle.Stroke;
+        paint.StrokeWidth = 1;
+        paint.Color = SKColors.White.WithAlpha(28);
+        _canvas.DrawRoundRect(clip, paint);
+    }
+
+    /// <summary>Three small level bars that move while the music plays, and lie flat when it is paused.</summary>
+    private void DrawLevelBars(float x, float baseline, Theme theme, DateTime now, bool playing)
+    {
+        using var paint = new SKPaint { IsAntialias = true, Color = theme.Accent };
+        float[] pattern = [0.55f, 1f, 0.7f, 0.35f, 0.9f, 0.6f];
+        for (int i = 0; i < 3; i++)
+        {
+            float level = playing ? pattern[(now.Second + i * 2) % pattern.Length] : 0.2f;
+            float h = 14 * level;
+            _canvas.DrawRoundRect(x + i * 6, baseline - h, 3.5f, h, 1.5f, 1.5f, paint);
+        }
+    }
+
+    private static string TrackTime(TimeSpan time) =>
+        time.TotalHours >= 1 ? time.ToString(@"h\:mm\:ss", CultureInfo.InvariantCulture) : time.ToString(@"m\:ss", CultureInfo.InvariantCulture);
+
+    /// <summary>
+    /// The bundled font when it has every character of <paramref name="text"/>; otherwise one of Windows' fonts that
+    /// has them, for titles in Japanese, Greek, Cyrillic and so on.
+    /// </summary>
+    private SKTypeface TextTypeface(string file, string text)
+    {
+        SKTypeface bundled = Typeface(file);
+        if (bundled.ContainsGlyphs(text)) return bundled;
+        foreach (System.Text.Rune rune in text.EnumerateRunes())
+        {
+            int c = rune.Value;
+            if (bundled.ContainsGlyph(c)) continue;
+            string key = $"system:{c}";
+            if (_typefaces.TryGetValue(key, out SKTypeface? found)) return found;
+            SKTypeface? match = SKFontManager.Default.MatchCharacter(c);
+            if (match is null) break;
+            _typefaces[key] = match;
+            return match;
+        }
+        return bundled;
     }
 
     /// <summary>

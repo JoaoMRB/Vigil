@@ -187,6 +187,7 @@ internal static class Program
             "system" => ScreenView.System,
             "weather" => ScreenView.Weather,
             "world" => ScreenView.World,
+            "music" => ScreenView.Music,
             _ => ScreenView.Clock
         };
 
@@ -221,7 +222,17 @@ internal static class Program
             theme, ClockFonts.Resolve(settings.Font), settings.Use24h, System.Globalization.CultureInfo.CurrentCulture,
             ScreenText.ForCurrentCulture(), SystemDesigns.Resolve(theme, design, settings.Designs.GetValueOrDefault(design)));
         using var renderer = new ScreenRenderer();
-        renderer.Draw(now, options, view, new ScreenData(system, weather, world));
+        // The music view: the track playing now, or a made-up one with --sample (or when nothing plays).
+        NowPlaying? music = null;
+        if (view == ScreenView.Music && !args.Contains("--sample"))
+        {
+            using var media = new MediaService();
+            media.SetEnabled(true);
+            Thread.Sleep(1500);
+            music = media.Latest;
+        }
+        if (view == ScreenView.Music) music ??= NowPlaying.Sample;
+        renderer.Draw(now, options, view, new ScreenData(system, weather, world, music));
         using SKData data = renderer.Bitmap.Encode(SKEncodedImageFormat.Png, 100);
         File.WriteAllBytes(path, data.ToArray());
         return 0;

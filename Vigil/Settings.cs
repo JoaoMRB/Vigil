@@ -117,7 +117,7 @@ public sealed class Settings
         File.WriteAllText(FilePath, JsonSerializer.Serialize(this, JsonOptions));
     }
 
-    public static readonly string[] AllViews = ["clock", "system", "weather", "world"];
+    public static readonly string[] AllViews = ["clock", "system", "weather", "world", "music"];
 
     /// <summary>Repairs whatever a hand-edited or older file got wrong.</summary>
     public void Normalise()

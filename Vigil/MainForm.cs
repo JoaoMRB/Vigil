@@ -28,7 +28,8 @@ public sealed class MainForm : Form
         ("clock", "Clock", "Clock", "Time and date."),
         ("system", "System", "System", "CPU and GPU temperature and load, memory in use."),
         ("weather", "Weather and quote", "Weather", "Current weather for your city and the quote of the day."),
-        ("world", "World clocks", "World", "The time in up to three other cities.")
+        ("world", "World clocks", "World", "The time in up to three other cities."),
+        ("music", "Now playing", "Music", "Cover, title and progress of what is playing. Shown only while something plays.")
     ];
 
     private readonly Settings _settings;

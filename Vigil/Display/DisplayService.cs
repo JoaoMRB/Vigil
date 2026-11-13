@@ -76,6 +76,9 @@ public sealed class DisplayService : IDisposable
     /// <summary>The weather. Only fetched while the weather view is on and a city is chosen.</summary>
     public WeatherService Weather { get; } = new();
 
+    /// <summary>What is playing. Only read while the music view is on.</summary>
+    public MediaService Media { get; } = new();
+
     /// <summary>Language of the texts drawn on the screen.</summary>
     public string Language => _text.Language;
 
@@ -150,6 +153,7 @@ public sealed class DisplayService : IDisposable
         if (_thread.IsAlive) _thread.Join(3000);
         Sensors.Dispose();
         Weather.Dispose();
+        Media.Dispose();
         _stop.Dispose();
         _wake.Dispose();
         _readyToSleep.Dispose();
@@ -162,7 +166,8 @@ public sealed class DisplayService : IDisposable
         var data = new ScreenData(
             Sensors.Latest,
             Weather.Latest,
-            s.Views.Contains("world") ? WorldClocks.Rows(s.WorldClocks, now, s.Use24h) : []);
+            s.Views.Contains("world") ? WorldClocks.Rows(s.WorldClocks, now, s.Use24h) : [],
+            Media.Latest);
         Theme theme = Themes.Resolve(s.Theme);
         SystemStyle style = SystemDesigns.Resolve(theme, s.SystemDesign, s.Designs.GetValueOrDefault(s.SystemDesign));
         var options = new RenderOptions(theme, ClockFonts.Resolve(s.Font), s.Use24h, CultureInfo.CurrentCulture, _text, style);
@@ -210,6 +215,7 @@ public sealed class DisplayService : IDisposable
                 case "system": ready.Add(ScreenView.System); break;
                 case "weather" when data.Weather is not null: ready.Add(ScreenView.Weather); break;
                 case "world" when data.WorldClocks.Count > 0: ready.Add(ScreenView.World); break;
+                case "music" when data.Music is { Playing: true }: ready.Add(ScreenView.Music); break;
             }
         }
         if (ready.Count == 0) return ScreenView.Clock;
@@ -221,6 +227,7 @@ public sealed class DisplayService : IDisposable
     {
         Sensors.SetEnabled(_settings.Views.Contains("system") || _settings.GameView == "system");
         Weather.Configure(_settings.Views.Contains("weather"), _settings.WeatherCity);
+        Media.SetEnabled(_settings.Views.Contains("music"));
     }
 
     private void Run()
