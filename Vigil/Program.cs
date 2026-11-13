@@ -220,7 +220,9 @@ internal static class Program
         string design = Option(args, "--design") ?? settings.SystemDesign;
         var options = new RenderOptions(
             theme, ClockFonts.Resolve(settings.Font), settings.Use24h, System.Globalization.CultureInfo.CurrentCulture,
-            ScreenText.ForCurrentCulture(), SystemDesigns.Resolve(theme, design, settings.Designs.GetValueOrDefault(design)));
+            ScreenText.ForCurrentCulture(), SystemDesigns.Resolve(theme, design, settings.Designs.GetValueOrDefault(design),
+                // --tiles cpu-temp,gpu-fan,... : the Custom design's cards, to check each reading.
+                Option(args, "--tiles")?.Split(',') ?? (IReadOnlyList<string>)settings.CustomTiles));
         using var renderer = new ScreenRenderer();
         // The music view: the track playing now, or a made-up one with --sample (or when nothing plays).
         NowPlaying? music = null;

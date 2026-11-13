@@ -313,6 +313,8 @@ input[type="range"]:hover::-webkit-slider-thumb { box-shadow: 0 0 0 6px rgb(237 
 }
 .select option { background: var(--raised); color: var(--text); }
 
+.tiles { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.tiles .select { padding-left: 10px; padding-right: 30px; background-position: right 8px center; font-size: 13px; }
 .times { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 .time { display: flex; flex-direction: column; gap: 6px; color: var(--muted); font-size: 13px; font-weight: 500; }
 .time input { color: var(--text); font: inherit; font-weight: 400; font-variant-numeric: tabular-nums; color-scheme: dark; }

@@ -188,6 +188,7 @@ public sealed class MainForm : Form
             case "views": s.Views = Strings(value); break;
             case "worldClocks": s.WorldClocks = Strings(value); break;
             case "systemDesign": s.SystemDesign = value.GetString() ?? ""; break;
+            case "customTiles": s.CustomTiles = Strings(value); break;
             case "designStyle":
             {
                 string design = value.GetProperty("design").GetString() ?? "";
@@ -220,7 +221,7 @@ public sealed class MainForm : Form
         PostSettings();
         SendFrame();
         // The previews follow the theme, the clock font and the design's own colours.
-        if (key is "theme" or "font" or "systemDesign" or "designStyle") SendThumbs();
+        if (key is "theme" or "font" or "systemDesign" or "designStyle" or "customTiles") SendThumbs();
     }
 
     private static string? OptionalString(JsonElement parent, string name) =>
@@ -336,6 +337,7 @@ public sealed class MainForm : Form
         worldCities = WorldClocks.Cities,
         worldMax = WorldClocks.Max,
         designs = SystemDesigns.Catalog.Select(d => new { id = d.Id, name = d.Name, description = d.Description }),
+        metrics = SystemDesigns.Metrics.Select(m => new { id = m.Id, name = m.Name }),
         alertTempRange = new { min = SystemDesigns.MinAlertTemp, max = SystemDesigns.MaxAlertTemp }
     };
 
@@ -356,6 +358,7 @@ public sealed class MainForm : Form
         worldClocks = _settings.WorldClocks,
         weatherCity = _settings.WeatherCity,
         systemDesign = _settings.SystemDesign,
+        customTiles = _settings.CustomTiles,
         designs = _settings.Designs,
         styleDefaults = StyleDefaults()
     };
@@ -392,7 +395,7 @@ public sealed class MainForm : Form
         var thumbs = new List<object>();
         foreach (DesignInfo design in SystemDesigns.Catalog)
         {
-            SystemStyle style = SystemDesigns.Resolve(theme, design.Id, s.Designs.GetValueOrDefault(design.Id));
+            SystemStyle style = SystemDesigns.Resolve(theme, design.Id, s.Designs.GetValueOrDefault(design.Id), s.CustomTiles);
             var options = new RenderOptions(theme, ClockFonts.Resolve(s.Font), s.Use24h, CultureInfo.CurrentCulture, _display.Text, style);
             _thumbRenderer.Draw(now, options, ScreenView.System, new ScreenData(SystemSnapshot.Sample, null, []));
             using SKData image = _thumbRenderer.Bitmap.Encode(SKEncodedImageFormat.Webp, 88);

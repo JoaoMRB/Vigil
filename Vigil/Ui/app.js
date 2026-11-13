@@ -336,7 +336,24 @@ function buildDesigns() {
   alertTemp.max = model.alertTempRange.max;
   alertTemp.addEventListener('input', () => queueStyle({ alertTemp: +alertTemp.value }));
   $('reset-colors').addEventListener('click', resetStyle);
+
+  // Custom design: one select per card
+  const tiles = $('tiles');
+  tiles.replaceChildren();
+  tileSelects.length = 0;
+  for (let slot = 0; slot < 6; slot++) {
+    const select = el('select', { class: 'select', 'aria-label': `Card ${slot + 1}` },
+      model.metrics.map(m => el('option', { value: m.id, text: m.name })));
+    select.addEventListener('change', () => {
+      settings.customTiles = tileSelects.map(s => s.value);
+      set('customTiles', settings.customTiles);
+    });
+    tileSelects.push(select);
+    tiles.append(select);
+  }
 }
+
+const tileSelects = [];
 
 const styleOf = design => (settings.designs && settings.designs[design]) || {};
 
@@ -373,6 +390,10 @@ function syncDesign() {
   markDesign(settings.systemDesign);
   const info = model.designs.find(d => d.id === settings.systemDesign);
   $('design-desc').textContent = info ? info.description : '';
+  $('tiles-field').hidden = settings.systemDesign !== 'custom';
+  tileSelects.forEach((select, slot) => {
+    if (document.activeElement !== select) select.value = settings.customTiles[slot];
+  });
 
   const own = styleOf(settings.systemDesign);
   const defaults = settings.styleDefaults;

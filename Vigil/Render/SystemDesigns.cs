@@ -9,7 +9,11 @@ public sealed record DesignInfo(string Id, string Name, string Description);
 /// The colours a system design draws with, after the theme's defaults and the user's choices are merged.
 /// Accent is the main colour (CPU), Secondary the second one (GPU), Alert what a hot temperature turns into.
 /// </summary>
-public sealed record SystemStyle(string Design, SKColor Accent, SKColor Secondary, SKColor Alert, int AlertTemp);
+public sealed record SystemStyle(
+    string Design, SKColor Accent, SKColor Secondary, SKColor Alert, int AlertTemp, IReadOnlyList<string>? Tiles = null);
+
+/// <summary>A reading the Custom design can put on one of its cards.</summary>
+public sealed record MetricInfo(string Id, string Name);
 
 public static class SystemDesigns
 {
@@ -25,20 +29,54 @@ public static class SystemDesigns
         new("gauges", "Gauges", "Two big dials for the CPU and the GPU."),
         new("bars", "Bars", "A list of meters, one line each."),
         new("graphs", "Graphs", "The last few minutes of load and network."),
-        new("dashboard", "Dashboard", "Everything in cards over the whole screen: CPU, GPU, network, volume, time, memory and disk.")
+        new("dashboard", "Dashboard", "Everything in cards over the whole screen: CPU, GPU, network, volume, time, memory and disk."),
+        new("custom", "Custom", "Six cards, and you pick what each one shows.")
     ];
 
     public static bool IsKnown(string? id) => Catalog.Any(d => d.Id == id);
 
     /// <summary>Designs that draw their own cards over the whole screen, instead of sitting inside the theme's big card.</summary>
-    public static bool UsesWholeScreen(string? id) => id == "dashboard";
+    public static bool UsesWholeScreen(string? id) => id is "dashboard" or "custom";
+
+    /// <summary>How many cards the Custom design has: three across, two down.</summary>
+    public const int TileCount = 6;
+
+    public static readonly MetricInfo[] Metrics =
+    [
+        new("cpu-temp", "CPU temperature"),
+        new("cpu-load", "CPU load"),
+        new("cpu-clock", "CPU clock"),
+        new("cpu-power", "CPU power"),
+        new("cpu-fan", "CPU fan"),
+        new("gpu-temp", "GPU temperature"),
+        new("gpu-load", "GPU load"),
+        new("gpu-clock", "GPU clock"),
+        new("gpu-power", "GPU power"),
+        new("gpu-fan", "GPU fan"),
+        new("vram", "Video memory"),
+        new("ram", "Memory"),
+        new("disk", "System drive"),
+        new("disk-temp", "Drive temperature"),
+        new("net-down", "Download"),
+        new("net-up", "Upload"),
+        new("volume", "Volume"),
+        new("time", "Time")
+    ];
+
+    public static readonly string[] DefaultTiles = ["cpu-temp", "cpu-load", "gpu-temp", "gpu-load", "ram", "net-down"];
+
+    /// <summary>Exactly <see cref="TileCount"/> known metrics: an unknown or missing one takes that card's default.</summary>
+    public static List<string> CleanTiles(IReadOnlyList<string>? tiles) =>
+        Enumerable.Range(0, TileCount)
+            .Select(i => tiles is not null && i < tiles.Count && Metrics.Any(m => m.Id == tiles[i]) ? tiles[i] : DefaultTiles[i])
+            .ToList();
 
     /// <summary>The colours a design starts with on this theme, as "#RRGGBB".</summary>
     public static (string Accent, string Secondary, string Alert) DefaultColors(Theme theme) =>
         (Hex(theme.Accent), Hex(DefaultSecondary(theme)), Hex(DefaultAlert(theme)));
 
     /// <summary>The theme's colours, with the user's choices for this design on top.</summary>
-    public static SystemStyle Resolve(Theme theme, string design, DesignColors? own)
+    public static SystemStyle Resolve(Theme theme, string design, DesignColors? own, IReadOnlyList<string>? tiles = null)
     {
         static SKColor Pick(string? hex, SKColor fallback) => hex is not null && SKColor.TryParse(hex, out SKColor c) ? c : fallback;
         return new SystemStyle(
@@ -46,7 +84,8 @@ public static class SystemDesigns
             Pick(own?.Accent, theme.Accent),
             Pick(own?.Secondary, DefaultSecondary(theme)),
             Pick(own?.Alert, DefaultAlert(theme)),
-            own?.AlertTemp ?? DefaultAlertTemp);
+            own?.AlertTemp ?? DefaultAlertTemp,
+            CleanTiles(tiles));
     }
 
     public static string Hex(SKColor c) => $"#{c.Red:X2}{c.Green:X2}{c.Blue:X2}";
@@ -75,6 +114,7 @@ public sealed partial class ScreenRenderer
             case "gauges": DrawGauges(s, options); break;
             case "bars": DrawBars(s, options); break;
             case "graphs": DrawGraphs(s, options); break;
+            case "custom": DrawCustom(s, options, now); break;
             default: DrawPanel(s, options); break;
         }
     }
@@ -326,6 +366,85 @@ public sealed partial class ScreenRenderer
         Card(o, new SKRect(292, 192, 468, 308), "DISK", s.DiskName, s.DiskUsedPct, st.Secondary, compact: true,
             ("TEMP", TempText(s.DiskTemp), s.DiskTemp >= st.AlertTemp),
             ("FREE", s.DiskUsedPct is { } du ? PercentText(100 - du) : "–", false));
+    }
+
+    /* ------------------------------ 7. custom ------------------------------ */
+
+    /// <summary>One card of the Custom design: a caption, a big value, a line under it, and a meter when it has one.</summary>
+    private readonly record struct Tile(string Label, Big Value, float UnitScale, string Detail, float? Fraction, SKColor Color);
+
+    /// <summary>Six cards over the whole screen, three across and two down, each showing the reading the user picked.</summary>
+    private void DrawCustom(SystemSnapshot s, RenderOptions o, DateTime now)
+    {
+        const float margin = 12, gap = 8;
+        const float w = (W - 2 * margin - 2 * gap) / 3;
+        const float h = (H - 2 * margin - gap) / 2;
+        IReadOnlyList<string> tiles = o.System.Tiles ?? SystemDesigns.DefaultTiles;
+        Theme theme = o.Theme;
+        using SKFont label = Font(Semibold, 12);
+        using SKFont detail = Font(Medium, 12);
+
+        for (int i = 0; i < SystemDesigns.TileCount; i++)
+        {
+            float left = margin + i % 3 * (w + gap);
+            float top = margin + i / 3 * (h + gap);
+            var r = new SKRect(left, top, left + w, top + h);
+            Tile tile = TileFor(i < tiles.Count ? tiles[i] : SystemDesigns.DefaultTiles[i], s, o, now);
+
+            Panel(r, tile.Color, theme);
+            Text(tile.Label, r.Left + 14, r.Top + 24, label, tile.Color, SKTextAlign.Left, 1.5f);
+            BigValue(o, tile.Value, r.MidX, r.Top + 84, r.Width - 24, 40, tile.Color, SKTextAlign.Center, tile.UnitScale);
+            if (tile.Detail.Length > 0)
+            {
+                Text(Ellipsize(tile.Detail, detail, r.Width - 24), r.MidX, r.Top + 108, detail, theme.Muted, SKTextAlign.Center);
+            }
+            if (tile.Fraction is { } fraction)
+            {
+                Meter(r.Left + 14, r.Bottom - 20, r.Width - 28, 5, fraction, tile.Value.Hot ? o.System.Alert : tile.Color, theme);
+            }
+        }
+    }
+
+    private static Tile TileFor(string metric, SystemSnapshot s, RenderOptions o, DateTime now)
+    {
+        SystemStyle st = o.System;
+        SKColor cpu = st.Accent, gpu = st.Secondary;
+        Big None() => new("–", "", false);
+        Big Temp(float? t) => t is { } v ? new Big(RoundText(v), "°", v >= st.AlertTemp) : None();
+        Big Percent(float? p) => p is { } v ? new Big(RoundText(v), "%", false) : None();
+        Big Number(float? v, string format, string unit) => v is { } x ? new Big(x.ToString(format, CultureInfo.InvariantCulture), unit, false) : None();
+        float? Of(float? value, float max) => value is { } v ? Math.Clamp(v / max, 0, 1) : null;
+        string OfTotal(float? total) => total is { } t ? Inv($"of {MathF.Round(t)} GB") : "";
+
+        return metric switch
+        {
+            "cpu-temp" => new Tile("CPU TEMP", Temp(s.CpuTemp), 1, s.CpuTemp is null ? "Admin mode only" : s.CpuName, Of(s.CpuTemp, 100), cpu),
+            "cpu-load" => new Tile("CPU LOAD", Percent(s.CpuLoad), 0.5f, s.CpuName, Of(s.CpuLoad, 100), cpu),
+            "cpu-clock" => new Tile("CPU CLOCK", Number(s.CpuClockMhz / 1000, "0.0", "GHz"), 0.4f, s.CpuName, null, cpu),
+            "cpu-power" => new Tile("CPU POWER", Number(s.CpuPowerW, "0", "W"), 0.5f, s.CpuName, null, cpu),
+            "cpu-fan" => new Tile("CPU FAN", Number(s.CpuFanRpm, "0", "RPM"), 0.35f, s.CpuFanRpm is null ? "Admin mode only" : "", null, cpu),
+            "gpu-temp" => new Tile("GPU TEMP", Temp(s.GpuTemp), 1, s.GpuName, Of(s.GpuTemp, 100), gpu),
+            "gpu-load" => new Tile("GPU LOAD", Percent(s.GpuLoad), 0.5f, s.GpuName, Of(s.GpuLoad, 100), gpu),
+            "gpu-clock" => new Tile("GPU CLOCK", Number(s.GpuClockMhz / 1000, "0.00", "GHz"), 0.4f, s.GpuName, null, gpu),
+            "gpu-power" => new Tile("GPU POWER", Number(s.GpuPowerW, "0", "W"), 0.5f, s.GpuName, null, gpu),
+            "gpu-fan" => new Tile("GPU FAN", Number(s.GpuFanRpm, "0", "RPM"), 0.35f, s.GpuFanRpm is null ? "Not spinning" : s.GpuName, null, gpu),
+            "vram" => new Tile("VRAM", Number(s.VramUsedGb, "0.0", "GB"), 0.4f, OfTotal(s.VramTotalGb), s.VramTotalGb is > 0 ? Fraction(s.VramUsedGb, s.VramTotalGb) : null, gpu),
+            "ram" => new Tile("MEMORY", Number(s.RamUsedGb, "0.0", "GB"), 0.4f, OfTotal(s.RamTotalGb), s.RamTotalGb is > 0 ? Fraction(s.RamUsedGb, s.RamTotalGb) : null, cpu),
+            "disk" => new Tile("DRIVE", Percent(s.DiskUsedPct), 0.5f, s.DiskName.Length > 0 ? $"{s.DiskName} used" : "", Of(s.DiskUsedPct, 100), cpu),
+            "disk-temp" => new Tile("DRIVE TEMP", Temp(s.DiskTemp), 1, s.DiskTemp is null ? "Admin mode only" : s.DiskName, Of(s.DiskTemp, 100), gpu),
+            "net-down" => RateTile("DOWNLOAD", s.NetDownBps, cpu),
+            "net-up" => RateTile("UPLOAD", s.NetUpBps, gpu),
+            "volume" => new Tile("VOLUME", s.Muted ? None() : Percent(s.VolumePct), 0.5f, s.Muted ? "Muted" : "", s.Muted ? 0 : Of(s.VolumePct, 100), cpu),
+            _ => new Tile("TIME",
+                new Big(now.ToString(o.Use24h ? "HH:mm" : "h:mm", CultureInfo.InvariantCulture), o.Use24h ? "" : now.ToString("tt", CultureInfo.InvariantCulture), false),
+                0.4f, now.ToString("d", o.Culture), null, gpu)
+        };
+
+        static Tile RateTile(string label, float? bytesPerSecond, SKColor color)
+        {
+            (string value, string unit) = RateParts(bytesPerSecond);
+            return new Tile(label, new Big(value, unit, false), 0.4f, "", null, color);
+        }
     }
 
     /// <summary>

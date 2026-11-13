@@ -31,6 +31,8 @@ public sealed class Settings
 
     /// <summary>How the system view looks: one of <see cref="Render.SystemDesigns.Catalog"/>.</summary>
     public string SystemDesign { get; set; } = Render.SystemDesigns.DefaultId;
+    /// <summary>What each card of the Custom design shows: <see cref="Render.SystemDesigns.TileCount"/> metric ids.</summary>
+    public List<string> CustomTiles { get; set; } = [.. Render.SystemDesigns.DefaultTiles];
     /// <summary>The user's colour choices per design (design id to colours). A design without an entry uses the theme's.</summary>
     public Dictionary<string, DesignColors> Designs { get; set; } = [];
 
@@ -148,6 +150,7 @@ public sealed class Settings
             WeatherCity = null;
         }
         if (!Render.SystemDesigns.IsKnown(SystemDesign)) SystemDesign = Render.SystemDesigns.DefaultId;
+        CustomTiles = Render.SystemDesigns.CleanTiles(CustomTiles);
         // A new dictionary, never changed in place: the display thread may be reading the old one.
         Designs = (Designs ?? [])
             .Where(pair => Render.SystemDesigns.IsKnown(pair.Key) && pair.Value is not null)

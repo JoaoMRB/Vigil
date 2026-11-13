@@ -25,6 +25,11 @@ public sealed record SystemSnapshot
     public float? GpuClockMhz { get; init; }
     public float? GpuPowerW { get; init; }
 
+    /// <summary>The CPU fan as the motherboard reports it (administrator mode and the PawnIO driver), in RPM.</summary>
+    public float? CpuFanRpm { get; init; }
+    /// <summary>The graphics card's own fan, in RPM. Null too when the card has stopped it (quiet mode at low load).</summary>
+    public float? GpuFanRpm { get; init; }
+
     public float? RamUsedGb { get; init; }
     public float? RamTotalGb { get; init; }
     public float? VramUsedGb { get; init; }
@@ -67,6 +72,7 @@ public sealed record SystemSnapshot
         {
             CpuName = "Sample CPU", CpuTemp = 58, CpuLoad = 36, CpuClockMhz = 4200, CpuPowerW = 65,
             GpuName = "Sample GPU", GpuTemp = 52, GpuLoad = 24, GpuClockMhz = 1800, GpuPowerW = 120,
+            CpuFanRpm = 1150, GpuFanRpm = 1400,
             RamUsedGb = 17.3f, RamTotalGb = 32, VramUsedGb = 3.2f, VramTotalGb = 8,
             DiskName = "Sample SSD", DiskUsedPct = 62, DiskTemp = 38,
             NetDownBps = 4_200_000, NetUpBps = 310_000, VolumePct = 40,
@@ -134,7 +140,7 @@ public sealed class SystemSensors : IDisposable
         Poll();
         lock (_lock)
         {
-            foreach (IHardware hardware in _computer?.Hardware ?? [])
+            foreach (IHardware hardware in (_computer?.Hardware ?? []).SelectMany(h => new[] { h }.Concat(h.SubHardware)))
             {
                 yield return $"{hardware.HardwareType}: {hardware.Name}";
                 foreach (ISensor sensor in hardware.Sensors.OrderBy(s => s.SensorType).ThenBy(s => s.Index))
@@ -155,11 +161,18 @@ public sealed class SystemSensors : IDisposable
             {
                 _computer = new Computer
                 {
-                    IsCpuEnabled = true, IsGpuEnabled = true, IsMemoryEnabled = true, IsStorageEnabled = true, IsNetworkEnabled = true
+                    IsCpuEnabled = true, IsGpuEnabled = true, IsMemoryEnabled = true, IsStorageEnabled = true, IsNetworkEnabled = true,
+                    // The fans: the motherboard's chip only answers in administrator mode, with the driver.
+                    IsMotherboardEnabled = true
                 };
                 _computer.Open();
             }
-            foreach (IHardware hardware in _computer.Hardware) hardware.Update();
+            foreach (IHardware hardware in _computer.Hardware)
+            {
+                hardware.Update();
+                // The motherboard's fans sit on its sensor chip, one level down.
+                foreach (IHardware sub in hardware.SubHardware) sub.Update();
+            }
 
             (float? volume, bool muted) = ReadVolume();
             SystemSnapshot reading = Read(_computer) with { VolumePct = volume, Muted = muted };
@@ -243,6 +256,8 @@ public sealed class SystemSensors : IDisposable
             GpuLoad = Value(gpu, SensorType.Load, "GPU Core"),
             GpuClockMhz = Value(gpu, SensorType.Clock, "GPU Core"),
             GpuPowerW = NonZero(Value(gpu, SensorType.Power, "GPU Package")),
+            CpuFanRpm = CpuFan(computer),
+            GpuFanRpm = NonZero(gpu?.Sensors.FirstOrDefault(s => s.SensorType == SensorType.Fan && s.Value is > 0)?.Value),
 
             RamUsedGb = ramUsed,
             RamTotalGb = ramUsed + ramFree,
@@ -256,6 +271,21 @@ public sealed class SystemSensors : IDisposable
             NetDownBps = busiest.Down,
             NetUpBps = busiest.Up
         };
+    }
+
+    /// <summary>
+    /// The motherboard's fan named for the CPU, or else the first one that spins. Their names depend on the board
+    /// ("CPU Fan", "Fan #1"...), so the name is only a hint.
+    /// </summary>
+    private static float? CpuFan(Computer computer)
+    {
+        List<ISensor> fans = computer.Hardware
+            .Where(h => h.HardwareType == HardwareType.Motherboard)
+            .SelectMany(h => h.SubHardware.Concat([h]))
+            .SelectMany(h => h.Sensors)
+            .Where(s => s.SensorType == SensorType.Fan && s.Value is > 0)
+            .ToList();
+        return (fans.FirstOrDefault(s => s.Name.Contains("CPU", StringComparison.OrdinalIgnoreCase)) ?? fans.FirstOrDefault())?.Value;
     }
 
     private static float? Value(IHardware? hardware, SensorType type, string name) =>

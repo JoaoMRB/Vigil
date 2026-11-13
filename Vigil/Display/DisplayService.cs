@@ -169,7 +169,7 @@ public sealed class DisplayService : IDisposable
             s.Views.Contains("world") ? WorldClocks.Rows(s.WorldClocks, now, s.Use24h) : [],
             Media.Latest);
         Theme theme = Themes.Resolve(s.Theme);
-        SystemStyle style = SystemDesigns.Resolve(theme, s.SystemDesign, s.Designs.GetValueOrDefault(s.SystemDesign));
+        SystemStyle style = SystemDesigns.Resolve(theme, s.SystemDesign, s.Designs.GetValueOrDefault(s.SystemDesign), s.CustomTiles);
         var options = new RenderOptions(theme, ClockFonts.Resolve(s.Font), s.Use24h, CultureInfo.CurrentCulture, _text, style);
         ScreenView view = _gaming
             ? s.GameView == "system" ? ScreenView.System : ScreenView.Clock

@@ -37,11 +37,13 @@ To update, run the new installer over the old one. Your settings are kept.
   show one view, or take turns between several.
 - **Now playing:** the cover, title, artist and progress of what plays in Spotify, a browser, the Media Player or any
   app that shows in Windows' media controls. It takes its turn only while something plays.
-- **System:** CPU and GPU temperature and load, memory, disk, network speed and volume. There are six designs
-  (Dashboard, Full panel, Gauges, Bars, Graphs and Minimal), and you can change each design's colours.
+- **System:** CPU and GPU temperature and load, memory, disk, network speed and volume. There are seven designs
+  (Dashboard, Full panel, Gauges, Bars, Graphs, Minimal and Custom), and you can change each design's colours.
+  *Custom* has six cards, and you pick what each one shows: temperatures, load, clocks, power and fans of the CPU and
+  the GPU, video memory, memory, the system drive, download, upload, volume or the time.
 - **CPU temperature:** Windows only shows this to programs that run as administrator and use a driver. To see
   it, turn on *CPU temperature* in the System settings and install the free [PawnIO](https://pawnio.eu/)
-  driver. Without these, Vigil shows the CPU load instead.
+  driver. Without these, Vigil shows the CPU load instead. The CPU fan and the drive's temperature need them too.
 - **Locked or asleep:** while the PC is locked the screen dims to just the time (or turns off, or keeps going, as you
   choose in the System settings). Before the PC sleeps it turns off, and it comes back by itself when the PC wakes.
 - **Games:** while a game or video fills the PC's screen, the display can switch to the system view (or the clock),
