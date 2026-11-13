@@ -178,7 +178,7 @@ public sealed class SystemSensors : IDisposable
         {
             // This runs on a timer thread: an exception here would end the whole app. A sensor that fails to read
             // (a driver, a disk that is asleep) must not take the display down: keep the previous reading.
-            System.Diagnostics.Debug.WriteLine($"[sensors] {e.GetType().Name}: {e.Message}");
+            Log.Warn("sensors", e);
         }
         finally
         {

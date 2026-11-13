@@ -69,6 +69,7 @@ public sealed class TrayApp : ApplicationContext
         catch (Exception e) when (e is InvalidOperationException or UnauthorizedAccessException or IOException)
         {
             // Not worth stopping the app for: the old start-up entry keeps working.
+            Log.Warn("start with Windows", e);
         }
     }
 

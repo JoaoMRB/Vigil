@@ -146,6 +146,13 @@ public sealed class DisplayService : IDisposable
                 {
                     SetStatus(DisplayStatus.Error, e.Message);
                 }
+                catch (Exception e) when (e is not OutOfMemoryException)
+                {
+                    // Nothing else is expected here, but this thread is the whole app: whatever it was, write it
+                    // down and try again rather than end the process.
+                    Log.Error("display", e);
+                    SetStatus(DisplayStatus.Error, e.Message);
+                }
                 link.Close();
             }
             cancel.WaitHandle.WaitOne(RetryMs);
@@ -192,6 +199,9 @@ public sealed class DisplayService : IDisposable
         if (Status == status && Detail == detail) return;
         Status = status;
         Detail = detail;
+        string line = detail.Length > 0 ? $"display: {status} ({detail})" : $"display: {status}";
+        if (status is DisplayStatus.Busy or DisplayStatus.Error) Log.Warn(line);
+        else Log.Info(line);
         StatusChanged?.Invoke();
     }
 }

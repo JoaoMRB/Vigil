@@ -111,6 +111,8 @@ public sealed class WeatherService : IDisposable
         catch (Exception e) when (e is HttpRequestException or TaskCanceledException or System.Text.Json.JsonException)
         {
             // Offline or the service is down: keep the last reading and try again a little sooner.
+            // Only the kind of error is logged: the message can carry the address asked for, and with it the city.
+            Log.Warn($"weather: {e.GetType().Name}");
             lock (_lock)
             {
                 if (city == _city) _timer?.Change(RetryAfterError, RefreshEvery);

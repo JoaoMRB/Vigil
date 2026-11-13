@@ -53,6 +53,10 @@ The only thing Vigil gets from the internet is the weather, from [Open-Meteo](ht
 city you pick. Before it is sent, your position is rounded to about 1 km. Vigil has no analytics and no
 telemetry. Your settings stay in `%AppData%\Vigil\settings.json`.
 
+Vigil keeps a small log of what it did and the errors it met, in `%LocalAppData%\Vigil\logs`, so a problem can
+still be looked at later. It never leaves your PC, holds no city or readings, and your user name is replaced in
+any path it writes down. It stays under about 0.5 MB.
+
 ## Building
 
 You need the .NET 9 SDK. The installer also needs Inno Setup 6 (`winget install JRSoftware.InnoSetup`).

@@ -83,6 +83,7 @@ public sealed class Settings
         catch (Exception e) when (e is IOException or JsonException or UnauthorizedAccessException)
         {
             // A broken or unreadable file must not stop the app: start from the defaults.
+            Log.Warn("settings", e);
         }
         return new Settings();
     }

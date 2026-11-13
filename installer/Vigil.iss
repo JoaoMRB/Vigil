@@ -79,8 +79,9 @@ Filename: "{app}\{#AppExe}"; Description: "{cm:LaunchProgram,{#AppName}}"; Flags
 Filename: "{sys}\schtasks.exe"; Parameters: "/Delete /TN ""{#AppName}"" /F"; Flags: runhidden; RunOnceId: "RemoveStartupTask"
 
 [UninstallDelete]
-; The window's browser cache. The settings (%AppData%\Vigil\settings.json) are kept for a later reinstall.
+; The window's browser cache and the log. The settings (%AppData%\Vigil\settings.json) are kept for a later reinstall.
 Type: filesandordirs; Name: "{localappdata}\{#AppName}\WebView2"
+Type: filesandordirs; Name: "{localappdata}\{#AppName}\logs"
 Type: dirifempty; Name: "{localappdata}\{#AppName}"
 
 [Code]

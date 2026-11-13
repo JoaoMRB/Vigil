@@ -47,6 +47,7 @@ internal static class Program
         if (waitFor >= 0 && waitFor + 1 < args.Length && int.TryParse(args[waitFor + 1], out int pid)) WaitForExit(pid);
 
         bool tray = args.Contains(Autostart.TrayArgument);
+        Log.Start();
         Settings settings = Settings.Load();
         // A copy started by the task is as elevated as it will get: it must not ask again (that would loop).
         if (settings.RunAsAdmin && !Elevation.IsElevated && !args.Contains(Autostart.FromTaskArgument))
@@ -80,11 +81,28 @@ internal static class Program
                 return 0;
             }
 
+            LogStart(tray);
+            // An error nobody caught: write it down. On the window's thread the app then carries on (it lives in the
+            // tray, and the display thread is not affected); anywhere else Windows ends the process after this.
+            Application.SetUnhandledExceptionMode(UnhandledExceptionMode.CatchException);
+            Application.ThreadException += (_, e) => Log.Error("window", e.Exception);
+            AppDomain.CurrentDomain.UnhandledException += (_, e) =>
+            {
+                if (e.ExceptionObject is Exception exception) Log.Error("unhandled", exception);
+            };
+
             ApplicationConfiguration.Initialize();
             using var app = new TrayApp(settings, openWindow: !tray);
             Application.Run(app);
+            Log.Info("Vigil closed");
         }
         return 0;
+    }
+
+    private static void LogStart(bool tray)
+    {
+        string version = typeof(Program).Assembly.GetName().Version?.ToString(3) ?? "?";
+        Log.Info($"Vigil {version} started ({(tray ? "at sign-in" : "by hand")}, {(Elevation.IsElevated ? "administrator" : "standard user")}) on {Environment.OSVersion.VersionString}, .NET {Environment.Version}");
     }
 
     /// <summary>Followed by a process id: wait for that process to quit before starting.</summary>
