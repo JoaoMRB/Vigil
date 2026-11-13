@@ -16,12 +16,21 @@ public enum DisplayStatus
 
 /// <summary>
 /// Background loop that owns the display: finds it, connects, draws one frame per second and sends only the
-/// pixels that changed, and reconnects by itself after any failure. It also follows the PC: the screen turns off
-/// before the PC sleeps, dims (or turns off) while it is locked, and comes back by itself.
+/// pixels that changed, and reconnects by itself after any failure: at once when the cable comes back, then less
+/// and less often while it keeps failing. It also follows the PC: the screen turns off before the PC sleeps, dims
+/// (or turns off) while it is locked, and comes back by itself.
 /// </summary>
 public sealed class DisplayService : IDisposable
 {
-    private const int RetryMs = 5000;
+    /// <summary>Waits between attempts while connecting keeps failing: quick at first, then calmer.</summary>
+    private static readonly int[] RetryMs = [1000, 2000, 5000, 10000, 30000];
+    /// <summary>With no display plugged in, a look now and then in case a device announcement was missed.</summary>
+    private const int NotFoundCheckMs = 10000;
+    /// <summary>
+    /// The whole picture is sent again this often. Only what changes is sent otherwise, so a byte lost on the way
+    /// would leave a damaged band on the screen for good.
+    /// </summary>
+    private const long FullRedrawMs = 5 * 60 * 1000;
     /// <summary>Backlight while the PC is locked and the screen is set to dim (at most the user's own level).</summary>
     private const int DimBrightness = 8;
     /// <summary>How long the PC's sleep waits for the screen to be turned off.</summary>
@@ -34,7 +43,8 @@ public sealed class DisplayService : IDisposable
     private volatile bool _settingsChanged;
     private volatile bool _locked;
     private volatile bool _asleep;
-    /// <summary>Wakes the loop early: the PC is going to sleep, waking up, or was locked or unlocked.</summary>
+    private volatile bool _devicesChanged;
+    /// <summary>Wakes the loop early: the PC is going to sleep or waking up, was locked or unlocked, or a USB device came or went.</summary>
     private readonly AutoResetEvent _wake = new(false);
     /// <summary>Set by the loop once the screen is off and the port closed, so the PC can go to sleep.</summary>
     private readonly ManualResetEventSlim _readyToSleep = new(true);
@@ -92,6 +102,13 @@ public sealed class DisplayService : IDisposable
     {
         if (!_asleep) return;
         _asleep = false;
+        _wake.Set();
+    }
+
+    /// <summary>A USB device was plugged in or pulled out: look for the display now.</summary>
+    public void DevicesChanged()
+    {
+        _devicesChanged = true;
         _wake.Set();
     }
 
@@ -162,9 +179,11 @@ public sealed class DisplayService : IDisposable
         CancellationToken cancel = _stop.Token;
         using var renderer = new ScreenRenderer();
         using var link = new DisplayLink();
+        int failures = 0;
 
         while (!cancel.IsCancellationRequested)
         {
+            bool plugged = true;
             if (_asleep)
             {
                 _readyToSleep.Set();
@@ -172,8 +191,11 @@ public sealed class DisplayService : IDisposable
                 WaitHandle.WaitAny([cancel.WaitHandle, _wake]);
                 continue;
             }
+            _devicesChanged = false;
             if (DisplayLink.FindPortName() is null)
             {
+                plugged = false;
+                failures = 0; // a display plugged in later is tried at once
                 SetStatus(DisplayStatus.NotFound, "");
             }
             else
@@ -183,6 +205,7 @@ public sealed class DisplayService : IDisposable
                     SetStatus(DisplayStatus.Connecting, "");
                     link.Connect(_settings.Brightness, _settings.FlowControl, cancel);
                     SetStatus(DisplayStatus.Connected, $"{link.Model} ({link.PortName})");
+                    failures = 0;
                     SendLoop(renderer, link, cancel);
                 }
                 catch (OperationCanceledException)
@@ -190,23 +213,28 @@ public sealed class DisplayService : IDisposable
                 }
                 catch (UnauthorizedAccessException e)
                 {
+                    failures++;
                     SetStatus(DisplayStatus.Busy, e.Message);
                 }
                 catch (Exception e) when (e is IOException or TimeoutException or InvalidOperationException)
                 {
+                    failures++;
                     SetStatus(DisplayStatus.Error, e.Message);
                 }
                 catch (Exception e) when (e is not OutOfMemoryException)
                 {
                     // Nothing else is expected here, but this thread is the whole app: whatever it was, write it
                     // down and try again rather than end the process.
+                    failures++;
                     Log.Error("display", e);
                     SetStatus(DisplayStatus.Error, e.Message);
                 }
                 link.Close();
             }
             if (_asleep) continue; // let go of the port and say so before waiting
-            WaitHandle.WaitAny([cancel.WaitHandle, _wake], RetryMs);
+            // A device announcement while failing (the cable back in) cuts the wait short; so does the PC waking.
+            int wait = plugged ? RetryMs[Math.Clamp(failures - 1, 0, RetryMs.Length - 1)] : NotFoundCheckMs;
+            WaitHandle.WaitAny([cancel.WaitHandle, _wake], wait);
         }
     }
 
@@ -218,6 +246,7 @@ public sealed class DisplayService : IDisposable
         ushort[]? previous = null;
         int brightness = _settings.Brightness;
         bool screenOn = true;
+        long nextFullRedraw = Environment.TickCount64 + FullRedrawMs;
 
         while (!cancel.IsCancellationRequested)
         {
@@ -227,6 +256,16 @@ public sealed class DisplayService : IDisposable
                 link.SetScreen(false);
                 Log.Info("display: off for sleep");
                 return;
+            }
+
+            // A USB device came or went: if it was the display, stop now rather than wait for a write to time out.
+            if (_devicesChanged)
+            {
+                _devicesChanged = false;
+                if (!string.Equals(DisplayLink.FindPortName(), link.PortName, StringComparison.OrdinalIgnoreCase))
+                {
+                    throw new IOException("The display was unplugged.");
+                }
             }
 
             string lockMode = _locked ? _settings.LockScreen : "keep";
@@ -257,6 +296,12 @@ public sealed class DisplayService : IDisposable
                     brightness = wanted;
                     link.SetBrightness(brightness);
                 }
+            }
+
+            if (Environment.TickCount64 >= nextFullRedraw)
+            {
+                previous = null;
+                nextFullRedraw = Environment.TickCount64 + FullRedrawMs;
             }
 
             DateTime now = DateTime.Now;

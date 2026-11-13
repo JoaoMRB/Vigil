@@ -19,6 +19,7 @@ public sealed class TrayApp : ApplicationContext
     private readonly EventWaitHandle _showEvent = new(false, EventResetMode.AutoReset, ShowEventName);
     private readonly RegisteredWaitHandle _showWait;
     private readonly Control _ui = new();
+    private readonly DeviceWatcher _devices;
     private MainForm? _window;
 
     public TrayApp(Settings settings, bool openWindow)
@@ -56,6 +57,8 @@ public sealed class TrayApp : ApplicationContext
 
         _showWait = ThreadPool.RegisterWaitForSingleObject(
             _showEvent, (_, _) => _ui.BeginInvoke(ShowWindow), null, Timeout.Infinite, executeOnlyOnce: false);
+
+        _devices = new DeviceWatcher(_display.DevicesChanged);
 
         // SystemEvents keeps static references: these are removed again in Dispose.
         SystemEvents.SessionSwitch += OnSessionSwitch;
@@ -130,6 +133,7 @@ public sealed class TrayApp : ApplicationContext
         {
             SystemEvents.SessionSwitch -= OnSessionSwitch;
             SystemEvents.PowerModeChanged -= OnPowerModeChanged;
+            _devices.Dispose();
             _showWait.Unregister(null);
             _showEvent.Dispose();
             _tray.Visible = false;
