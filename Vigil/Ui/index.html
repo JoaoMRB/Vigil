@@ -73,6 +73,24 @@
         </div>
         <div class="row">
           <span class="row-text">
+            <span class="row-title" id="night-label">Dim at night</span>
+            <span class="row-desc" id="night-desc">Turns the backlight down between two times.</span>
+          </span>
+          <button class="switch" id="night" role="switch" aria-labelledby="night-label" aria-describedby="night-desc" aria-controls="night-options"></button>
+        </div>
+        <div class="field" id="night-options" hidden>
+          <div class="times">
+            <label class="time"><span>From</span><input type="time" id="night-start" required></label>
+            <label class="time"><span>Until</span><input type="time" id="night-end" required></label>
+          </div>
+          <div class="field-head">
+            <label class="field-label" for="night-brightness">Brightness at night</label>
+            <output id="night-brightness-value" for="night-brightness"></output>
+          </div>
+          <input type="range" id="night-brightness" min="0" max="100" step="1">
+        </div>
+        <div class="row">
+          <span class="row-text">
             <span class="row-title" id="use24h-label">24-hour clock</span>
           </span>
           <button class="switch" id="use24h" role="switch" aria-labelledby="use24h-label"></button>

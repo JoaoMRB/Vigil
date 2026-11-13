@@ -44,6 +44,21 @@ public sealed class Settings
     public string LockScreen { get; set; } = "dim";
     public static readonly string[] LockScreenChoices = ["dim", "off", "keep"];
 
+    /// <summary>Turn the backlight down to <see cref="NightBrightness"/> between <see cref="NightStart"/> and <see cref="NightEnd"/>.</summary>
+    public bool NightDim { get; set; }
+    /// <summary>"HH:mm", local time. The night may run past midnight (22:00 to 07:00).</summary>
+    public string NightStart { get; set; } = "22:00";
+    public string NightEnd { get; set; } = "07:00";
+    public int NightBrightness { get; set; } = 15;
+
+    /// <summary>Whether <paramref name="now"/> falls in the night set above. Start and end the same: never.</summary>
+    public bool IsNight(DateTime now) =>
+        NightDim && TimeOnly.FromDateTime(now).IsBetween(ParseTime(NightStart, 22), ParseTime(NightEnd, 7));
+
+    private static TimeOnly ParseTime(string? text, int fallbackHour) =>
+        TimeOnly.TryParseExact(text, "HH:mm", System.Globalization.CultureInfo.InvariantCulture,
+            System.Globalization.DateTimeStyles.None, out TimeOnly time) ? time : new TimeOnly(fallbackHour, 0);
+
     /// <summary>Run with administrator rights, so the CPU's temperature can be read. Off by default.</summary>
     public bool RunAsAdmin { get; set; }
 
@@ -120,6 +135,9 @@ public sealed class Settings
         ViewSeconds = Math.Clamp(ViewSeconds, MinViewSeconds, MaxViewSeconds);
         Brightness = Math.Clamp(Brightness, 0, 100);
         if (!LockScreenChoices.Contains(LockScreen)) LockScreen = "dim";
+        NightStart = ParseTime(NightStart, 22).ToString("HH:mm", System.Globalization.CultureInfo.InvariantCulture);
+        NightEnd = ParseTime(NightEnd, 7).ToString("HH:mm", System.Globalization.CultureInfo.InvariantCulture);
+        NightBrightness = Math.Clamp(NightBrightness, 0, 100);
         if (WeatherCity is { } city && (string.IsNullOrWhiteSpace(city.Name) || Math.Abs(city.Latitude) > 90 || Math.Abs(city.Longitude) > 180))
         {
             WeatherCity = null;

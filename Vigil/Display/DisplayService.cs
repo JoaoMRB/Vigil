@@ -267,6 +267,7 @@ public sealed class DisplayService : IDisposable
         ushort[]? previous = null;
         int brightness = _settings.Brightness;
         bool screenOn = true;
+        bool atNight = false;
         long nextFullRedraw = Environment.TickCount64 + FullRedrawMs;
 
         while (!cancel.IsCancellationRequested)
@@ -305,7 +306,17 @@ public sealed class DisplayService : IDisposable
                 continue;
             }
 
-            int wanted = lockMode == "dim" ? Math.Min(DimBrightness, _settings.Brightness) : _settings.Brightness;
+            DateTime now = DateTime.Now;
+            // The lowest of what applies: the user's brightness, the night's, and the locked screen's.
+            bool night = _settings.IsNight(now);
+            if (night != atNight)
+            {
+                atNight = night;
+                Log.Info(night ? "display: night brightness" : "display: day brightness");
+            }
+            int wanted = _settings.Brightness;
+            if (night) wanted = Math.Min(wanted, _settings.NightBrightness);
+            if (lockMode == "dim") wanted = Math.Min(wanted, DimBrightness);
             if (_settingsChanged || brightness != wanted)
             {
                 _settingsChanged = false;
@@ -322,7 +333,6 @@ public sealed class DisplayService : IDisposable
                 nextFullRedraw = Environment.TickCount64 + FullRedrawMs;
             }
 
-            DateTime now = DateTime.Now;
             (ScreenView view, RenderOptions options, ScreenData data) = Frame(now);
             // Locked and dimmed: only the time, nothing about the PC or where you are.
             if (lockMode == "dim") view = ScreenView.Clock;

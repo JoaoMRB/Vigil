@@ -85,6 +85,21 @@ public static class Simulator
             Check("unlocked: on again, own brightness, whole picture", () => link.ScreenOn && link.Brightness == 60 && link.FullFrames > full, 3000);
             settings.LockScreen = "dim";
 
+            // A night that covers now, then the same night switched off.
+            DateTime now = DateTime.Now;
+            settings.NightStart = now.AddMinutes(-5).ToString("HH:mm", System.Globalization.CultureInfo.InvariantCulture);
+            settings.NightEnd = now.AddMinutes(5).ToString("HH:mm", System.Globalization.CultureInfo.InvariantCulture);
+            settings.NightBrightness = 20;
+            settings.NightDim = true;
+            display.ApplySettings();
+            Check("night: backlight goes down to the night's", () => link.Brightness == 20, 3000);
+            display.SetLocked(true);
+            Check("night and locked, dim: the lower of the two", () => link.Brightness == 8, 3000);
+            display.SetLocked(false);
+            settings.NightDim = false;
+            display.ApplySettings();
+            Check("night off: back to its own brightness", () => link.Brightness == 60, 3000);
+
             seen.Clear();
             link.Plugged = false;
             display.DevicesChanged();

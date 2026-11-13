@@ -26,6 +26,9 @@ public static class Diagnostics
         text.AppendLine($"Views: {string.Join(", ", settings.Views)} · {settings.ViewSeconds} s each");
         text.AppendLine($"Look: theme {settings.Theme} · font {settings.Font} · design {settings.SystemDesign}" +
             $" · brightness {settings.Brightness} · {(settings.Use24h ? "24" : "12")}-hour");
+        text.AppendLine(settings.NightDim
+            ? $"Night: {settings.NightStart} to {settings.NightEnd} at {settings.NightBrightness} · now {(settings.IsNight(DateTime.Now) ? "night" : "day")}"
+            : "Night: off");
         text.AppendLine($"When locked: {settings.LockScreen} · flow control {(settings.FlowControl ? "on" : "off")}" +
             $" · weather city {(settings.WeatherCity is null ? "not set" : "set")} · world clocks {settings.WorldClocks.Count}");
         text.AppendLine();

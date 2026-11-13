@@ -42,6 +42,7 @@ To update, run the new installer over the old one. Your settings are kept.
   driver. Without these, Vigil shows the CPU load instead.
 - **Locked or asleep:** while the PC is locked the screen dims to just the time (or turns off, or keeps going, as you
   choose in the System settings). Before the PC sleeps it turns off, and it comes back by itself when the PC wakes.
+- **Dim at night:** the backlight goes down between two times you set, such as 22:00 to 07:00.
 - **Start with Windows:** Vigil waits in the notification area and draws on the screen as soon as the screen
   is plugged in. You can switch this on and off in Vigil, or under *Startup apps* in Task Manager.
 

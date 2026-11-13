@@ -203,6 +203,20 @@ function build() {
   range.addEventListener('change', () => set('brightness', +range.value));
 
   bindSwitch($('use24h'), on => { set('use24h', on); sync(); });
+
+  // Dim at night: the times are sent once a full time is typed; the brightness like the main one
+  bindSwitch($('night'), on => { set('nightDim', on); sync(); });
+  for (const [id, key] of [['night-start', 'nightStart'], ['night-end', 'nightEnd']]) {
+    $(id).addEventListener('change', event => { if (event.target.value) set(key, event.target.value); });
+  }
+  const night = $('night-brightness');
+  let nightPending = null;
+  night.addEventListener('input', () => {
+    showNightBrightness(+night.value);
+    if (nightPending) return;
+    nightPending = setTimeout(() => { nightPending = null; set('nightBrightness', +night.value); }, 120);
+  });
+  night.addEventListener('change', () => set('nightBrightness', +night.value));
   $('diagnostics').addEventListener('click', () => send({ type: 'diagnostics' }));
   bindSwitch($('autostart'), on => { setSwitch($('autostart'), on); send({ type: 'autostart', value: on }); });
   bindSwitch($('admin'), on => { setSwitch($('admin'), on); send({ type: 'admin', value: on }); });
@@ -247,6 +261,13 @@ function sync() {
   if (document.activeElement !== $('brightness')) $('brightness').value = settings.brightness;
   showBrightness(+$('brightness').value);
   setSwitch($('use24h'), settings.use24h);
+  setSwitch($('night'), settings.nightDim);
+  $('night-options').hidden = !settings.nightDim;
+  for (const [id, key] of [['night-start', 'nightStart'], ['night-end', 'nightEnd']]) {
+    if (document.activeElement !== $(id)) $(id).value = settings[key];
+  }
+  if (document.activeElement !== $('night-brightness')) $('night-brightness').value = settings.nightBrightness;
+  showNightBrightness(+$('night-brightness').value);
   markLock(settings.lockScreen);
   syncDesign();
 
@@ -268,6 +289,11 @@ function sync() {
 function showBrightness(value) {
   $('brightness-value').textContent = `${value}%`;
   $('brightness').style.setProperty('--fill', `${value}%`);
+}
+
+function showNightBrightness(value) {
+  $('night-brightness-value').textContent = `${value}%`;
+  $('night-brightness').style.setProperty('--fill', `${value}%`);
 }
 
 function syncSystem(system) {

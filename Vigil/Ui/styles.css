@@ -154,6 +154,7 @@ button, input, select { font: inherit; color: inherit; }
 .row-title { font-weight: 500; }
 .row-desc { color: var(--muted); font-size: 13px; }
 
+[hidden] { display: none !important; }
 .field { display: flex; flex-direction: column; gap: 10px; padding: 14px 20px 16px; border-top: 1px solid var(--border); }
 .field-head { display: flex; align-items: baseline; justify-content: space-between; }
 .field-label { color: var(--muted); font-size: 13px; font-weight: 500; }
@@ -289,7 +290,7 @@ input[type="range"]:hover::-webkit-slider-thumb { box-shadow: 0 0 0 6px rgb(237 
 
 /* ------------------------------ inputs and selects ------------------------------ */
 
-.select, .search input {
+.select, .search input, .time input {
   width: 100%;
   height: 36px;
   padding: 0 12px;
@@ -298,8 +299,8 @@ input[type="range"]:hover::-webkit-slider-thumb { box-shadow: 0 0 0 6px rgb(237 
   background: var(--bg);
   transition: border-color .15s var(--ease);
 }
-.select:hover, .search input:hover { border-color: var(--border-strong); }
-.select:focus-visible, .search input:focus-visible { outline: none; border-color: var(--subtle); box-shadow: 0 0 0 3px rgb(82 168 255 / .25); }
+.select:hover, .search input:hover, .time input:hover { border-color: var(--border-strong); }
+.select:focus-visible, .search input:focus-visible, .time input:focus-visible { outline: none; border-color: var(--subtle); box-shadow: 0 0 0 3px rgb(82 168 255 / .25); }
 
 .select {
   padding-right: 36px;
@@ -311,6 +312,12 @@ input[type="range"]:hover::-webkit-slider-thumb { box-shadow: 0 0 0 6px rgb(237 
   background-size: 16px;
 }
 .select option { background: var(--raised); color: var(--text); }
+
+.times { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.time { display: flex; flex-direction: column; gap: 6px; color: var(--muted); font-size: 13px; font-weight: 500; }
+.time input { color: var(--text); font: inherit; font-weight: 400; font-variant-numeric: tabular-nums; color-scheme: dark; }
+.time input::-webkit-calendar-picker-indicator { opacity: .6; cursor: pointer; }
+.time input::-webkit-calendar-picker-indicator:hover { opacity: 1; }
 .select.empty { color: var(--subtle); }
 
 .search { position: relative; }
