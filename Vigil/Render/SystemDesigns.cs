@@ -394,22 +394,36 @@ public sealed partial class ScreenRenderer
         _canvas.DrawArc(new SKRect(cx - radius, cy - radius, cx + radius, cy + radius), -90, sweep, false, paint);
     }
 
-    /// <summary>The app's mark with its name under it. Still AuraTime's clock: it changes with Vigil's own icon.</summary>
+    /// <summary>The lined eye of Vigil's mark, on the mark's 64x64 grid (docs/brand/vigil-mark.svg).</summary>
+    private const string MarkEye =
+        "M14.5 29.5 C20 22.5 26 20.5 32.5 20.5 C40 20.5 46 23 54.5 19.5 C51.5 24 49.5 27 47.5 30 " +
+        "C42.5 34.6 37.5 36.5 32.5 36.5 C26 36.5 20 34.5 14.5 29.5 Z";
+
+    /// <summary>
+    /// Vigil's mark, a screen with a lined eye in it, with the name under it. The pupil is cut out of the eye rather
+    /// than painted over it, so it shows whatever is behind on any theme.
+    /// </summary>
     private void Logo(float cx, float cy, float radius, RenderOptions o)
     {
-        float k = radius / 28f;
-        using var paint = new SKPaint { IsAntialias = true, Style = SKPaintStyle.Stroke, StrokeCap = SKStrokeCap.Round };
-        paint.StrokeWidth = 2.5f * k;
+        _canvas.Save();
+        _canvas.Translate(cx, cy);
+        _canvas.Scale(radius / 22f);
+        _canvas.Translate(-32, -32.5f);   // the mark's optical centre on its grid
+
+        using var paint = new SKPaint { IsAntialias = true, Style = SKPaintStyle.Stroke, StrokeWidth = 3.5f, StrokeCap = SKStrokeCap.Round };
         paint.Color = o.System.Accent;
-        _canvas.DrawCircle(cx, cy, radius, paint);
-        paint.StrokeWidth = 3f * k;
-        paint.Color = StrongText(o.Theme);
-        _canvas.DrawLine(cx, cy, cx, cy - 14 * k, paint);
-        paint.StrokeWidth = 2.5f * k;
-        paint.Color = o.System.Accent;
-        _canvas.DrawLine(cx, cy, cx + 12 * k, cy + 6 * k, paint);
+        _canvas.DrawRoundRect(new SKRect(8, 12, 56, 44), 7.5f, 7.5f, paint);
+        _canvas.DrawLine(24.5f, 53, 39.5f, 53, paint);
+
+        using SKPath eye = SKPath.ParseSvgPathData(MarkEye);
+        using var pupil = new SKPath();
+        pupil.AddCircle(33, 28.8f, 4.1f);
+        SKPath? cut = eye.Op(pupil, SKPathOp.Difference);
         paint.Style = SKPaintStyle.Fill;
-        _canvas.DrawCircle(cx, cy, 2.5f * k, paint);
+        paint.Color = StrongText(o.Theme);
+        _canvas.DrawPath(cut ?? eye, paint);
+        cut?.Dispose();
+        _canvas.Restore();
 
         using SKFont name = Font(Semibold, 10);
         Text("VIGIL", cx, cy + radius + 22, name, o.Theme.Muted, SKTextAlign.Center, 2);
