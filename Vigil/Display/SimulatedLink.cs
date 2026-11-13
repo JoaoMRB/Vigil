@@ -19,8 +19,25 @@ public sealed class SimulatedLink : IDisplayLink
     private readonly List<long> _connectTimes = [];
     private volatile bool _open;
 
-    /// <summary>The cable. Pulled out, the port disappears and every write fails.</summary>
-    public bool Plugged { get; set; } = true;
+    /// <summary>After the cable is pulled, Windows still lists the port for about this long.</summary>
+    private const int ListLagMs = 500;
+
+    private volatile bool _plugged = true;
+    private long _pulledAt;
+
+    /// <summary>
+    /// The cable. Pulled out, every write fails at once, as on the real link, but the port stays listed for a
+    /// moment, and opening it fails with "Could not find file".
+    /// </summary>
+    public bool Plugged
+    {
+        get => _plugged;
+        set
+        {
+            if (_plugged && !value) Interlocked.Exchange(ref _pulledAt, Environment.TickCount64);
+            _plugged = value;
+        }
+    }
 
     /// <summary>The display stops taking data: writes hang, then time out.</summary>
     public bool Stalled { get; set; }
@@ -46,12 +63,13 @@ public sealed class SimulatedLink : IDisplayLink
         get { lock (_gate) return [.. _connectTimes]; }
     }
 
-    public string? FindPortName() => Plugged ? SimulatedPort : null;
+    public string? FindPortName() =>
+        Plugged || Environment.TickCount64 - Interlocked.Read(ref _pulledAt) < ListLagMs ? SimulatedPort : null;
 
     public void Connect(int brightness, bool flowControl, CancellationToken cancel)
     {
         lock (_gate) _connectTimes.Add(Environment.TickCount64);
-        if (!Plugged) throw new IOException("The display is not plugged in.");
+        if (!Plugged) throw new FileNotFoundException($"Could not find file '{SimulatedPort}'.");
         if (RefuseConnect) throw new IOException("The display did not answer.");
         cancel.WaitHandle.WaitOne(ResetMs);
         cancel.ThrowIfCancellationRequested();
@@ -107,7 +125,7 @@ public sealed class SimulatedLink : IDisplayLink
     private void Check()
     {
         if (!_open) throw new IOException("Not connected.");
-        if (!Plugged) throw new IOException("The device was unplugged.");
+        if (!Plugged) throw new InvalidOperationException("The port is closed.");
         if (Stalled)
         {
             Thread.Sleep(StallMs);

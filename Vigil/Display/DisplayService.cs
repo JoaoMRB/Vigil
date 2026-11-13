@@ -11,7 +11,9 @@ public enum DisplayStatus
     Connected,
     /// <summary>Another program has the display's port open.</summary>
     Busy,
-    Error
+    Error,
+    /// <summary>The PC is asleep: the port was let go on purpose.</summary>
+    Asleep
 }
 
 /// <summary>
@@ -26,6 +28,8 @@ public sealed class DisplayService : IDisposable
     private static readonly int[] RetryMs = [1000, 2000, 5000, 10000, 30000];
     /// <summary>With no display plugged in, a look now and then in case a device announcement was missed.</summary>
     private const int NotFoundCheckMs = 10000;
+    /// <summary>How long a port may stay in Windows' list after its cable was pulled.</summary>
+    private const int UnplugGraceMs = 1000;
     /// <summary>
     /// The whole picture is sent again this often. Only what changes is sent otherwise, so a byte lost on the way
     /// would leave a damaged band on the screen for good.
@@ -190,7 +194,7 @@ public sealed class DisplayService : IDisposable
             if (_asleep)
             {
                 _readyToSleep.Set();
-                SetStatus(DisplayStatus.NotFound, "");
+                SetStatus(DisplayStatus.Asleep, "");
                 WaitHandle.WaitAny([cancel.WaitHandle, _wake]);
                 continue;
             }
@@ -221,7 +225,11 @@ public sealed class DisplayService : IDisposable
                 }
                 catch (Exception e) when (e is IOException or TimeoutException or InvalidOperationException)
                 {
-                    if (link.FindPortName() is null)
+                    // A link that was working and broke may be a pulled cable whose port is still listed; a link
+                    // that never got going is judged at once, so the waits between attempts stay as they are.
+                    bool gone = e is FileNotFoundException ||
+                        (Status == DisplayStatus.Connected ? PortGone(link, cancel) : link.FindPortName() is null);
+                    if (gone)
                     {
                         // The cable was pulled: not a failure, just wait for it to come back.
                         plugged = false;
@@ -275,10 +283,7 @@ public sealed class DisplayService : IDisposable
             if (_devicesChanged)
             {
                 _devicesChanged = false;
-                if (!string.Equals(link.FindPortName(), link.PortName, StringComparison.OrdinalIgnoreCase))
-                {
-                    throw new IOException("The display was unplugged.");
-                }
+                if (PortGone(link, cancel)) throw new IOException("The display was unplugged.");
             }
 
             string lockMode = _locked ? _settings.LockScreen : "keep";
@@ -331,6 +336,27 @@ public sealed class DisplayService : IDisposable
             current.CopyTo(previous, 0);
 
             WaitHandle.WaitAny([cancel.WaitHandle, _wake], 1000 - DateTime.Now.Millisecond);
+        }
+    }
+
+    /// <summary>
+    /// Whether the display's port is gone. After the cable is pulled, Windows keeps the port in its list for a
+    /// moment, and a write or an open fails before it drops out; so a port still listed is looked at again for up
+    /// to <see cref="UnplugGraceMs"/> before it counts as there. Opening a port that is gone fails with "Could not
+    /// find file", which the caller takes as unplugged straight away.
+    /// </summary>
+    private static bool PortGone(IDisplayLink link, CancellationToken cancel)
+    {
+        string port = link.PortName;
+        long deadline = Environment.TickCount64 + UnplugGraceMs;
+        while (true)
+        {
+            string? found = link.FindPortName();
+            if (found is null || (port.Length > 0 && !string.Equals(found, port, StringComparison.OrdinalIgnoreCase)))
+            {
+                return true;
+            }
+            if (Environment.TickCount64 >= deadline || cancel.WaitHandle.WaitOne(100)) return false;
         }
     }
 

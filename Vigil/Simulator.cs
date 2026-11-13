@@ -59,6 +59,16 @@ public static class Simulator
 
         bool Connected() => display.Status == DisplayStatus.Connected && link.IsOpen;
 
+        // Every status the display went through, to catch an Error that comes and goes between two checks.
+        var seen = new System.Collections.Concurrent.ConcurrentQueue<DisplayStatus>();
+        display.StatusChanged += () => seen.Enqueue(display.Status);
+        void NoErrorSince(string name)
+        {
+            bool passed = !seen.Contains(DisplayStatus.Error);
+            allPassed &= passed;
+            report.Add($"{(passed ? "PASS" : "FAIL")}  {name,-52}          went through {string.Join(", ", seen)}");
+        }
+
         try
         {
             Check("connects and sends the whole picture", () => Connected() && link.FullFrames >= 1, 5000);
@@ -75,13 +85,24 @@ public static class Simulator
             Check("unlocked: on again, own brightness, whole picture", () => link.ScreenOn && link.Brightness == 60 && link.FullFrames > full, 3000);
             settings.LockScreen = "dim";
 
+            seen.Clear();
             link.Plugged = false;
             display.DevicesChanged();
-            Check("cable pulled: noticed at once", () => display.Status == DisplayStatus.NotFound, 1000);
+            Check("cable pulled: noticed at once", () => display.Status == DisplayStatus.NotFound, 2000);
 
             link.Plugged = true;
             display.DevicesChanged();
             Check("cable back: connects at once", Connected, 3000);
+            NoErrorSince("cable out and in: no error on the way");
+
+            // No device announcement: a write fails while the port is still listed.
+            seen.Clear();
+            link.Plugged = false;
+            Check("pulled, unannounced: NotFound after the write fails", () => display.Status == DisplayStatus.NotFound, 3000);
+            link.Plugged = true;
+            display.DevicesChanged();
+            Check("cable back again: connects at once", Connected, 3000);
+            NoErrorSince("unannounced pull: no error on the way");
 
             link.Stalled = true;
             Check("link stalls: reported as an error", () => display.Status == DisplayStatus.Error, 5000);
@@ -91,6 +112,7 @@ public static class Simulator
             int connects = link.ConnectTimes.Count;
             display.Sleep();
             Check("PC sleeps: screen off and port let go", () => !link.ScreenOn && !link.IsOpen, 500);
+            Check("asleep: status says so", () => display.Status == DisplayStatus.Asleep, 500);
             Thread.Sleep(2500);
             Check("asleep: no attempt to connect", () => link.ConnectTimes.Count == connects, 0);
             display.WakeUp();
@@ -100,7 +122,7 @@ public static class Simulator
             link.RefuseConnect = true;
             link.Plugged = false;
             display.DevicesChanged();
-            Check("cable pulled again", () => display.Status == DisplayStatus.NotFound, 1000);
+            Check("cable pulled again", () => display.Status == DisplayStatus.NotFound, 2000);
             int before = link.ConnectTimes.Count;
             link.Plugged = true;
             display.DevicesChanged();

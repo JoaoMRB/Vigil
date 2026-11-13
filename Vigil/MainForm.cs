@@ -416,6 +416,7 @@ public sealed class MainForm : Form
             DisplayStatus.Connecting => ("connecting", "Connecting to the display…"),
             DisplayStatus.Busy => ("busy", "Display in use by another program"),
             DisplayStatus.Error => ("error", "Display error · trying again"),
+            DisplayStatus.Asleep => ("idle", "Paused while the PC sleeps"),
             _ => ("idle", "Display not found")
         };
         Post(new { type = "status", state, text });

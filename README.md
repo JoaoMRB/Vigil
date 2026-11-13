@@ -83,7 +83,7 @@ Vigil.exe --simulate-test report.txt                                # check the 
 
 `--simulate` drives a pretend display with buttons to pull the cable, stall the link, refuse connections, lock the
 PC and put it to sleep, so all of that can be tried without the hardware. `--simulate-test` runs those cases on its
-own in about 25 seconds and exits with 0 when every one passes. Neither touches the real display, the start-up
+own in about 30 seconds and exits with 0 when every one passes. Neither touches the real display, the start-up
 entry or the settings file; both log to `%LocalAppData%\Vigil\logs\simulate`, or next to the report.
 
 ## Project structure

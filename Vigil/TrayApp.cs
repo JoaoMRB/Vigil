@@ -170,6 +170,7 @@ public sealed class TrayApp : ApplicationContext
             DisplayStatus.Connecting => "Vigil: connecting...",
             DisplayStatus.Busy => "Vigil: the display is in use by another program",
             DisplayStatus.Error => "Vigil: display error, trying again",
+            DisplayStatus.Asleep => "Vigil: paused while the PC sleeps",
             _ => "Vigil: display not found"
         };
     }

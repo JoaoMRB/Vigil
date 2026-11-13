@@ -17,7 +17,8 @@ All notable changes to Vigil are listed here. Versions follow [Semantic Versioni
 - The screen follows the PC: it dims to just the time while the PC is locked (or turns off, or keeps going, as set
   under System), turns off before the PC sleeps, and comes back by itself on wake-up, without waiting for an error.
 - The display is found the moment its cable goes in, and a pulled cable is noticed at once instead of after a
-  failed write. When connecting keeps failing, Vigil tries again after 1, 2, 5, 10 and then every 30 seconds, rather
+  failed write, and shown as not found rather than as an error, even in the moment Windows still lists its port.
+  While the PC sleeps the status reads "Paused while the PC sleeps". When connecting keeps failing, Vigil tries again after 1, 2, 5, 10 and then every 30 seconds, rather
   than every 5. Every 5 minutes the whole picture is sent again, so a byte lost on the way cannot leave a damaged
   band on the screen for good.
 - *Diagnostics → Copy* in the System settings: a report for bug reports, with the versions, the display's state, the
