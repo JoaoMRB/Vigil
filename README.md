@@ -135,13 +135,19 @@ Your settings are kept.
 ### The sensors
 
 Windows only lets programs read some sensors when they run as administrator with a driver. To read those, switch
-on **CPU temperature** under System and install the free [PawnIO](https://pawnio.eu/) driver. Without them, Vigil
-shows the CPU load where the temperature would be, and a Custom card names what it is missing.
+on **CPU temperature** under System and install the free [PawnIO](https://pawnio.eu/) driver. When a view needs
+the CPU temperature and can't get it, the settings window shows a short guide: what is missing, a button for each
+step, and a tick as each one is done. Until then, Vigil shows the CPU load where the temperature would be, and a
+Custom card says what it is missing.
+
+Without the driver, **Approximate CPU temperature** (under System, off by default) shows the motherboard's ACPI
+thermal zone instead, marked with a `~`. That figure is often well below the CPU's own, and on many desktops it never
+moves. When it stays put for five minutes while the CPU load swings, Vigil drops it and goes back to the load.
 
 | Reading | Standard | CPU temperature mode + PawnIO |
 | --- | :---: | :---: |
 | CPU load | ✓ | ✓ |
-| CPU temperature, clock and power | | ✓ |
+| CPU temperature, clock and power | `~` approximate, if you switch it on | ✓ |
 | CPU fan (from the motherboard) | | ✓ |
 | GPU temperature, load, clock, power, fan and video memory | ✓ | ✓ |
 | Memory, system drive, network, volume | ✓ | ✓ |
@@ -193,7 +199,10 @@ drives these screens, including one in the tray. Vigil connects by itself a few 
 <summary><strong>The CPU shows its load, or "Admin mode only", instead of the temperature</strong></summary>
 
 Switch on **CPU temperature** under System, and install [PawnIO](https://pawnio.eu/). Windows asks once for
-administrator rights, then Vigil restarts. See [the sensors](#the-sensors).
+administrator rights, then Vigil restarts. The guide under *System screen* in the settings window walks you through
+it. See [the sensors](#the-sensors).
+
+A temperature with a `~` in front is the approximate one, from the motherboard. It isn't the CPU's own.
 </details>
 
 <details>

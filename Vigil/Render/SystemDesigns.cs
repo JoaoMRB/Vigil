@@ -130,7 +130,7 @@ public sealed partial class ScreenRenderer
         using SKFont sub = Font(Medium, 12);
 
         float[] centres = [120, 240, 360];
-        Big[] numbers = [TempOrLoad(s.CpuTemp, s.CpuLoad, st), TempOrLoad(s.GpuTemp, s.GpuLoad, st), new(RoundText(Fraction(s.RamUsedGb, s.RamTotalGb) * 100), "%", false)];
+        Big[] numbers = [TempOrLoad(s.CpuTemp, s.CpuLoad, st, s.CpuTempApprox), TempOrLoad(s.GpuTemp, s.GpuLoad, st), new(RoundText(Fraction(s.RamUsedGb, s.RamTotalGb) * 100), "%", false)];
         string[] labels = ["CPU", "GPU", "RAM"];
         SKColor[] units = [st.Accent, st.Secondary, st.Accent];
         string[] subs =
@@ -158,7 +158,7 @@ public sealed partial class ScreenRenderer
         SystemStyle st = o.System;
         Theme theme = o.Theme;
 
-        PanelColumn(o, 48, "CPU", s.CpuName, s.CpuTemp, s.CpuLoad, s.CpuClockMhz, s.CpuPowerW, st.Accent);
+        PanelColumn(o, 48, "CPU", s.CpuName, s.CpuTemp, s.CpuLoad, s.CpuClockMhz, s.CpuPowerW, st.Accent, s.CpuTempApprox);
         PanelColumn(o, 252, "GPU", s.GpuName, s.GpuTemp, s.GpuLoad, s.GpuClockMhz, s.GpuPowerW, st.Secondary);
         Rule(240, 56, 116, theme);
         using (var p = new SKPaint { Color = theme.Muted.WithAlpha(40) }) _canvas.DrawRect(48, 180, 384, 1, p);
@@ -174,7 +174,7 @@ public sealed partial class ScreenRenderer
         NetSpeeds(o, s, 432, 246, value);
     }
 
-    private void PanelColumn(RenderOptions o, float x0, string label, string name, float? temp, float? load, float? clockMhz, float? powerW, SKColor color)
+    private void PanelColumn(RenderOptions o, float x0, string label, string name, float? temp, float? load, float? clockMhz, float? powerW, SKColor color, bool approx = false)
     {
         SystemStyle st = o.System;
         Theme theme = o.Theme;
@@ -185,7 +185,7 @@ public sealed partial class ScreenRenderer
         Text(label, x0, 64, labelFont, color, SKTextAlign.Left, 2);
         Text(Ellipsize(name, small, 110), x0 + 180, 64, small, theme.Muted, SKTextAlign.Right);
 
-        Big big = TempOrLoad(temp, load, st);
+        Big big = TempOrLoad(temp, load, st, approx);
         BigValue(o, big, x0, 118, 100, 52, color, SKTextAlign.Left);
         if (temp is not null)
         {
@@ -228,12 +228,12 @@ public sealed partial class ScreenRenderer
     private void DrawGauges(SystemSnapshot s, RenderOptions o)
     {
         SystemStyle st = o.System;
-        GaugeColumn(o, 132, "CPU", s.CpuName, s.CpuTemp, s.CpuLoad, st.Accent, "RAM", s.RamUsedGb, s.RamTotalGb);
+        GaugeColumn(o, 132, "CPU", s.CpuName, s.CpuTemp, s.CpuLoad, st.Accent, "RAM", s.RamUsedGb, s.RamTotalGb, s.CpuTempApprox);
         GaugeColumn(o, 348, "GPU", s.GpuName, s.GpuTemp, s.GpuLoad, st.Secondary, "VRAM", s.VramUsedGb, s.VramTotalGb);
     }
 
     private void GaugeColumn(RenderOptions o, float cx, string label, string name, float? temp, float? load, SKColor color,
-        string memoryLabel, float? memoryUsed, float? memoryTotal)
+        string memoryLabel, float? memoryUsed, float? memoryTotal, bool approx = false)
     {
         SystemStyle st = o.System;
         Theme theme = o.Theme;
@@ -241,7 +241,7 @@ public sealed partial class ScreenRenderer
         using SKFont small = Font(Medium, 12);
         const float cy = 138;
 
-        Big big = TempOrLoad(temp, load, st);
+        Big big = TempOrLoad(temp, load, st, approx);
         Dial(cx, cy, 74, 10, (load ?? 0) / 100, big.Hot ? st.Alert : color, theme);
         BigValue(o, big, cx, cy + 16, 100, 48, color);
         Text(temp is not null ? $"{PercentText(load)} load" : "load", cx, cy + 38, small, theme.Muted, SKTextAlign.Center);
@@ -263,7 +263,7 @@ public sealed partial class ScreenRenderer
         using SKFont label = Font(Semibold, 12);
         using SKFont value = Font(Medium, 12);
 
-        BarRow(o, 64, "CPU", (s.CpuLoad ?? 0) / 100, st.Accent, PercentText(s.CpuLoad), TempText(s.CpuTemp), s.CpuTemp >= st.AlertTemp, label, value);
+        BarRow(o, 64, "CPU", (s.CpuLoad ?? 0) / 100, st.Accent, PercentText(s.CpuLoad), TempText(s.CpuTemp, s.CpuTempApprox), s.CpuTemp >= st.AlertTemp, label, value);
         BarRow(o, 100, "GPU", (s.GpuLoad ?? 0) / 100, st.Secondary, PercentText(s.GpuLoad), TempText(s.GpuTemp), s.GpuTemp >= st.AlertTemp, label, value);
         BarRow(o, 136, "RAM", Fraction(s.RamUsedGb, s.RamTotalGb), st.Accent, GbText(s.RamUsedGb, s.RamTotalGb), PercentText(Fraction(s.RamUsedGb, s.RamTotalGb) * 100), false, label, value);
         BarRow(o, 172, "VRAM", Fraction(s.VramUsedGb, s.VramTotalGb), st.Secondary, GbText(s.VramUsedGb, s.VramTotalGb), PercentText(Fraction(s.VramUsedGb, s.VramTotalGb) * 100), false, label, value);
@@ -295,7 +295,7 @@ public sealed partial class ScreenRenderer
         using SKFont sub = Font(Medium, 11);
 
         GraphRow(o, 50, "CPU", s.CpuTemp is not null ? $"{PercentText(s.CpuLoad)} load" : s.CpuName,
-            TempOrLoad(s.CpuTemp, s.CpuLoad, st), s.History.CpuLoad, 100, st.Accent, label, sub);
+            TempOrLoad(s.CpuTemp, s.CpuLoad, st, s.CpuTempApprox), s.History.CpuLoad, 100, st.Accent, label, sub);
         GraphRow(o, 126, "GPU", s.GpuTemp is not null ? $"{PercentText(s.GpuLoad)} load" : s.GpuName,
             TempOrLoad(s.GpuTemp, s.GpuLoad, st), s.History.GpuLoad, 100, st.Secondary, label, sub);
 
@@ -330,7 +330,7 @@ public sealed partial class ScreenRenderer
 
         string vram = s.VramUsedGb is { } gb ? Inv($"{gb:0.0} GB") : "–";
         Card(o, new SKRect(12, 12, 236, 140), "CPU", s.CpuName, s.CpuLoad, st.Accent, compact: false,
-            ("TEMP", TempText(s.CpuTemp), s.CpuTemp >= st.AlertTemp), ("SPEED", GhzText(s.CpuClockMhz), false));
+            ("TEMP", TempText(s.CpuTemp, s.CpuTempApprox), s.CpuTemp >= st.AlertTemp), ("SPEED", GhzText(s.CpuClockMhz), false));
         Card(o, new SKRect(244, 12, 468, 140), "GPU", s.GpuName, s.GpuLoad, st.Secondary, compact: false,
             ("TEMP", TempText(s.GpuTemp), s.GpuTemp >= st.AlertTemp), ("VRAM", vram, false));
 
@@ -408,6 +408,20 @@ public sealed partial class ScreenRenderer
         }
     }
 
+    /// <summary>A card's line when the CPU's own sensor gave nothing: what would fix it, short enough for a card.</summary>
+    private static string MissingNote(CpuTemperature.Missing missing) => missing switch
+    {
+        CpuTemperature.Missing.AdminOff => "Enable CPU temp",
+        CpuTemperature.Missing.AdminDenied => "No admin rights",
+        CpuTemperature.Missing.NoDriver => "Install PawnIO",
+        CpuTemperature.Missing.Unsupported => "Not supported here",
+        _ => ""
+    };
+
+    /// <summary>The CPU fan and the drive's temperature need the same mode; with it on, the board may just not report them.</summary>
+    private static string FanNote(SystemSnapshot s) =>
+        s.CpuTempMissing is CpuTemperature.Missing.None or CpuTemperature.Missing.Unsupported ? "Not reported" : MissingNote(s.CpuTempMissing);
+
     private static Tile TileFor(string metric, SystemSnapshot s, RenderOptions o, DateTime now)
     {
         SystemStyle st = o.System;
@@ -419,13 +433,17 @@ public sealed partial class ScreenRenderer
         float? Of(float? value, float max) => value is { } v ? Math.Clamp(v / max, 0, 1) : null;
         string OfTotal(float? total) => total is { } t ? Inv($"of {MathF.Round(t)} GB") : "";
 
+        // A missing reading that needs the CPU temperature mode says what to do about it.
+        string missing = MissingNote(s.CpuTempMissing);
+
         return metric switch
         {
-            "cpu-temp" => new Tile("CPU TEMP", Temp(s.CpuTemp), 1, s.CpuTemp is null ? "Admin mode only" : s.CpuName, Of(s.CpuTemp, 100), cpu),
+            "cpu-temp" => new Tile("CPU TEMP", TempOrLoad(s.CpuTemp, null, st, s.CpuTempApprox), 1,
+                s.CpuTempApprox ? "Approximate (ACPI)" : s.CpuTemp is null ? missing : s.CpuName, Of(s.CpuTemp, 100), cpu),
             "cpu-load" => new Tile("CPU LOAD", Percent(s.CpuLoad), 0.5f, s.CpuName, Of(s.CpuLoad, 100), cpu),
             "cpu-clock" => new Tile("CPU CLOCK", Number(s.CpuClockMhz / 1000, "0.0", "GHz"), 0.4f, s.CpuName, null, cpu),
             "cpu-power" => new Tile("CPU POWER", Number(s.CpuPowerW, "0", "W"), 0.5f, s.CpuName, null, cpu),
-            "cpu-fan" => new Tile("CPU FAN", Number(s.CpuFanRpm, "0", "RPM"), 0.35f, s.CpuFanRpm is null ? "Admin mode only" : "", null, cpu),
+            "cpu-fan" => new Tile("CPU FAN", Number(s.CpuFanRpm, "0", "RPM"), 0.35f, s.CpuFanRpm is null ? FanNote(s) : "", null, cpu),
             "gpu-temp" => new Tile("GPU TEMP", Temp(s.GpuTemp), 1, s.GpuName, Of(s.GpuTemp, 100), gpu),
             "gpu-load" => new Tile("GPU LOAD", Percent(s.GpuLoad), 0.5f, s.GpuName, Of(s.GpuLoad, 100), gpu),
             "gpu-clock" => new Tile("GPU CLOCK", Number(s.GpuClockMhz / 1000, "0.00", "GHz"), 0.4f, s.GpuName, null, gpu),
@@ -434,7 +452,7 @@ public sealed partial class ScreenRenderer
             "vram" => new Tile("VRAM", Number(s.VramUsedGb, "0.0", "GB"), 0.4f, OfTotal(s.VramTotalGb), s.VramTotalGb is > 0 ? Fraction(s.VramUsedGb, s.VramTotalGb) : null, gpu),
             "ram" => new Tile("MEMORY", Number(s.RamUsedGb, "0.0", "GB"), 0.4f, OfTotal(s.RamTotalGb), s.RamTotalGb is > 0 ? Fraction(s.RamUsedGb, s.RamTotalGb) : null, cpu),
             "disk" => new Tile("DRIVE", Percent(s.DiskUsedPct), 0.5f, s.DiskName.Length > 0 ? $"{s.DiskName} used" : "", Of(s.DiskUsedPct, 100), cpu),
-            "disk-temp" => new Tile("DRIVE TEMP", Temp(s.DiskTemp), 1, s.DiskTemp is null ? "Admin mode only" : s.DiskName, Of(s.DiskTemp, 100), gpu),
+            "disk-temp" => new Tile("DRIVE TEMP", Temp(s.DiskTemp), 1, s.DiskTemp is null ? FanNote(s) : s.DiskName, Of(s.DiskTemp, 100), gpu),
             "net-down" => RateTile("DOWNLOAD", s.NetDownBps, cpu),
             "net-up" => RateTile("UPLOAD", s.NetUpBps, gpu),
             "volume" => new Tile("VOLUME", s.Muted ? None() : Percent(s.VolumePct), 0.5f, s.Muted ? "Muted" : "", s.Muted ? 0 : Of(s.VolumePct, 100), cpu),
@@ -582,8 +600,8 @@ public sealed partial class ScreenRenderer
     /// <summary>A big reading: the temperature, or the load when the temperature cannot be read (CPU without admin rights).</summary>
     private readonly record struct Big(string Value, string Unit, bool Hot);
 
-    private static Big TempOrLoad(float? temp, float? load, SystemStyle st) =>
-        temp is { } t ? new Big(RoundText(t), "°", t >= st.AlertTemp)
+    private static Big TempOrLoad(float? temp, float? load, SystemStyle st, bool approx = false) =>
+        temp is { } t ? new Big((approx ? "~" : "") + RoundText(t), "°", t >= st.AlertTemp)
         : load is { } l ? new Big(RoundText(l), "%", false)
         : new Big("–", "", false);
 
@@ -751,7 +769,8 @@ public sealed partial class ScreenRenderer
 
     private static string PercentText(float? value) => value is null ? "–" : Inv($"{MathF.Round(value.Value)}%");
 
-    private static string TempText(float? value) => value is null ? "–" : Inv($"{MathF.Round(value.Value)}°");
+    private static string TempText(float? value, bool approx = false) =>
+        value is null ? "–" : (approx ? "~" : "") + Inv($"{MathF.Round(value.Value)}°");
 
     private static string GhzText(float? mhz) => mhz is null ? "–" : Inv($"{mhz.Value / 1000:0.0} GHz");
 

@@ -225,6 +225,8 @@ public sealed class DisplayService : IDisposable
 
     private void ConfigureSources()
     {
+        Sensors.AdminWanted = _settings.RunAsAdmin;
+        Sensors.Approximate = _settings.ApproxCpuTemp;
         Sensors.SetEnabled(_settings.Views.Contains("system") || _settings.GameView == "system");
         Weather.Configure(_settings.Views.Contains("weather"), _settings.WeatherCity);
         Media.SetEnabled(_settings.Views.Contains("music"));

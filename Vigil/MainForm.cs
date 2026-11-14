@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Globalization;
 using System.Runtime.InteropServices;
 using System.Text.Json;
@@ -40,6 +41,7 @@ public sealed class MainForm : Form
     private readonly System.Windows.Forms.Timer _timer = new() { Interval = 1000 };
     private readonly TaskCompletionSource _firstFrame = new();
     private bool _ready;
+    private int _ticks;
 
     public MainForm(Settings settings, DisplayService display, Icon icon)
     {
@@ -56,7 +58,13 @@ public sealed class MainForm : Form
         Controls.Add(_web);
 
         _display.StatusChanged += OnStatusChanged;
-        _timer.Tick += (_, _) => SendFrame();
+        _timer.Tick += (_, _) =>
+        {
+            SendFrame();
+            // The guide follows the sensors: PawnIO installed meanwhile, a reading that has just arrived.
+            if (++_ticks % 3 == 0) PostCpuTemp();
+        };
+        Activated += (_, _) => PostCpuTemp();
         _ = InitialiseAsync();
     }
 
@@ -142,6 +150,7 @@ public sealed class MainForm : Form
                     ShowStatus();
                     SendFrame();
                     SendThumbs();
+                    PostCpuTemp();
                     _timer.Start();
                     break;
                 case "set":
@@ -155,6 +164,9 @@ public sealed class MainForm : Form
                     break;
                 case "diagnostics":
                     CopyDiagnostics();
+                    break;
+                case "cpuTemp":
+                    CpuTempAction(message.GetProperty("action").GetString() ?? "");
                     break;
                 case "searchCity":
                     _ = SearchCityAsync(message.GetProperty("id").GetInt32(), message.GetProperty("name").GetString() ?? "");
@@ -181,6 +193,7 @@ public sealed class MainForm : Form
             case "lockScreen": s.LockScreen = value.GetString() ?? ""; break;
             case "orientation": s.Orientation = value.GetString() ?? ""; break;
             case "checkUpdates": s.CheckUpdates = value.GetBoolean(); break;
+            case "approxCpuTemp": s.ApproxCpuTemp = value.GetBoolean(); break;
             case "gameView": s.GameView = value.GetString() ?? ""; break;
             case "nightDim": s.NightDim = value.GetBoolean(); break;
             case "nightStart": s.NightStart = value.GetString() ?? ""; break;
@@ -243,6 +256,61 @@ public sealed class MainForm : Form
             MessageBox.Show(this, $"Could not change the start-up entry: {e.Message}", "Vigil", MessageBoxButtons.OK, MessageBoxIcon.Warning);
         }
         PostSystem();
+    }
+
+    /// <summary>
+    /// Where the CPU temperature stands, for the page's guide: "ok", "waiting" (no reading yet), "off" (the mode is
+    /// off), "denied" (Windows said no to administrator rights), "driver" (PawnIO missing) or "unsupported".
+    /// </summary>
+    private void PostCpuTemp()
+    {
+        if (!_ready || IsDisposed) return;
+        SystemSnapshot s = _display.Sensors.Latest;
+        bool wanted = _settings.Views.Contains("system") || _settings.GameView == "system";
+        string state = ReferenceEquals(s, SystemSnapshot.Empty) ? "waiting"
+            : s.CpuTemp is not null && !s.CpuTempApprox ? "ok"
+            : s.CpuTempMissing switch
+            {
+                CpuTemperature.Missing.AdminOff => "off",
+                CpuTemperature.Missing.AdminDenied => "denied",
+                CpuTemperature.Missing.NoDriver => "driver",
+                CpuTemperature.Missing.Unsupported => "unsupported",
+                _ => "ok"
+            };
+        Post(new
+        {
+            type = "cpuTemp",
+            state,
+            wanted,
+            admin = _settings.RunAsAdmin,
+            pawnio = CpuTemperature.PawnIOInstalled(),
+            approx = s.CpuTempApprox,
+            dismissed = _settings.CpuTempHintDismissed
+        });
+    }
+
+    /// <summary>A button of the page's guide to the CPU temperature.</summary>
+    private void CpuTempAction(string action)
+    {
+        switch (action)
+        {
+            case "admin":
+                SetAdmin(true); // asks Windows, and restarts with the rights when it says yes
+                return;
+            case "pawnio":
+                Process.Start(new ProcessStartInfo("https://pawnio.eu/") { UseShellExecute = true });
+                return;
+            case "recheck":
+                // The driver is looked for when the sensors open: open them again.
+                _display.Sensors.SetEnabled(false);
+                _display.ApplySettings();
+                break;
+            case "dismiss":
+                _settings.CpuTempHintDismissed = true;
+                _settings.Save();
+                break;
+        }
+        PostCpuTemp();
     }
 
     /// <summary>Puts the diagnostics report on the clipboard and tells the page how that went.</summary>
@@ -354,6 +422,7 @@ public sealed class MainForm : Form
         lockScreen = _settings.LockScreen,
         orientation = _settings.Orientation,
         checkUpdates = _settings.CheckUpdates,
+        approxCpuTemp = _settings.ApproxCpuTemp,
         gameView = _settings.GameView,
         nightDim = _settings.NightDim,
         nightStart = _settings.NightStart,

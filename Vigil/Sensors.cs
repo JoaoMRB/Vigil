@@ -15,6 +15,10 @@ public sealed record SystemSnapshot
 {
     public string CpuName { get; init; } = "";
     public float? CpuTemp { get; init; }
+    /// <summary><see cref="CpuTemp"/> is the ACPI thermal zone's rough figure, not the CPU's own sensor.</summary>
+    public bool CpuTempApprox { get; init; }
+    /// <summary>Why the CPU's own sensor gave nothing (administrator mode off, no driver...).</summary>
+    public CpuTemperature.Missing CpuTempMissing { get; init; }
     public float? CpuLoad { get; init; }
     public float? CpuClockMhz { get; init; }
     public float? CpuPowerW { get; init; }
@@ -102,6 +106,31 @@ public sealed class SystemSensors : IDisposable
 
     public SystemSnapshot Latest { get; private set; } = SystemSnapshot.Empty;
 
+    /// <summary>The user asked for administrator mode: tells "switched off" apart from "Windows said no".</summary>
+    public bool AdminWanted { get; set; }
+
+    private bool _approximate;
+    private readonly CpuTemperature.StuckCheck _stuck = new();
+    private int _zoneTick;
+    private float? _zone;
+
+    /// <summary>Without the CPU's own sensor, show the ACPI thermal zone instead, marked as approximate.</summary>
+    public bool Approximate
+    {
+        get => _approximate;
+        set
+        {
+            if (value == _approximate) return;
+            lock (_lock)
+            {
+                _approximate = value;
+                _stuck.Reset();
+                _zone = null;
+                _zoneTick = 0;
+            }
+        }
+    }
+
     /// <summary>Starts or stops the polling. Stopped, the library is closed and its memory released.</summary>
     public void SetEnabled(bool enabled)
     {
@@ -176,6 +205,7 @@ public sealed class SystemSensors : IDisposable
 
             (float? volume, bool muted) = ReadVolume();
             SystemSnapshot reading = Read(_computer) with { VolumePct = volume, Muted = muted };
+            if (reading.CpuTemp is null) reading = WithStandIn(reading);
             Push(_cpuLoad, reading.CpuLoad);
             Push(_gpuLoad, reading.GpuLoad);
             Push(_cpuTemp, reading.CpuTemp);
@@ -197,6 +227,27 @@ public sealed class SystemSensors : IDisposable
         {
             Monitor.Exit(_lock);
         }
+    }
+
+    /// <summary>
+    /// No reading from the CPU's own sensor: say why, and, when the user asked for it, put the ACPI thermal zone in
+    /// its place. The zone is read every fifth poll (10 seconds): it changes slowly, and the query is not free.
+    /// </summary>
+    private SystemSnapshot WithStandIn(SystemSnapshot reading)
+    {
+        reading = reading with { CpuTempMissing = CpuTemperature.WhatIsMissing(AdminWanted) };
+        if (!_approximate || _stuck.Stuck) return reading;
+
+        if (_zoneTick++ % 5 == 0)
+        {
+            _zone = CpuTemperature.ReadThermalZones();
+            if (_zone is { } fresh && _stuck.Add(DateTime.Now, fresh, reading.CpuLoad))
+            {
+                Log.Info("cpu temperature: the ACPI thermal zone does not follow the CPU, showing the load instead");
+                return reading;
+            }
+        }
+        return _zone is { } zone ? reading with { CpuTemp = zone, CpuTempApprox = true } : reading;
     }
 
     /// <summary>The master volume of the default speakers. No speakers (or none plugged in) is not an error: no reading.</summary>

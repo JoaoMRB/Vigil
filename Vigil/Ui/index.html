@@ -117,6 +117,14 @@
           <h2 id="design-title">System screen</h2>
           <p>How the system view looks. The previews use sample numbers.</p>
         </header>
+        <div class="field" id="cpu-hint" hidden>
+          <div class="callout" role="region" aria-labelledby="cpu-hint-title">
+            <p class="callout-title" id="cpu-hint-title"></p>
+            <p class="callout-desc" id="cpu-hint-desc"></p>
+            <ul class="checklist" id="cpu-hint-steps"></ul>
+            <div class="callout-actions" id="cpu-hint-actions"></div>
+          </div>
+        </div>
         <div class="field">
           <div class="designs" id="designs" role="radiogroup" aria-label="System design"></div>
           <p class="hint" id="design-desc"></p>
@@ -196,6 +204,13 @@
             <span class="row-desc" id="admin-desc">Needs administrator rights. Windows asks once, then Vigil restarts.</span>
           </span>
           <button class="switch" id="admin" role="switch" aria-labelledby="admin-label" aria-describedby="admin-desc"></button>
+        </div>
+        <div class="row">
+          <span class="row-text">
+            <span class="row-title" id="approx-label">Approximate CPU temperature</span>
+            <span class="row-desc" id="approx-desc">Without the driver, shows the motherboard's ACPI temperature instead, marked ~. It is often well below the CPU's own, so it is off unless you want it.</span>
+          </span>
+          <button class="switch" id="approx" role="switch" aria-labelledby="approx-label" aria-describedby="approx-desc"></button>
         </div>
         <div class="row">
           <span class="row-text">

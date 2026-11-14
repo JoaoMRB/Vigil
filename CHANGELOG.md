@@ -16,6 +16,12 @@ All notable changes to Vigil are listed here. Versions follow [Semantic Versioni
   and the settings window next to the name.
 - The screen follows the PC: it dims to just the time while the PC is locked (or turns off, or keeps going, as set
   under System), turns off before the PC sleeps, and comes back by itself on wake-up, without waiting for an error.
+- A guide to the CPU temperature in the settings window. It shows when a view needs the temperature and doesn't get
+  it, says what is missing (the mode, administrator rights or the PawnIO driver), and has a button for each step and
+  a tick as each one is done. *Check again* finds a newly installed driver without restarting. The Custom design's
+  cards say what is missing too.
+- *Approximate CPU temperature* under System, off by default: without the driver, the motherboard's ACPI thermal
+  zone stands in, marked `~`. A zone that stays put for five minutes while the CPU load swings is dropped.
 - *How the screen stands* under Appearance: landscape, upside down, or upright turned either way. Upright, the
   clock stacks the hours over the minutes, and the weather, world clocks and now playing views have layouts of their
   own. The preview in the window stands the same way. So do the seven system designs: the CPU over the GPU, the

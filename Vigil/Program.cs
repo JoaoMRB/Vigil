@@ -55,7 +55,11 @@ internal static class Program
         if (sensors >= 0 && sensors + 1 < args.Length)
         {
             using var system = new SystemSensors();
-            File.WriteAllLines(args[sensors + 1], [.. system.Describe(), "", system.ReadOnce().ToString()]);
+            float? zone = CpuTemperature.ReadThermalZones();
+            File.WriteAllLines(args[sensors + 1], [.. system.Describe(), "",
+                $"ACPI thermal zone, hottest: {(zone is { } z ? $"{z:0.0} °C" : "none")}",
+                $"PawnIO: {(CpuTemperature.PawnIOInstalled() ? "installed" : "not installed")}", "",
+                system.ReadOnce().ToString()]);
             return 0;
         }
 
@@ -231,7 +235,7 @@ internal static class Program
 
         // --sample : made-up sensor readings (the same ones the window's previews use), so a design can be checked
         // without the sensors. Without it the real sensors are read twice, a moment apart, for the network rates.
-        using var sensors = new SystemSensors();
+        using var sensors = new SystemSensors { AdminWanted = settings.RunAsAdmin, Approximate = settings.ApproxCpuTemp };
         SystemSnapshot system = SystemSnapshot.Empty;
         if (view == ScreenView.System)
         {

@@ -70,6 +70,11 @@ public sealed class Settings
     /// <summary>Ask GitHub once a day whether there is a newer version, and offer it in the tray.</summary>
     public bool CheckUpdates { get; set; } = true;
 
+    /// <summary>Without the CPU's own sensor, show the ACPI thermal zone, marked "~". Off by default: it can be far off.</summary>
+    public bool ApproxCpuTemp { get; set; }
+    /// <summary>The user closed the window's guide to turning the CPU temperature on.</summary>
+    public bool CpuTempHintDismissed { get; set; }
+
     /// <summary>Run with administrator rights, so the CPU's temperature can be read. Off by default.</summary>
     public bool RunAsAdmin { get; set; }
 

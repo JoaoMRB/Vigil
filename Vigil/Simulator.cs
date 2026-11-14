@@ -131,6 +131,23 @@ public static class Simulator
             }
             settings.Orientation = "landscape";
 
+            // The ACPI stand-in: a zone that never moves while the load swings is not used; one that follows is.
+            static bool StuckAfter(Func<int, float> zone)
+            {
+                var check = new CpuTemperature.StuckCheck();
+                DateTime start = DateTime.Now;
+                bool stuck = false;
+                for (int i = 0; i <= 33; i++) // every 10 seconds, five and a half minutes
+                {
+                    float load = i % 2 == 0 ? 10 : 90;
+                    stuck |= check.Add(start.AddSeconds(i * 10), zone(i), load);
+                }
+                return stuck;
+            }
+            bool flat = StuckAfter(_ => 27.8f);
+            bool follows = StuckAfter(i => 40 + i % 2 * 6);
+            Check("ACPI zone: a stuck one is dropped, a moving one kept", () => flat && !follows, 0);
+
             // The music view takes its turn only while something plays.
             var musicOnly = new Settings { Views = ["music"] };
             NowPlaying paused = NowPlaying.Sample with { Playing = false };

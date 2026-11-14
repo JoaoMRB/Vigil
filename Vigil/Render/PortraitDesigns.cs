@@ -41,7 +41,7 @@ public sealed partial class ScreenRenderer
         using SKFont sub = Font(Medium, 12);
         float cx = W / 2f;
 
-        Big[] numbers = [TempOrLoad(s.CpuTemp, s.CpuLoad, st), TempOrLoad(s.GpuTemp, s.GpuLoad, st), new(RoundText(Fraction(s.RamUsedGb, s.RamTotalGb) * 100), "%", false)];
+        Big[] numbers = [TempOrLoad(s.CpuTemp, s.CpuLoad, st, s.CpuTempApprox), TempOrLoad(s.GpuTemp, s.GpuLoad, st), new(RoundText(Fraction(s.RamUsedGb, s.RamTotalGb) * 100), "%", false)];
         string[] labels = ["CPU", "GPU", "RAM"];
         SKColor[] units = [st.Accent, st.Secondary, st.Accent];
         string[] subs =
@@ -69,7 +69,7 @@ public sealed partial class ScreenRenderer
         Theme theme = o.Theme;
         const float x0 = 70;
 
-        PanelColumn(o, x0, "CPU", s.CpuName, s.CpuTemp, s.CpuLoad, s.CpuClockMhz, s.CpuPowerW, st.Accent);
+        PanelColumn(o, x0, "CPU", s.CpuName, s.CpuTemp, s.CpuLoad, s.CpuClockMhz, s.CpuPowerW, st.Accent, s.CpuTempApprox);
         Shifted(0, 126, () => PanelColumn(o, x0, "GPU", s.GpuName, s.GpuTemp, s.GpuLoad, s.GpuClockMhz, s.GpuPowerW, st.Secondary));
         using (var p = new SKPaint { Color = theme.Muted.WithAlpha(40) })
         {
@@ -92,7 +92,7 @@ public sealed partial class ScreenRenderer
     {
         SystemStyle st = o.System;
         float cx = W / 2f;
-        Shifted(0, -26, () => GaugeColumn(o, cx, "CPU", s.CpuName, s.CpuTemp, s.CpuLoad, st.Accent, "RAM", s.RamUsedGb, s.RamTotalGb));
+        Shifted(0, -26, () => GaugeColumn(o, cx, "CPU", s.CpuName, s.CpuTemp, s.CpuLoad, st.Accent, "RAM", s.RamUsedGb, s.RamTotalGb, s.CpuTempApprox));
         Shifted(0, 192, () => GaugeColumn(o, cx, "GPU", s.GpuName, s.GpuTemp, s.GpuLoad, st.Secondary, "VRAM", s.VramUsedGb, s.VramTotalGb));
     }
 
@@ -105,7 +105,7 @@ public sealed partial class ScreenRenderer
 
         float ram = Fraction(s.RamUsedGb, s.RamTotalGb), vram = Fraction(s.VramUsedGb, s.VramTotalGb);
         float peak = MathF.Max(1_000_000, s.History.NetDown.Where(v => !float.IsNaN(v)).DefaultIfEmpty(0).Max());
-        BarRowPortrait(o, 80, "CPU", (s.CpuLoad ?? 0) / 100, st.Accent, PercentText(s.CpuLoad), TempText(s.CpuTemp), s.CpuTemp >= st.AlertTemp, label, value);
+        BarRowPortrait(o, 80, "CPU", (s.CpuLoad ?? 0) / 100, st.Accent, PercentText(s.CpuLoad), TempText(s.CpuTemp, s.CpuTempApprox), s.CpuTemp >= st.AlertTemp, label, value);
         BarRowPortrait(o, 144, "GPU", (s.GpuLoad ?? 0) / 100, st.Secondary, PercentText(s.GpuLoad), TempText(s.GpuTemp), s.GpuTemp >= st.AlertTemp, label, value);
         BarRowPortrait(o, 208, "RAM", ram, st.Accent, GbText(s.RamUsedGb, s.RamTotalGb), PercentText(ram * 100), false, label, value);
         BarRowPortrait(o, 272, "VRAM", vram, st.Secondary, GbText(s.VramUsedGb, s.VramTotalGb), PercentText(vram * 100), false, label, value);
@@ -133,7 +133,7 @@ public sealed partial class ScreenRenderer
         using SKFont sub = Font(Medium, 11);
 
         GraphRowPortrait(o, 40, "CPU", s.CpuTemp is not null ? $"{PercentText(s.CpuLoad)} load" : s.CpuName,
-            TempOrLoad(s.CpuTemp, s.CpuLoad, st), s.History.CpuLoad, 100, st.Accent, label, sub);
+            TempOrLoad(s.CpuTemp, s.CpuLoad, st, s.CpuTempApprox), s.History.CpuLoad, 100, st.Accent, label, sub);
         GraphRowPortrait(o, 176, "GPU", s.GpuTemp is not null ? $"{PercentText(s.GpuLoad)} load" : s.GpuName,
             TempOrLoad(s.GpuTemp, s.GpuLoad, st), s.History.GpuLoad, 100, st.Secondary, label, sub);
         (string value, string unit) = RateParts(s.NetDownBps);
@@ -163,7 +163,7 @@ public sealed partial class ScreenRenderer
 
         string vram = s.VramUsedGb is { } gb ? Inv($"{gb:0.0} GB") : "–";
         Card(o, new SKRect(12, 12, 308, 128), "CPU", s.CpuName, s.CpuLoad, st.Accent, compact: false,
-            ("TEMP", TempText(s.CpuTemp), s.CpuTemp >= st.AlertTemp), ("SPEED", GhzText(s.CpuClockMhz), false));
+            ("TEMP", TempText(s.CpuTemp, s.CpuTempApprox), s.CpuTemp >= st.AlertTemp), ("SPEED", GhzText(s.CpuClockMhz), false));
         Card(o, new SKRect(12, 136, 308, 252), "GPU", s.GpuName, s.GpuLoad, st.Secondary, compact: false,
             ("TEMP", TempText(s.GpuTemp), s.GpuTemp >= st.AlertTemp), ("VRAM", vram, false));
 

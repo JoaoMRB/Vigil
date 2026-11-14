@@ -47,6 +47,9 @@ function receive(message) {
     case 'diagnostics':
       showCopied(message.copied);
       break;
+    case 'cpuTemp':
+      showCpuHint(message);
+      break;
     case 'designThumbs':
       for (const thumb of message.thumbs) {
         const img = document.querySelector('img[data-design="' + thumb.id + '"]');
@@ -54,6 +57,64 @@ function receive(message) {
       }
       break;
   }
+}
+
+/* ------------------------------ CPU temperature guide ------------------------------ */
+
+const cpuHints = {
+  off: {
+    title: "See the CPU's temperature",
+    desc: 'Windows only shows it to programs that run as administrator with a driver. Until then, the screen shows the CPU load in its place.'
+  },
+  denied: {
+    title: "Windows didn't grant administrator rights",
+    desc: 'CPU temperature is on, but this time Vigil runs without the rights it needs. Try again, and choose Yes when Windows asks.'
+  },
+  driver: {
+    title: 'One step left: the PawnIO driver',
+    desc: "Install PawnIO, then press Check again. Vigil doesn't need to restart."
+  },
+  unsupported: {
+    title: "This CPU's sensor can't be read yet",
+    desc: "Everything is set up, but this CPU isn't supported by the sensor library yet. The screen shows the load instead. Approximate CPU temperature, under System, gives a rough figure."
+  }
+};
+
+let lastCpuHint = '';
+function showCpuHint(info) {
+  const hint = cpuHints[info.state];
+  const show = !!hint && info.wanted && !info.dismissed;
+  $('cpu-hint').hidden = !show;
+  if (!show) return;
+  // Redraw only when something changed, so a button never moves under the pointer.
+  const key = JSON.stringify(info);
+  if (key === lastCpuHint) return;
+  lastCpuHint = key;
+
+  $('cpu-hint-title').textContent = hint.title;
+  $('cpu-hint-desc').textContent = hint.desc;
+  const steps = $('cpu-hint-steps');
+  steps.replaceChildren();
+  if (info.state === 'off' || info.state === 'driver') {
+    steps.append(
+      el('li', { 'data-done': String(info.admin), text: 'CPU temperature mode, under System' }),
+      el('li', { 'data-done': String(info.pawnio), text: 'The free PawnIO driver' }));
+  }
+
+  const action = (label, name) => {
+    const button = el('button', { class: 'button', type: 'button', text: label });
+    button.addEventListener('click', () => send({ type: 'cpuTemp', action: name }));
+    return button;
+  };
+  const actions = $('cpu-hint-actions');
+  actions.replaceChildren();
+  if (info.state === 'off' && !info.admin) actions.append(action('Turn on', 'admin'));
+  if (info.state === 'denied') actions.append(action('Try again', 'admin'));
+  if (!info.pawnio && info.state !== 'denied') actions.append(action('Get PawnIO', 'pawnio'));
+  if (info.state === 'driver' || info.state === 'unsupported') actions.append(action('Check again', 'recheck'));
+  const later = el('button', { class: 'link', type: 'button', text: 'Not now' });
+  later.addEventListener('click', () => send({ type: 'cpuTemp', action: 'dismiss' }));
+  actions.append(later);
 }
 
 let copiedTimer = null;
@@ -223,6 +284,7 @@ function build() {
   night.addEventListener('change', () => set('nightBrightness', +night.value));
   $('diagnostics').addEventListener('click', () => send({ type: 'diagnostics' }));
   bindSwitch($('updates'), on => { set('checkUpdates', on); sync(); });
+  bindSwitch($('approx'), on => { set('approxCpuTemp', on); sync(); });
   $('orientation').addEventListener('change', event => { set('orientation', event.target.value); });
   bindSwitch($('autostart'), on => { setSwitch($('autostart'), on); send({ type: 'autostart', value: on }); });
   bindSwitch($('admin'), on => { setSwitch($('admin'), on); send({ type: 'admin', value: on }); });
@@ -268,6 +330,7 @@ function sync() {
   showBrightness(+$('brightness').value);
   setSwitch($('use24h'), settings.use24h);
   setSwitch($('updates'), settings.checkUpdates);
+  setSwitch($('approx'), settings.approxCpuTemp);
   $('orientation').value = settings.orientation;
   document.body.classList.toggle('portrait', settings.orientation.startsWith('portrait'));
   for (const img of [$('preview'), ...document.querySelectorAll('.design-thumb')]) {
