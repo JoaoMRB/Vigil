@@ -77,11 +77,6 @@ Filename: "{app}\{#AppExe}"; Description: "{cm:LaunchProgram,{#AppName}}"; Flags
 ; An update started from the tray (Updater.cs) runs silently with /update=1: start the app again afterwards.
 Filename: "{app}\{#AppExe}"; Parameters: "--tray"; Flags: nowait; Check: IsUpdate
 
-[UninstallRun]
-; Administrator mode with "Start with Windows" adds a scheduled task (Settings.cs). Removing it needs the rights it
-; was created with: when that fails the task is left behind, pointing at a file that no longer exists.
-Filename: "{sys}\schtasks.exe"; Parameters: "/Delete /TN ""{#AppName}"" /F"; Flags: runhidden; RunOnceId: "RemoveStartupTask"
-
 [UninstallDelete]
 ; The window's browser cache and the log. The settings (%AppData%\Vigil\settings.json) are kept for a later reinstall.
 Type: filesandordirs; Name: "{localappdata}\{#AppName}\WebView2"
@@ -94,11 +89,32 @@ begin
   Result := ExpandConstant('{param:update|0}') = '1';
 end;
 
+function Schtasks(const Params: String): Integer;
+begin
+  if not Exec(ExpandConstant('{sys}\schtasks.exe'), Params, '', SW_HIDE, ewWaitUntilTerminated, Result) then
+    Result := -1;
+end;
+
+// Administrator mode adds a scheduled task (Settings.cs, Autostart). It is created with administrator rights and
+// can only be removed with them: when the plain attempt fails, ask Windows for them once, so the task is not left
+// behind pointing at a file that no longer exists. A silent uninstall skips the prompt.
+procedure RemoveTask;
+var
+  Code: Integer;
+begin
+  if Schtasks('/Query /TN "{#AppName}"') <> 0 then Exit;
+  if Schtasks('/Delete /TN "{#AppName}" /F') = 0 then Exit;
+  if not UninstallSilent then
+    ShellExec('runas', ExpandConstant('{sys}\schtasks.exe'), '/Delete /TN "{#AppName}" /F', '', SW_HIDE,
+      ewWaitUntilTerminated, Code);
+end;
+
 // "Start with Windows" switched on inside the app, without the installer task, is not known to the uninstaller.
 procedure CurUninstallStepChanged(CurUninstallStep: TUninstallStep);
 begin
   if CurUninstallStep = usPostUninstall then
   begin
+    RemoveTask;
     RegDeleteValue(HKEY_CURRENT_USER, 'Software\Microsoft\Windows\CurrentVersion\Run', '{#AppName}');
     // What Task Manager remembers when the entry was switched off under Startup apps.
     RegDeleteValue(HKEY_CURRENT_USER, 'Software\Microsoft\Windows\CurrentVersion\Explorer\StartupApproved\Run', '{#AppName}');
