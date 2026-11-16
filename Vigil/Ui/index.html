@@ -31,11 +31,33 @@
       <div class="preview">
         <img id="preview" width="480" height="320" alt="Live preview of the desk display">
       </div>
-      <div class="trail-row">
-        <span class="eyebrow">On screen</span>
-        <ol id="trail" class="trail" aria-label="Views taking turns"></ol>
-      </div>
       <p class="footnote">The preview is the exact image sent to the display, refreshed every second.</p>
+
+      <section class="card controls" aria-label="Screen controls">
+        <div class="field">
+          <div class="field-head">
+            <span class="field-label" id="now-label">On screen</span>
+            <button class="link" id="resume" type="button" hidden>Take turns again</button>
+          </div>
+          <div class="segmented spread" id="now" role="radiogroup" aria-labelledby="now-label" aria-describedby="rotation"></div>
+          <p class="field-desc" id="rotation"></p>
+        </div>
+        <div class="field">
+          <div class="field-head">
+            <label class="field-label" for="brightness">Brightness</label>
+            <output id="brightness-value" for="brightness"></output>
+          </div>
+          <input type="range" id="brightness" min="0" max="100" step="1" aria-describedby="brightness-note">
+          <p class="field-desc" id="brightness-note" hidden></p>
+        </div>
+        <div class="row">
+          <span class="row-text">
+            <span class="row-title" id="screen-label">Screen on</span>
+            <span class="row-desc" id="screen-desc">Turn it off for now. It stays off until you turn it back on, or Vigil restarts.</span>
+          </span>
+          <button class="switch" id="screen" role="switch" aria-labelledby="screen-label" aria-describedby="screen-desc"></button>
+        </div>
+      </section>
     </section>
 
     <div class="panel">
@@ -78,13 +100,6 @@
         <div class="field">
           <span class="field-label" id="font-label">Clock font</span>
           <div class="segmented fill" id="fonts" role="radiogroup" aria-labelledby="font-label"></div>
-        </div>
-        <div class="field">
-          <div class="field-head">
-            <label class="field-label" for="brightness">Brightness</label>
-            <output id="brightness-value" for="brightness"></output>
-          </div>
-          <input type="range" id="brightness" min="0" max="100" step="1">
         </div>
         <div class="row">
           <span class="row-text">

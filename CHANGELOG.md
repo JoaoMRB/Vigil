@@ -12,6 +12,10 @@ All notable changes to Vigil are listed here. Versions follow [Semantic Versioni
 - The tray icon's menu is dark, in the colours of the settings window, instead of the system's.
 
 ### Added
+- Quick controls under the preview: keep one view on the screen instead of the views taking turns (with the next
+  view and when it comes), the brightness (moved there from Appearance, with a note while the night's is lower), and
+  a switch to turn the screen off for now. None of these is saved: Vigil starts with the views taking turns and the
+  screen on.
 - The first time it runs, Vigil copies the settings from `%AppData%\AuraTime`, so you don't have to set it up again.
 - Vigil has its own icon: a screen with a lined eye in it. The Dashboard design shows it in place of AuraTime's clock,
   and the settings window next to the name.

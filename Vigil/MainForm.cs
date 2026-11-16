@@ -168,6 +168,18 @@ public sealed class MainForm : Form
                 case "cpuTemp":
                     CpuTempAction(message.GetProperty("action").GetString() ?? "");
                     break;
+                case "hold":
+                {
+                    // A view id keeps that view on the screen; null lets the views take turns again.
+                    string? id = message.GetProperty("view").ValueKind == JsonValueKind.String ? message.GetProperty("view").GetString() : null;
+                    _display.HeldView = Views.Any(v => v.Id == id) ? Enum.Parse<ScreenView>(id!, ignoreCase: true) : null;
+                    SendFrame();
+                    break;
+                }
+                case "screen":
+                    _display.ScreenOff = !message.GetProperty("on").GetBoolean();
+                    SendFrame();
+                    break;
                 case "searchCity":
                     _ = SearchCityAsync(message.GetProperty("id").GetInt32(), message.GetProperty("name").GetString() ?? "");
                     break;
@@ -485,7 +497,22 @@ public sealed class MainForm : Form
         (ScreenView view, RenderOptions options, ScreenData data) = _display.Frame(now);
         _renderer.Draw(now, options, view, data);
         using SKData png = _renderer.Bitmap.Encode(SKEncodedImageFormat.Png, 100);
-        Post(new { type = "frame", png = "data:image/png;base64," + Convert.ToBase64String(png.AsSpan()), view = view.ToString().ToLowerInvariant() });
+        // What the quick controls under the preview need: which views can be shown, whether one is held, and what
+        // comes next.
+        (ScreenView View, int InSeconds)? next = DisplayService.NextView(_settings, now, data);
+        Post(new
+        {
+            type = "frame",
+            png = "data:image/png;base64," + Convert.ToBase64String(png.AsSpan()),
+            view = DisplayService.ViewId(view),
+            ready = DisplayService.ReadyViews(_settings, data).Select(DisplayService.ViewId),
+            held = _display.HeldView == view && !_display.Gaming ? DisplayService.ViewId(view) : null,
+            next = next is { } n ? DisplayService.ViewId(n.View) : null,
+            nextIn = next?.InSeconds ?? 0,
+            gaming = _display.Gaming,
+            screenOn = !_display.ScreenOff,
+            night = _settings.IsNight(now)
+        });
         _firstFrame.TrySetResult();
     }
 

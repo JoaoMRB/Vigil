@@ -98,6 +98,37 @@ public sealed class DisplayService : IDisposable
     /// <summary>How long a game must be in full screen, or out of it, before the screen follows. Alt+Tab is shorter.</summary>
     public int GameHoldMs { get; init; } = 5000;
 
+    /// <summary>The view kept on the screen instead of taking turns, as an int (-1 for none) so it can be volatile.</summary>
+    private volatile int _held = -1;
+
+    /// <summary>
+    /// A view chosen in the window to stay on the screen, instead of the views taking turns. Not saved: the views
+    /// take turns again when Vigil restarts. A held view that has nothing to show (no weather yet) is passed over.
+    /// </summary>
+    public ScreenView? HeldView
+    {
+        get => _held < 0 ? null : (ScreenView)_held;
+        set
+        {
+            _held = value is { } view ? (int)view : -1;
+            _wake.Set();
+        }
+    }
+
+    private volatile bool _screenOff;
+
+    /// <summary>The screen turned off from the window, until it is turned back on. Not saved either.</summary>
+    public bool ScreenOff
+    {
+        get => _screenOff;
+        set
+        {
+            if (_screenOff == value) return;
+            _screenOff = value;
+            _wake.Set();
+        }
+    }
+
     /// <summary>Raised on the display thread whenever <see cref="Status"/> changes.</summary>
     public event Action? StatusChanged;
 
@@ -106,6 +137,8 @@ public sealed class DisplayService : IDisposable
     /// <summary>Call after changing the settings: the next frame uses them.</summary>
     public void ApplySettings()
     {
+        // A held view that was switched off lets the others take turns again.
+        if (HeldView is { } held && !_settings.Views.Contains(ViewId(held))) HeldView = null;
         ConfigureSources();
         _settingsChanged = true;
     }
@@ -173,9 +206,12 @@ public sealed class DisplayService : IDisposable
         var options = new RenderOptions(theme, ClockFonts.Resolve(s.Font), s.Use24h, CultureInfo.CurrentCulture, _text, style, s.Orientation);
         ScreenView view = _gaming
             ? s.GameView == "system" ? ScreenView.System : ScreenView.Clock
-            : ViewFor(s, now, data);
+            : ViewFor(s, now, data, HeldView);
         return (view, options, data);
     }
+
+    /// <summary>The id a view has in the settings ("clock", "system"...).</summary>
+    public static string ViewId(ScreenView view) => view.ToString().ToLowerInvariant();
 
     /// <summary>Follows full-screen games, with a hold either way so a quick Alt+Tab does not flip the screen.</summary>
     private void UpdateGaming()
@@ -202,9 +238,30 @@ public sealed class DisplayService : IDisposable
 
     /// <summary>
     /// The views take turns, each for <see cref="Settings.ViewSeconds"/>. A view with nothing to show yet (no
-    /// weather reading, no world clock) is skipped.
+    /// weather reading, no world clock) is skipped. A held view stays, as long as it is ready.
     /// </summary>
-    public static ScreenView ViewFor(Settings settings, DateTime now, ScreenData data)
+    public static ScreenView ViewFor(Settings settings, DateTime now, ScreenData data, ScreenView? held = null)
+    {
+        List<ScreenView> ready = ReadyViews(settings, data);
+        if (held is { } h && ready.Contains(h)) return h;
+        if (ready.Count == 0) return ScreenView.Clock;
+        long slot = (long)(now - DateTime.UnixEpoch).TotalSeconds / Math.Max(1, settings.ViewSeconds);
+        return ready[(int)(slot % ready.Count)];
+    }
+
+    /// <summary>The view whose turn comes next, and in how many seconds; null when there is no other to turn to.</summary>
+    public static (ScreenView View, int InSeconds)? NextView(Settings settings, DateTime now, ScreenData data)
+    {
+        List<ScreenView> ready = ReadyViews(settings, data);
+        if (ready.Count < 2) return null;
+        int perView = Math.Max(1, settings.ViewSeconds);
+        long seconds = (long)(now - DateTime.UnixEpoch).TotalSeconds;
+        long slot = seconds / perView;
+        return (ready[(int)((slot + 1) % ready.Count)], perView - (int)(seconds % perView));
+    }
+
+    /// <summary>The views switched on that have something to show, in their order.</summary>
+    public static List<ScreenView> ReadyViews(Settings settings, ScreenData data)
     {
         var ready = new List<ScreenView>();
         foreach (string id in settings.Views)
@@ -218,9 +275,7 @@ public sealed class DisplayService : IDisposable
                 case "music" when data.Music is { Playing: true }: ready.Add(ScreenView.Music); break;
             }
         }
-        if (ready.Count == 0) return ScreenView.Clock;
-        long slot = (long)(now - DateTime.UnixEpoch).TotalSeconds / Math.Max(1, settings.ViewSeconds);
-        return ready[(int)(slot % ready.Count)];
+        return ready;
     }
 
     private void ConfigureSources()
@@ -339,12 +394,12 @@ public sealed class DisplayService : IDisposable
             }
 
             string lockMode = _locked ? _settings.LockScreen : "keep";
-            bool wantOn = lockMode != "off";
+            bool wantOn = lockMode != "off" && !_screenOff;
             if (wantOn != screenOn)
             {
                 link.SetScreen(wantOn);
                 screenOn = wantOn;
-                Log.Info(wantOn ? "display: on" : "display: off while locked");
+                Log.Info(wantOn ? "display: on" : _screenOff ? "display: off, turned off in the window" : "display: off while locked");
                 if (wantOn)
                 {
                     brightness = -1; // set again below

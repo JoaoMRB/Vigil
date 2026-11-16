@@ -5,7 +5,8 @@
  * message, and redraws from the settings the app sends back. Nothing is stored here.
  *
  * App -> page: init, settings, status, frame, cityResults, system
- * Page -> app: ready, set {key, value}, searchCity {id, name}, autostart {value}, admin {value}, diagnostics
+ * Page -> app: ready, set {key, value}, searchCity {id, name}, autostart {value}, admin {value}, diagnostics,
+ *              hold {view}, screen {on}
  */
 
 const host = window.chrome && window.chrome.webview;
@@ -36,7 +37,7 @@ function receive(message) {
       break;
     case 'frame':
       $('preview').src = message.png;
-      showTrail(message.view);
+      showControls(message);
       break;
     case 'cityResults':
       showCityResults(message);
@@ -286,6 +287,8 @@ function build() {
   bindSwitch($('updates'), on => { set('checkUpdates', on); sync(); });
   bindSwitch($('approx'), on => { set('approxCpuTemp', on); sync(); });
   $('orientation').addEventListener('change', event => { set('orientation', event.target.value); });
+  bindSwitch($('screen'), on => { setSwitch($('screen'), on); send({ type: 'screen', on }); });
+  $('resume').addEventListener('click', () => send({ type: 'hold', view: null }));
   bindSwitch($('autostart'), on => { setSwitch($('autostart'), on); send({ type: 'autostart', value: on }); });
   bindSwitch($('admin'), on => { setSwitch($('admin'), on); send({ type: 'admin', value: on }); });
 
@@ -486,16 +489,54 @@ function showStatus(state, text) {
   $('status-text').textContent = text;
 }
 
-let trailFor = '';
-function showTrail(current) {
-  const key = `${settings ? settings.views.join() : ''}|${current}`;
-  if (key === trailFor || !model || !settings) return;
-  trailFor = key;
-  const trail = $('trail');
-  trail.replaceChildren(...settings.views.map(id => {
-    const view = model.views.find(v => v.id === id);
-    return el('li', { 'aria-current': String(id === current), text: view ? view.short : id });
-  }));
+/* ------------------------------ quick controls ------------------------------ */
+
+const viewName = id => {
+  const view = model && model.views.find(v => v.id === id);
+  return view ? view.short : id;
+};
+
+let nowFor = '';
+let markNow = null;
+
+/** Under the preview: the views that take turns (a click keeps one on), the brightness note and the screen switch. */
+function showControls(frame) {
+  if (!model || !settings) return;
+
+  // One button per view switched on, rebuilt only when that list changes.
+  const key = settings.views.join();
+  if (key !== nowFor) {
+    nowFor = key;
+    markNow = radioGroup($('now'), settings.views.map(id => ({ value: id })),
+      id => send({ type: 'hold', view: id }),
+      (button, option) => { button.textContent = viewName(option.value); });
+  }
+  markNow(frame.view);
+  const ready = new Set(frame.ready);
+  [...$('now').children].forEach((button, index) => {
+    const waiting = !ready.has(settings.views[index]);
+    button.disabled = waiting;
+    button.title = waiting ? 'Nothing to show yet' : '';
+  });
+
+  const now = $('now');
+  now.dataset.held = String(!!frame.held);
+  $('resume').hidden = !frame.held;
+  $('rotation').textContent =
+    !frame.screenOn ? 'The screen is off. The preview shows what it would show.'
+    : frame.gaming ? `A full-screen game is running, so the screen keeps to ${viewName(frame.view)}.`
+    : frame.held ? `${viewName(frame.held)} stays on the screen until you let the views take turns again.`
+    : frame.next ? `Next: ${viewName(frame.next)} in ${frame.nextIn}s. Pick a view to keep it on the screen.`
+    : settings.views.length > 1 ? 'The other views have nothing to show yet.'
+    : 'Only one view is switched on.';
+
+  setSwitch($('screen'), frame.screenOn);
+  document.querySelector('.preview').dataset.off = String(!frame.screenOn);
+
+  // At night the backlight may be lower than the slider says: tell, so the slider does not look broken.
+  const dimmed = frame.night && settings.nightBrightness < settings.brightness;
+  $('brightness-note').hidden = !dimmed;
+  if (dimmed) $('brightness-note').textContent = `Dimmed to ${settings.nightBrightness}% at night, until ${settings.nightEnd}.`;
 }
 
 /* ------------------------------ city search ------------------------------ */
