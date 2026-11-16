@@ -43,7 +43,7 @@ public sealed class TrayApp : ApplicationContext
         _autostartItem = new ToolStripMenuItem("Start with Windows") { CheckOnClick = true };
         _autostartItem.Click += (_, _) => Autostart.Set(_autostartItem.Checked, _settings);
 
-        var menu = new ContextMenuStrip();
+        var menu = new TrayMenu();
         _updateItem.Click += async (_, _) => await UpdateAsync();
         menu.Items.Add(_updateItem);
         menu.Items.Add("Open Vigil", null, (_, _) => ShowWindow());
