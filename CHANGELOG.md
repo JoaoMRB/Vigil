@@ -9,6 +9,7 @@ All notable changes to Vigil are listed here. Versions follow [Semantic Versioni
 - Vigil installs as a separate app: the AuraTime app can be uninstalled afterwards.
 - "Start with Windows" is now listed under Startup apps in Task Manager in administrator mode too, and can be
   switched on and off there. The app shows it as off when Windows has it switched off.
+- The tray icon's menu is dark, in the colours of the settings window, instead of the system's.
 
 ### Added
 - The first time it runs, Vigil copies the settings from `%AppData%\AuraTime`, so you don't have to set it up again.
