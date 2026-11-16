@@ -156,6 +156,25 @@ public static class Simulator
             Check("music: shown while playing, the clock when paused",
                 () => playingView == ScreenView.Music && pausedView == ScreenView.Clock, 0);
 
+            // A view kept on the screen from the window, whatever the turn; let go when it is switched off.
+            var both = new Settings { Views = ["clock", "system"], ViewSeconds = 10 };
+            DateTime clockTurn = DateTime.UnixEpoch; // slot 0: the clock's turn
+            bool heldWins = DisplayService.ViewFor(both, clockTurn, ScreenData.Empty, ScreenView.System) == ScreenView.System;
+            bool notReady = DisplayService.ViewFor(both, clockTurn, ScreenData.Empty, ScreenView.Weather) == ScreenView.Clock;
+            Check("held view: stays whatever the turn, passed over when it has nothing", () => heldWins && notReady, 0);
+            var next = DisplayService.NextView(both, clockTurn.AddSeconds(4), ScreenData.Empty);
+            Check("next view: the system in 6 s", () => next is (ScreenView.System, 6), 0);
+            display.HeldView = ScreenView.System;
+            settings.Views = ["clock"];
+            display.ApplySettings();
+            Check("held view switched off: the views take turns again", () => display.HeldView is null, 0);
+
+            // The screen turned off from the window, and back on.
+            display.ScreenOff = true;
+            Check("screen off from the window", () => !link.ScreenOn && link.IsOpen, 3000);
+            display.ScreenOff = false;
+            Check("screen on again from the window", () => link.ScreenOn, 3000);
+
             // A full-screen game, with the usual view the clock and the system view set for games.
             ScreenView Showing() => display.Frame(DateTime.Now).View;
             settings.GameView = "system";

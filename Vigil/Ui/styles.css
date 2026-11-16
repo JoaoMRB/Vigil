@@ -97,6 +97,8 @@ button, input, select { font: inherit; color: inherit; }
   border-right: 1px solid var(--border);
   overflow-y: auto;
 }
+/* Taller than the window: scroll, never squeeze the preview. */
+.stage > * { flex: none; }
 
 .preview {
   overflow: hidden;
@@ -112,22 +114,36 @@ button, input, select { font: inherit; color: inherit; }
 .portrait .preview img, .portrait .design-thumb { aspect-ratio: 2 / 3; }
 .portrait .designs { grid-template-columns: repeat(auto-fill, minmax(96px, 1fr)); }
 
-.trail-row { display: flex; align-items: center; gap: 12px; }
-.eyebrow { color: var(--subtle); font-size: 12px; font-weight: 500; letter-spacing: .04em; text-transform: uppercase; }
-.trail { display: flex; flex-wrap: wrap; gap: 6px; margin: 0; padding: 0; list-style: none; }
-.trail li {
-  height: 24px;
-  padding: 0 10px;
-  border: 1px solid var(--border);
+/* The screen turned off from the window: the preview stays, faded, to show what comes back. */
+.preview { position: relative; }
+.preview img { transition: opacity .2s var(--ease), filter .2s var(--ease); }
+.preview[data-off="true"] img { opacity: .3; filter: grayscale(1); }
+.preview[data-off="true"]::after {
+  content: "Screen off";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  padding: 4px 12px;
+  border: 1px solid var(--border-strong);
   border-radius: 999px;
-  color: var(--subtle);
-  font-size: 12px;
-  line-height: 22px;
-  transition: color .2s var(--ease), border-color .2s var(--ease), background .2s var(--ease);
+  background: var(--raised);
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 500;
 }
-.trail li[aria-current="true"] { border-color: var(--border-strong); background: var(--raised); color: var(--text); }
 
-.footnote { margin: 0; color: var(--subtle); font-size: 12px; }
+.eyebrow { color: var(--subtle); font-size: 12px; font-weight: 500; letter-spacing: .04em; text-transform: uppercase; }
+.footnote { margin: -4px 0 0; color: var(--subtle); font-size: 12px; }
+
+/* Quick controls under the preview: a card without a header, so its first part has no line above it. */
+.controls > :first-child { border-top: 0; }
+.segmented.spread { display: grid; grid-auto-columns: 1fr; grid-auto-flow: column; }
+.segmented.spread button { height: 32px; min-width: 0; padding: 0 6px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.segmented button:disabled { color: var(--subtle); opacity: .55; }
+.segmented button:disabled:hover { color: var(--subtle); }
+/* Held: the chosen view is marked a little stronger than one that only has its turn. */
+.segmented[data-held="true"] button[aria-checked="true"] { box-shadow: 0 0 0 1px var(--muted) inset; }
 
 .panel {
   display: flex;

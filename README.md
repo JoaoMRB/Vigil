@@ -75,8 +75,9 @@ and you can turn off either one. It waits in the tray and stays out of the way.
   <img src="docs/images/app-window.webp" alt="Vigil's settings window: a live preview of the screen on the left, the views and their options on the right" width="720">
 </p>
 
-The preview on the left is the exact picture sent to the screen, refreshed every second. Every change shows on the
-screen at once, and there is nothing to save.
+The preview on the left is the exact picture sent to the screen, refreshed every second. Under it are the quick
+controls: pick a view to keep it on the screen instead of the views taking turns, set the brightness, or turn the
+screen off for now. Every change shows on the screen at once, and there is nothing to save.
 
 ## Getting started
 
