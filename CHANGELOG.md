@@ -2,7 +2,7 @@
 
 All notable changes to Vigil are listed here. Versions follow [Semantic Versioning](https://semver.org/).
 
-## [Unreleased]
+## [0.1.0] - 2026-11-17
 
 ### Changed
 - The Windows app of [AuraTime](https://github.com/JoaoMRB/AuraTime) is now **Vigil**, with a repository of its own.
