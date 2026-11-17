@@ -67,8 +67,14 @@ release from a local JSON file shaped like GitHub's, so the check can be tried b
 
 ```json
 { "tag_name": "v9.9.9",
+  "html_url": "https://github.com/JoaoMRB/Vigil/releases/tag/v9.9.9",
+  "body": "### Added\n- **Something new**",
   "assets": [{ "name": "Vigil-Setup.exe", "browser_download_url": "Vigil-Setup.exe", "digest": "sha256:<hex>" }] }
 ```
+
+The same `--update-feed` with **`--window-png`** shows the update banner at the top of the settings, with `body` as
+its notes. They are shown as text: the page turns headings, lists, `**bold**`, `` `code` `` and links into plain
+elements and never reads them as HTML.
 
 **`--settings-file path`** makes any of these use another settings file than yours, and **`--culture en-US`**
 draws in another language than Windows'.

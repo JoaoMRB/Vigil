@@ -4,9 +4,10 @@
  * The settings window. The app (MainForm.cs) owns the settings: this page shows them, sends every change as a
  * message, and redraws from the settings the app sends back. Nothing is stored here.
  *
- * App -> page: init, settings, status, frame, cityResults, system {autostart, admin, elevated, allUsers}
+ * App -> page: init, settings, status, frame, cityResults, system {autostart, admin, elevated, allUsers},
+ *              update {version, current, notes, hasPage, installing, failure}
  * Page -> app: ready, set {key, value}, searchCity {id, name}, autostart {value}, admin {value}, diagnostics,
- *              hold {view}, screen {on}
+ *              hold {view}, screen {on}, update {action: install | page}
  */
 
 const host = window.chrome && window.chrome.webview;
@@ -51,6 +52,9 @@ function receive(message) {
     case 'cpuTemp':
       showCpuHint(message);
       break;
+    case 'update':
+      showUpdate(message);
+      break;
     case 'designThumbs':
       for (const thumb of message.thumbs) {
         const img = document.querySelector('img[data-design="' + thumb.id + '"]');
@@ -58,6 +62,108 @@ function receive(message) {
       }
       break;
   }
+}
+
+/* ------------------------------ update banner ------------------------------ */
+
+let updateLater = '';    // the version put off with Later: hidden until the window opens again
+let updateBound = false;
+
+/** The banner for a newer version: {version, current, notes, hasPage, installing, failure}. No version, no banner. */
+function showUpdate(info) {
+  const banner = $('update');
+  if (!updateBound) {
+    updateBound = true;
+    $('update-install').addEventListener('click', () => send({ type: 'update', action: 'install' }));
+    $('update-page').addEventListener('click', () => send({ type: 'update', action: 'page' }));
+    $('update-later').addEventListener('click', () => {
+      updateLater = banner.dataset.version || '';
+      banner.hidden = true;
+    });
+  }
+  banner.hidden = !info.version || (info.version === updateLater && !info.installing);
+  if (banner.hidden) return;
+  banner.dataset.version = info.version;
+
+  $('update-title').textContent = `Vigil ${info.version} is available`;
+  const desc = $('update-desc');
+  desc.dataset.state = info.failure ? 'failed' : '';
+  desc.textContent = info.installing
+    ? 'Downloading the update. Vigil closes and opens again by itself.'
+    : info.failure
+      ? `The update could not be installed: ${info.failure}`
+      : `You have ${info.current}. Your settings are kept.`;
+  const install = $('update-install');
+  install.disabled = info.installing;
+  install.textContent = info.installing ? 'Updating…' : info.failure ? 'Try again' : 'Update';
+  $('update-later').hidden = info.installing;
+
+  const notes = $('update-notes');
+  notes.hidden = !info.notes;
+  if (notes.dataset.version !== info.version) {
+    notes.dataset.version = info.version;
+    $('update-notes-body').replaceChildren(...markdown(info.notes || ''));
+  }
+  $('update-page').hidden = !info.hasPage;
+}
+
+/**
+ * The little of Markdown release notes use: headings, lists, paragraphs, **bold**, `code` and [links](...), the
+ * links as their text only. Everything becomes text nodes and a few plain elements: nothing from the notes is
+ * ever read as HTML.
+ */
+function markdown(text) {
+  const blocks = [];
+  let list = null;
+  let paragraph = [];
+  const endParagraph = () => {
+    if (paragraph.length) blocks.push(el('p', {}, inline(paragraph.join(' '))));
+    paragraph = [];
+  };
+  for (const raw of text.split('\n')) {
+    const line = raw.trim();
+    const heading = /^#{1,6}\s+(.*)$/.exec(line);
+    const item = /^[-*+]\s+(.*)$/.exec(line);
+    if (item) {
+      endParagraph();
+      if (!list) blocks.push(list = el('ul'));
+      list.append(el('li', {}, inline(item[1])));
+      continue;
+    }
+    if (!line || heading) {
+      endParagraph();
+      list = null;
+      if (heading) blocks.push(el('p', { class: 'notes-heading' }, inline(heading[1])));
+      continue;
+    }
+    if (list && /^\s{2,}\S/.test(raw)) {
+      // A list item that goes on over the next line.
+      list.lastChild.append(' ', ...inline(line));
+      continue;
+    }
+    list = null;
+    paragraph.push(line);
+  }
+  endParagraph();
+  return blocks;
+}
+
+function inline(text) {
+  const nodes = [];
+  const pattern = /\*\*(.+?)\*\*|`([^`]+)`|\[([^\]]+)\]\([^)]*\)/g;
+  // Single *emphasis* or _emphasis_: the words without the marks.
+  const plain = s => document.createTextNode(s.replace(/(^|[\s(])[*_](\S(?:.*?\S)?)[*_](?=[\s).,:;!?]|$)/g, '$1$2'));
+  let last = 0;
+  let match;
+  while ((match = pattern.exec(text))) {
+    if (match.index > last) nodes.push(plain(text.slice(last, match.index)));
+    if (match[1] !== undefined) nodes.push(el('strong', {}, [plain(match[1])]));
+    else if (match[2] !== undefined) nodes.push(el('code', { text: match[2] }));
+    else nodes.push(plain(match[3]));
+    last = pattern.lastIndex;
+  }
+  if (last < text.length) nodes.push(plain(text.slice(last)));
+  return nodes;
 }
 
 /* ------------------------------ CPU temperature guide ------------------------------ */

@@ -2,6 +2,13 @@
 
 All notable changes to Vigil are listed here. Versions follow [Semantic Versioning](https://semver.org/).
 
+## [0.2.0] - 2026-11-17
+
+### Added
+- A banner at the top of the settings window when a newer version is available: what changed in it (the release's
+  own notes, shown as plain text), a link to the release on GitHub, and an *Update* button that does what the tray's
+  does. *Later* hides it until the window is opened again.
+
 ## [0.1.0] - 2026-11-17
 
 ### Changed

@@ -132,7 +132,7 @@ Your settings are kept.
 - **Start with Windows:** Vigil waits in the tray. You can switch this in Vigil, or under *Startup apps* in Task
   Manager.
 - **Updates:** once a day, Vigil checks GitHub for a newer version. When there is one, it offers it in the tray and
-  installs it only if you agree.
+  at the top of the settings window, with what changed, and installs it only if you agree.
 
 ### The sensors
 

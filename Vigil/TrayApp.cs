@@ -68,40 +68,40 @@ public sealed class TrayApp : ApplicationContext
         SystemEvents.SessionSwitch += OnSessionSwitch;
         SystemEvents.PowerModeChanged += OnPowerModeChanged;
 
+        // Before the window, which shows what the updater finds.
+        _updater = new Updater(_settings);
+        _updater.Found += update => _ui.BeginInvoke(() => _tray.ShowBalloonTip(10000, "Vigil",
+            $"Version {update.Version} is available. Right-click the icon to update, or open Vigil to see what's new.", ToolTipIcon.Info));
+        _updater.Changed += () => _ui.BeginInvoke(SyncUpdateItem);
+
         _display.Start();
         if (openWindow) ShowWindow();
-
-        _updater = new Updater(_settings);
-        _updater.Found += update => _ui.BeginInvoke(() => OfferUpdate(update));
         _updater.Start();
     }
 
-    /// <summary>A newer version: an item at the top of the menu, and one notification.</summary>
-    private void OfferUpdate(UpdateInfo update)
-    {
-        _updateItem.Text = $"Update to Vigil {update.Version}";
-        _updateItem.Font = new Font(_updateItem.Font, FontStyle.Bold);
-        _updateItem.Visible = true;
-        _tray.ShowBalloonTip(10000, "Vigil", $"Version {update.Version} is available. Right-click the icon to update.", ToolTipIcon.Info);
-    }
-
-    private async Task UpdateAsync()
+    /// <summary>A newer version: an item at the top of the menu, which follows the download.</summary>
+    private void SyncUpdateItem()
     {
         if (_updater.Available is not { } update) return;
-        _updateItem.Enabled = false;
-        _updateItem.Text = "Downloading the update…";
-        try
+        if (!_updateItem.Visible)
         {
-            string installer = await Updater.DownloadAsync(update);
-            Updater.RunInstaller(installer, update);
+            _updateItem.Font = new Font(_updateItem.Font, FontStyle.Bold);
+            _updateItem.Visible = true;
+        }
+        _updateItem.Enabled = !_updater.Installing;
+        _updateItem.Text = _updater.Installing ? "Downloading the update…" : $"Update to Vigil {update.Version}";
+    }
+
+    /// <summary>From the tray's menu or the window's banner.</summary>
+    private async Task UpdateAsync()
+    {
+        if (await _updater.InstallAsync())
+        {
             ExitThread(); // the installer replaces the files and starts Vigil again
         }
-        catch (Exception e) when (e is HttpRequestException or TaskCanceledException or IOException or InvalidDataException or UnauthorizedAccessException or System.ComponentModel.Win32Exception)
+        else if (_updater.Failure is { } failure)
         {
-            Log.Warn("update", e);
-            _updateItem.Text = $"Update to Vigil {update.Version}";
-            _updateItem.Enabled = true;
-            _tray.ShowBalloonTip(10000, "Vigil", $"The update could not be installed: {e.Message}", ToolTipIcon.Warning);
+            _tray.ShowBalloonTip(10000, "Vigil", $"The update could not be installed: {failure}", ToolTipIcon.Warning);
         }
     }
 
@@ -196,7 +196,7 @@ public sealed class TrayApp : ApplicationContext
     {
         if (_window is null)
         {
-            _window = new MainForm(_settings, _display, _icon);
+            _window = new MainForm(_settings, _display, _icon, _updater, UpdateAsync);
             _window.FormClosed += (_, _) =>
             {
                 _window = null;
