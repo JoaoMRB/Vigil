@@ -111,6 +111,27 @@ The README's download link and the app's update check both look for the latest r
 pre-releases when it picks that one. The update check only offers a release whose `Vigil-Setup.exe` has a SHA-256
 listed by GitHub, and GitHub lists one for every uploaded file.
 
+## Translations
+
+Two sets of texts, both in English, Portuguese, Spanish, French, German and Italian, picked by Windows' language:
+
+- **The screen:** `Vigil/i18n/*.json`, built into the app (`ScreenText`).
+- **The settings window, the tray menu and the message boxes:** `Vigil/Ui/i18n/*.json`, one flat list of keys per
+  language, next to the app. The window reads its language's file when it opens (`UiText.ForWindow`, sent to the page
+  with `init`) and lets go of it when it closes; the tray keeps only the keys under `tray.` and `app.`. In the page,
+  `data-i18n="key"` sets an element's text, `data-i18n-attr="aria-label=key;..."` its attributes, and `t('key', {name})`
+  fills `{name}` in a text. A key missing from a language falls back to English.
+
+To add or change a text, change `en.json` and every other language, then run:
+
+```powershell
+node tools/check-i18n.mjs
+```
+
+It fails when a language lacks a key or has one English doesn't, when a `{placeholder}` differs from English, when
+the code asks for a key `en.json` doesn't have, or when a key is no longer used. Keep the labels of the three-way
+buttons (when the PC is locked, during a full-screen game) under about 14 characters, or they wrap.
+
 ## Conventions
 
 - Text files use LF line endings, except where `.gitattributes` says otherwise.

@@ -104,7 +104,7 @@ internal static class Program
         {
             // The running instance has administrator rights, so this one cannot even look at it.
             ApplicationConfiguration.Initialize();
-            MessageBox.Show("Vigil is already running. Open it from its icon in the taskbar's notification area.", "Vigil",
+            MessageBox.Show(UiText.Get("app.alreadyRunning"), "Vigil",
                 MessageBoxButtons.OK, MessageBoxIcon.Information);
             return 0;
         }

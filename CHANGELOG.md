@@ -9,7 +9,11 @@ All notable changes to Vigil are listed here. Versions follow [Semantic Versioni
   letting about 11 MB pile up first, and reuses the buffer it sends each part of a picture to the screen in.
 
 ### Added
+- The settings window, the tray menu and its notifications in Portuguese, Spanish, French, German and Italian, as
+  well as English, following Windows' language like the screen. The texts are read when the window opens and let go
+  when it closes, so they take no memory while Vigil sits in the tray.
 - `--memory-test`, for developers: the memory the app takes over time, as it runs in the tray.
+- `tools/check-i18n.mjs`, for developers: checks that every language has every text, with the same placeholders.
 
 ## [0.2.0] - 2026-11-17
 

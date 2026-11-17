@@ -9,7 +9,9 @@
   <link rel="stylesheet" href="styles.css">
   <script src="app.js" defer></script>
 </head>
-<body>
+<!-- data-i18n: the element's text; data-i18n-attr: "attribute=key;..." (texts in i18n\<language>.json, sent by the
+     app). The English here is only what shows before they arrive: hidden by data-loading until then. -->
+<body data-loading>
   <header class="topbar">
     <div class="brand">
       <svg class="mark" viewBox="6 10 52 46" aria-hidden="true">
@@ -22,29 +24,29 @@
     </div>
     <div class="status" id="status" data-state="starting" role="status" aria-live="polite">
       <span class="dot" aria-hidden="true"></span>
-      <span id="status-text">Starting…</span>
+      <span id="status-text" data-i18n="status.starting">Starting…</span>
     </div>
   </header>
 
   <main class="layout">
-    <section class="stage" aria-label="Screen preview">
+    <section class="stage" aria-label="Screen preview" data-i18n-attr="aria-label=preview.label">
       <div class="preview">
-        <img id="preview" width="480" height="320" alt="Live preview of the desk display">
+        <img id="preview" width="480" height="320" alt="Live preview of the desk display" data-i18n-attr="alt=preview.alt">
       </div>
-      <p class="footnote">The preview is the exact image sent to the display, refreshed every second.</p>
+      <p class="footnote" data-i18n="preview.footnote">The preview is the exact image sent to the display, refreshed every second.</p>
 
-      <section class="card controls" aria-label="Screen controls">
+      <section class="card controls" aria-label="Screen controls" data-i18n-attr="aria-label=controls.label">
         <div class="field">
           <div class="field-head">
-            <span class="field-label" id="now-label">On screen</span>
-            <button class="link" id="resume" type="button" hidden>Take turns again</button>
+            <span class="field-label" id="now-label" data-i18n="controls.onScreen">On screen</span>
+            <button class="link" id="resume" type="button" hidden data-i18n="controls.resume">Take turns again</button>
           </div>
           <div class="segmented spread" id="now" role="radiogroup" aria-labelledby="now-label" aria-describedby="rotation"></div>
           <p class="field-desc" id="rotation"></p>
         </div>
         <div class="field">
           <div class="field-head">
-            <label class="field-label" for="brightness">Brightness</label>
+            <label class="field-label" for="brightness" data-i18n="controls.brightness">Brightness</label>
             <output id="brightness-value" for="brightness"></output>
           </div>
           <input type="range" id="brightness" min="0" max="100" step="1" aria-describedby="brightness-note">
@@ -52,8 +54,8 @@
         </div>
         <div class="row">
           <span class="row-text">
-            <span class="row-title" id="screen-label">Screen on</span>
-            <span class="row-desc" id="screen-desc">Turn it off for now. It stays off until you turn it back on, or Vigil restarts.</span>
+            <span class="row-title" id="screen-label" data-i18n="controls.screenOn">Screen on</span>
+            <span class="row-desc" id="screen-desc" data-i18n="controls.screenDesc">Turn it off for now. It stays off until you turn it back on, or Vigil restarts.</span>
           </span>
           <button class="switch" id="screen" role="switch" aria-labelledby="screen-label" aria-describedby="screen-desc"></button>
         </div>
@@ -65,82 +67,82 @@
       <section class="card update" id="update" hidden aria-labelledby="update-title">
         <div class="update-head">
           <div class="update-text">
-            <h2 id="update-title">A new version is available</h2>
+            <h2 id="update-title" data-i18n="update.titleDefault">A new version is available</h2>
             <p id="update-desc" role="status" aria-live="polite"></p>
           </div>
           <div class="update-actions">
-            <button class="link" type="button" id="update-later">Later</button>
-            <button class="button primary" type="button" id="update-install">Update</button>
+            <button class="link" type="button" id="update-later" data-i18n="update.later">Later</button>
+            <button class="button primary" type="button" id="update-install" data-i18n="update.install">Update</button>
           </div>
         </div>
         <details class="update-notes" id="update-notes">
-          <summary>What's new</summary>
+          <summary data-i18n="update.whatsNew">What's new</summary>
           <div class="notes" id="update-notes-body"></div>
-          <button class="link" type="button" id="update-page">All the notes on GitHub</button>
+          <button class="link" type="button" id="update-page" data-i18n="update.page">All the notes on GitHub</button>
         </details>
       </section>
 
       <section class="card" aria-labelledby="views-title">
         <header class="card-head">
-          <h2 id="views-title">Views</h2>
-          <p>What takes turns on the screen.</p>
+          <h2 id="views-title" data-i18n="views.title">Views</h2>
+          <p data-i18n="views.desc">What takes turns on the screen.</p>
         </header>
         <div id="views"></div>
         <div class="row">
-          <span class="row-title" id="seconds-label">Time per view</span>
+          <span class="row-title" id="seconds-label" data-i18n="views.seconds">Time per view</span>
           <div class="segmented" id="seconds" role="radiogroup" aria-labelledby="seconds-label"></div>
         </div>
         <div class="field">
-          <span class="field-label" id="game-label">During a full-screen game</span>
+          <span class="field-label" id="game-label" data-i18n="views.game">During a full-screen game</span>
           <div class="segmented fill" id="game" role="radiogroup" aria-labelledby="game-label" aria-describedby="game-desc"></div>
-          <p class="field-desc" id="game-desc">After 5 seconds of a game or video filling the PC's screen, until you leave it.</p>
+          <p class="field-desc" id="game-desc" data-i18n="views.gameDesc">After 5 seconds of a game or video filling the PC's screen, until you leave it.</p>
         </div>
       </section>
 
       <section class="card" aria-labelledby="look-title">
         <header class="card-head">
-          <h2 id="look-title">Appearance</h2>
-          <p>How the screen looks.</p>
+          <h2 id="look-title" data-i18n="look.title">Appearance</h2>
+          <p data-i18n="look.desc">How the screen looks.</p>
         </header>
         <div class="field">
-          <span class="field-label" id="theme-label">Theme</span>
+          <span class="field-label" id="theme-label" data-i18n="look.theme">Theme</span>
           <div class="swatches" id="themes" role="radiogroup" aria-labelledby="theme-label"></div>
         </div>
         <div class="field">
-          <label class="field-label" for="orientation">How the screen stands</label>
+          <label class="field-label" for="orientation" data-i18n="look.orientation">How the screen stands</label>
           <select class="select" id="orientation" aria-describedby="orientation-desc">
-            <option value="landscape">Landscape</option>
-            <option value="landscape-flipped">Landscape, upside down</option>
-            <option value="portrait-right">Upright, turned to the right</option>
-            <option value="portrait-left">Upright, turned to the left</option>
+            <option value="landscape" data-i18n="look.orientation.landscape">Landscape</option>
+            <option value="landscape-flipped" data-i18n="look.orientation.landscapeFlipped">Landscape, upside down</option>
+            <option value="portrait-right" data-i18n="look.orientation.portraitRight">Upright, turned to the right</option>
+            <option value="portrait-left" data-i18n="look.orientation.portraitLeft">Upright, turned to the left</option>
           </select>
-          <p class="field-desc" id="orientation-desc">Turned to the right means its top edge now faces right. If the picture shows sideways, pick the other upright one.</p>
+          <p class="field-desc" id="orientation-desc" data-i18n="look.orientationDesc">Turned to the right means its top edge now faces right. If the picture shows sideways, pick the other upright one.</p>
         </div>
         <div class="field">
-          <span class="field-label" id="font-label">Clock font</span>
+          <span class="field-label" id="font-label" data-i18n="look.font">Clock font</span>
           <div class="segmented fill" id="fonts" role="radiogroup" aria-labelledby="font-label"></div>
         </div>
         <div class="row">
           <span class="row-text">
-            <span class="row-title" id="night-label">Dim at night</span>
-            <span class="row-desc" id="night-desc">Turns the backlight down between two times.</span>
+            <span class="row-title" id="night-label" data-i18n="look.night">Dim at night</span>
+            <span class="row-desc" id="night-desc" data-i18n="look.nightDesc">Turns the backlight down between two times.</span>
           </span>
           <button class="switch" id="night" role="switch" aria-labelledby="night-label" aria-describedby="night-desc" aria-controls="night-options"></button>
         </div>
         <div class="field" id="night-options" hidden>
           <div class="times">
-            <label class="time"><span>From</span><input type="time" id="night-start" required></label>
-            <label class="time"><span>Until</span><input type="time" id="night-end" required></label>
+            <label class="time"><span data-i18n="look.from">From</span><input type="time" id="night-start" required></label>
+            <label class="time"><span data-i18n="look.until">Until</span><input type="time" id="night-end" required></label>
           </div>
           <div class="field-head">
-            <label class="field-label" for="night-brightness">Brightness at night</label>
+            <label class="field-label" for="night-brightness" data-i18n="look.nightBrightness">Brightness at night</label>
             <output id="night-brightness-value" for="night-brightness"></output>
           </div>
           <input type="range" id="night-brightness" min="0" max="100" step="1">
         </div>
         <div class="row">
           <span class="row-text">
-            <span class="row-title" id="use24h-label">24-hour clock</span>
+            <span class="row-title" id="use24h-label" data-i18n="look.use24h">24-hour clock</span>
           </span>
           <button class="switch" id="use24h" role="switch" aria-labelledby="use24h-label"></button>
         </div>
@@ -148,8 +150,8 @@
 
       <section class="card" aria-labelledby="design-title">
         <header class="card-head">
-          <h2 id="design-title">System screen</h2>
-          <p>How the system view looks. The previews use sample numbers.</p>
+          <h2 id="design-title" data-i18n="design.title">System screen</h2>
+          <p data-i18n="design.desc">How the system view looks. The previews use sample numbers.</p>
         </header>
         <div class="field" id="cpu-hint" hidden>
           <div class="callout" role="region" aria-labelledby="cpu-hint-title">
@@ -160,27 +162,27 @@
           </div>
         </div>
         <div class="field">
-          <div class="designs" id="designs" role="radiogroup" aria-label="System design"></div>
+          <div class="designs" id="designs" role="radiogroup" aria-label="System design" data-i18n-attr="aria-label=design.label"></div>
           <p class="hint" id="design-desc"></p>
         </div>
         <div class="field" id="tiles-field" hidden>
-          <span class="field-label" id="tiles-label">Cards, left to right, top row first</span>
+          <span class="field-label" id="tiles-label" data-i18n="design.tiles">Cards, left to right, top row first</span>
           <div class="tiles" id="tiles" role="group" aria-labelledby="tiles-label"></div>
         </div>
         <div class="field">
           <div class="field-head">
-            <span class="field-label" id="colors-label">Colors for this design</span>
-            <button class="link" id="reset-colors" type="button">Reset</button>
+            <span class="field-label" id="colors-label" data-i18n="design.colors">Colors for this design</span>
+            <button class="link" id="reset-colors" type="button" data-i18n="design.reset">Reset</button>
           </div>
           <div class="colors" role="group" aria-labelledby="colors-label">
-            <label class="color"><input type="color" id="color-accent"><span>Main<small>CPU</small></span></label>
-            <label class="color"><input type="color" id="color-secondary"><span>Second<small>GPU</small></span></label>
-            <label class="color"><input type="color" id="color-alert"><span>Hot<small>too warm</small></span></label>
+            <label class="color"><input type="color" id="color-accent"><span><span data-i18n="design.color.main">Main</span><small data-i18n="design.color.mainFor">CPU</small></span></label>
+            <label class="color"><input type="color" id="color-secondary"><span><span data-i18n="design.color.second">Second</span><small data-i18n="design.color.secondFor">GPU</small></span></label>
+            <label class="color"><input type="color" id="color-alert"><span><span data-i18n="design.color.hot">Hot</span><small data-i18n="design.color.hotFor">too warm</small></span></label>
           </div>
         </div>
         <div class="field">
           <div class="field-head">
-            <label class="field-label" for="alert-temp">Temperature counts as hot from</label>
+            <label class="field-label" for="alert-temp" data-i18n="design.alertTemp">Temperature counts as hot from</label>
             <output id="alert-temp-value" for="alert-temp"></output>
           </div>
           <input type="range" id="alert-temp" min="50" max="100" step="1">
@@ -189,8 +191,8 @@
 
       <section class="card" aria-labelledby="weather-title">
         <header class="card-head">
-          <h2 id="weather-title">Weather</h2>
-          <p>For the weather view. Updated every 30 minutes from Open-Meteo.</p>
+          <h2 id="weather-title" data-i18n="weather.title">Weather</h2>
+          <p data-i18n="weather.desc">For the weather view. Updated every 30 minutes from Open-Meteo.</p>
         </header>
         <div class="field">
           <div class="search">
@@ -200,8 +202,9 @@
             </svg>
             <input id="city" type="text" placeholder="Search for a city" autocomplete="off" spellcheck="false"
                    role="combobox" aria-label="Search for a city" aria-expanded="false" aria-controls="city-results"
-                   aria-autocomplete="list">
-            <ul id="city-results" class="results" role="listbox" aria-label="Matching cities" hidden></ul>
+                   aria-autocomplete="list" data-i18n-attr="placeholder=weather.search;aria-label=weather.search">
+            <ul id="city-results" class="results" role="listbox" aria-label="Matching cities" hidden
+                data-i18n-attr="aria-label=weather.results"></ul>
           </div>
           <p class="hint" id="city-current"></p>
         </div>
@@ -209,56 +212,56 @@
 
       <section class="card" aria-labelledby="world-title">
         <header class="card-head">
-          <h2 id="world-title">World clocks</h2>
-          <p>Up to three cities, top to bottom.</p>
+          <h2 id="world-title" data-i18n="world.title">World clocks</h2>
+          <p data-i18n="world.desc">Up to three cities, top to bottom.</p>
         </header>
         <div class="field stack" id="world"></div>
       </section>
 
       <section class="card" aria-labelledby="system-title">
         <header class="card-head">
-          <h2 id="system-title">System</h2>
-          <p>How Vigil runs on this PC.</p>
+          <h2 id="system-title" data-i18n="system.title">System</h2>
+          <p data-i18n="system.desc">How Vigil runs on this PC.</p>
         </header>
         <div class="field">
-          <span class="field-label" id="lock-label">When the PC is locked</span>
+          <span class="field-label" id="lock-label" data-i18n="system.lock">When the PC is locked</span>
           <div class="segmented fill" id="lock" role="radiogroup" aria-labelledby="lock-label" aria-describedby="lock-desc"></div>
-          <p class="field-desc" id="lock-desc">Dim shows only the time, with the backlight low. Before the PC sleeps, the screen always turns off.</p>
+          <p class="field-desc" id="lock-desc" data-i18n="system.lockDesc">Dim shows only the time, with the backlight low. Before the PC sleeps, the screen always turns off.</p>
         </div>
         <div class="row">
           <span class="row-text">
-            <span class="row-title" id="autostart-label">Start with Windows</span>
-            <span class="row-desc">Opens in the notification area when you sign in.</span>
+            <span class="row-title" id="autostart-label" data-i18n="system.autostart">Start with Windows</span>
+            <span class="row-desc" data-i18n="system.autostartDesc">Opens in the notification area when you sign in.</span>
           </span>
           <button class="switch" id="autostart" role="switch" aria-labelledby="autostart-label"></button>
         </div>
         <div class="row">
           <span class="row-text">
-            <span class="row-title" id="admin-label">CPU temperature</span>
-            <span class="row-desc" id="admin-desc">Needs administrator rights. Windows asks once, then Vigil restarts.</span>
+            <span class="row-title" id="admin-label" data-i18n="system.admin">CPU temperature</span>
+            <span class="row-desc" id="admin-desc"></span>
           </span>
           <button class="switch" id="admin" role="switch" aria-labelledby="admin-label" aria-describedby="admin-desc"></button>
         </div>
         <div class="row">
           <span class="row-text">
-            <span class="row-title" id="approx-label">Approximate CPU temperature</span>
-            <span class="row-desc" id="approx-desc">Without the driver, shows the motherboard's ACPI temperature instead, marked ~. It is often well below the CPU's own, so it is off unless you want it.</span>
+            <span class="row-title" id="approx-label" data-i18n="system.approx">Approximate CPU temperature</span>
+            <span class="row-desc" id="approx-desc" data-i18n="system.approxDesc">Without the driver, shows the motherboard's ACPI temperature instead, marked ~. It is often well below the CPU's own, so it is off unless you want it.</span>
           </span>
           <button class="switch" id="approx" role="switch" aria-labelledby="approx-label" aria-describedby="approx-desc"></button>
         </div>
         <div class="row">
           <span class="row-text">
-            <span class="row-title" id="updates-label">Check for updates</span>
-            <span class="row-desc" id="updates-desc">Once a day, asks GitHub whether there is a newer version. Nothing about you or this PC is sent.</span>
+            <span class="row-title" id="updates-label" data-i18n="system.updates">Check for updates</span>
+            <span class="row-desc" id="updates-desc" data-i18n="system.updatesDesc">Once a day, asks GitHub whether there is a newer version. Nothing about you or this PC is sent.</span>
           </span>
           <button class="switch" id="updates" role="switch" aria-labelledby="updates-label" aria-describedby="updates-desc"></button>
         </div>
         <div class="row">
           <span class="row-text">
-            <span class="row-title" id="diagnostics-label">Diagnostics</span>
-            <span class="row-desc" id="diagnostics-desc">Copies the versions, the display's state, the settings and the end of the log, to paste into a bug report. No city, name or readings.</span>
+            <span class="row-title" id="diagnostics-label" data-i18n="system.diagnostics">Diagnostics</span>
+            <span class="row-desc" id="diagnostics-desc" data-i18n="system.diagnosticsDesc">Copies the versions, the display's state, the settings and the end of the log, to paste into a bug report. No city, name or readings.</span>
           </span>
-          <button class="button" id="diagnostics" aria-describedby="diagnostics-desc">Copy</button>
+          <button class="button" id="diagnostics" aria-describedby="diagnostics-desc" data-i18n="system.copy">Copy</button>
         </div>
         <p class="sr-only" id="diagnostics-result" role="status" aria-live="polite"></p>
       </section>
