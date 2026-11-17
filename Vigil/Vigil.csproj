@@ -12,7 +12,7 @@
     <RootNamespace>Vigil</RootNamespace>
     <ApplicationIcon>app.ico</ApplicationIcon>
     <!-- The installer (installer/Vigil.iss) reads this version. -->
-    <Version>0.1.0</Version>
+    <Version>0.2.0</Version>
     <Product>Vigil</Product>
     <Company>Vigil</Company>
     <Description>Vigil: your PC on a USB desk display</Description>

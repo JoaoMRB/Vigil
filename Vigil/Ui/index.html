@@ -61,6 +61,25 @@
     </section>
 
     <div class="panel">
+      <!-- Only while a newer version is available (MainForm.PostUpdate). -->
+      <section class="card update" id="update" hidden aria-labelledby="update-title">
+        <div class="update-head">
+          <div class="update-text">
+            <h2 id="update-title">A new version is available</h2>
+            <p id="update-desc" role="status" aria-live="polite"></p>
+          </div>
+          <div class="update-actions">
+            <button class="link" type="button" id="update-later">Later</button>
+            <button class="button primary" type="button" id="update-install">Update</button>
+          </div>
+        </div>
+        <details class="update-notes" id="update-notes">
+          <summary>What's new</summary>
+          <div class="notes" id="update-notes-body"></div>
+          <button class="link" type="button" id="update-page">All the notes on GitHub</button>
+        </details>
+      </section>
+
       <section class="card" aria-labelledby="views-title">
         <header class="card-head">
           <h2 id="views-title">Views</h2>

@@ -40,13 +40,20 @@ public sealed class MainForm : Form
     private readonly ScreenRenderer _thumbRenderer = new(); // draws the design previews: the frame above must not be disturbed
     private readonly System.Windows.Forms.Timer _timer = new() { Interval = 1000 };
     private readonly TaskCompletionSource _firstFrame = new();
+    private readonly Updater? _updater;
+    private readonly Func<Task>? _install;
     private bool _ready;
     private int _ticks;
 
-    public MainForm(Settings settings, DisplayService display, Icon icon)
+    /// <param name="updater">What the update check found, for the banner at the top (none in the checks).</param>
+    /// <param name="install">Installs it, as the tray's menu does: the banner's Update button.</param>
+    public MainForm(Settings settings, DisplayService display, Icon icon, Updater? updater = null, Func<Task>? install = null)
     {
         _settings = settings;
         _display = display;
+        _updater = updater;
+        _install = install;
+        if (_updater is not null) _updater.Changed += OnUpdateChanged;
 
         Text = "Vigil";
         Icon = icon;
@@ -90,6 +97,7 @@ public sealed class MainForm : Form
         if (disposing)
         {
             _display.StatusChanged -= OnStatusChanged;
+            if (_updater is not null) _updater.Changed -= OnUpdateChanged;
             _timer.Dispose();
             _web.Dispose(); // the browser processes end with the last WebView2 that uses them
             _renderer.Dispose();
@@ -167,7 +175,11 @@ public sealed class MainForm : Form
                     SendFrame();
                     SendThumbs();
                     PostCpuTemp();
+                    PostUpdate();
                     _timer.Start();
+                    break;
+                case "update":
+                    UpdateAction(message.GetProperty("action").GetString() ?? "");
                     break;
                 case "set":
                     ApplySetting(message.GetProperty("key").GetString() ?? "", message.GetProperty("value"));
@@ -326,10 +338,7 @@ public sealed class MainForm : Form
                 SetAdmin(true); // asks Windows, and restarts with the rights when it says yes
                 return;
             case "pawnio":
-                // Through Explorer, which opens it in the browser as the user: started from here, in administrator
-                // mode, the browser would run with administrator rights too.
-                Process.Start(new ProcessStartInfo(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Windows), "explorer.exe"),
-                    "\"https://pawnio.eu/\"") { UseShellExecute = false })?.Dispose();
+                OpenInBrowser(new Uri("https://pawnio.eu/"));
                 return;
             case "recheck":
                 // The driver is looked for when the sensors open: open them again.
@@ -486,6 +495,60 @@ public sealed class MainForm : Form
     private void PostSettings() => Post(new { type = "settings", settings = SettingsDto() });
 
     private void PostSystem() => Post(SystemDto());
+
+    /* ------------------------------ update banner ------------------------------ */
+
+    /// <summary>From the updater, on any thread.</summary>
+    private void OnUpdateChanged()
+    {
+        if (IsDisposed || !IsHandleCreated) return;
+        BeginInvoke(PostUpdate);
+    }
+
+    /// <summary>
+    /// The banner at the top of the settings: the newer version, what changed (Markdown, which the page shows as
+    /// text, never as HTML), whether it is downloading, and why it failed. No version: no banner.
+    /// </summary>
+    private void PostUpdate()
+    {
+        if (!_ready || IsDisposed) return;
+        UpdateInfo? update = _updater?.Available;
+        Post(new
+        {
+            type = "update",
+            version = update?.Version.ToString(),
+            current = Updater.Current.ToString(),
+            notes = update?.Notes ?? "",
+            hasPage = update?.Page is not null,
+            installing = _updater?.Installing ?? false,
+            failure = _updater?.Failure
+        });
+    }
+
+    private void UpdateAction(string action)
+    {
+        switch (action)
+        {
+            case "install":
+                if (_install is not null) _ = _install();
+                break;
+            case "page":
+                // Only the release page the updater checked (Updater.CheckAsync): never an address from the page.
+                if (_updater?.Available?.Page is { } page) OpenInBrowser(page);
+                break;
+        }
+    }
+
+    /// <summary>
+    /// Opens an address in the browser through Explorer, which opens it as the user: started from here, in
+    /// administrator mode, the browser would run with administrator rights too.
+    /// </summary>
+    private static void OpenInBrowser(Uri address)
+    {
+        if (address.Scheme != Uri.UriSchemeHttps) return;
+        Process.Start(new ProcessStartInfo(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Windows), "explorer.exe"),
+            $"\"{address.AbsoluteUri}\"") { UseShellExecute = false })?.Dispose();
+    }
 
     /// <summary>
     /// A preview of every system design, drawn with sample numbers on the current theme and the design's own colours,

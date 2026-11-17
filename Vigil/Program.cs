@@ -23,6 +23,10 @@ internal static class Program
             System.Globalization.CultureInfo.DefaultThreadCurrentUICulture = info;
         }
 
+        // --update-feed path-or-url : where to look for a newer version (a local JSON file for checks). With
+        // --window-png, the window shows what it finds in its update banner.
+        if (Option(args, "--update-feed") is { } feed) Updater.Feed = feed;
+
         // Vigil.exe --png out.png [--view clock|system|weather|world] [--theme id] [--design id] [--sample]
         //   [--condition kind] : draw one frame to a file and exit (to check the renderer without a display).
         int png = Array.IndexOf(args, "--png");
@@ -49,8 +53,6 @@ internal static class Program
         int elevationTest = Array.IndexOf(args, "--elevation-test");
         if (elevationTest >= 0 && elevationTest + 1 < args.Length) return ElevationTest.Run(args[elevationTest + 1]);
 
-        // --update-feed path-or-url : where to look for a newer version (a local JSON file for checks).
-        if (Option(args, "--update-feed") is { } feed) Updater.Feed = feed;
         // Vigil.exe --update-test report.txt : check for an update, download and verify it, but do not install it.
         int updateTest = Array.IndexOf(args, "--update-test");
         if (updateTest >= 0 && updateTest + 1 < args.Length) return UpdateTest(args[updateTest + 1]);
@@ -155,8 +157,11 @@ internal static class Program
         Settings settings = Settings.Load();
         using var display = new DisplayService(settings); // never started: no link to the screen
         using var icon = (Icon)SystemIcons.Application.Clone();
+        // With --update-feed, the banner shows the version found there (its Update button does nothing here).
+        using var updater = new Updater(settings);
+        if (Option(Environment.GetCommandLineArgs(), "--update-feed") is not null) updater.CheckNowAsync().GetAwaiter().GetResult();
         // Off screen, so the check does not flash a window at the user.
-        using var form = new MainForm(settings, display, icon) { StartPosition = FormStartPosition.Manual, Location = new Point(-4000, -4000) };
+        using var form = new MainForm(settings, display, icon, updater) { StartPosition = FormStartPosition.Manual, Location = new Point(-4000, -4000) };
         // --tall : a window high enough to show every settings card at once.
         if (Environment.GetCommandLineArgs().Contains("--tall")) form.ClientSize = new Size(form.ClientSize.Width, 1500);
         form.Shown += async (_, _) =>

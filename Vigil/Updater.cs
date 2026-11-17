@@ -5,8 +5,11 @@ using System.Text.Json;
 
 namespace Vigil;
 
-/// <summary>A newer version on GitHub: its number, where its installer is, and the installer's SHA-256.</summary>
-public sealed record UpdateInfo(Version Version, Uri Installer, string Sha256);
+/// <summary>
+/// A newer version on GitHub: its number, where its installer is, the installer's SHA-256, what changed (the
+/// release's own text, in Markdown, cut to <see cref="Updater.MaxNotes"/> characters) and the release's page.
+/// </summary>
+public sealed record UpdateInfo(Version Version, Uri Installer, string Sha256, string Notes = "", Uri? Page = null);
 
 /// <summary>
 /// Once a day, asks GitHub for the latest release. The request carries no more than any browser's would: no
@@ -23,6 +26,9 @@ public sealed class Updater : IDisposable
     /// <summary>The latest release. Another address or a local JSON file with <c>--update-feed</c>, for checks.</summary>
     public static string Feed { get; set; } = "https://api.github.com/repos/JoaoMRB/Vigil/releases/latest";
 
+    /// <summary>Where this repository's release pages are on github.com.</summary>
+    private const string ReleasesPath = "/JoaoMRB/Vigil/releases/";
+
     private readonly Settings _settings;
     private System.Threading.Timer? _timer;
 
@@ -30,11 +36,23 @@ public sealed class Updater : IDisposable
 
     public static Version Current { get; } = typeof(Updater).Assembly.GetName().Version is { } v ? new Version(v.Major, v.Minor, v.Build) : new Version(0, 0, 0);
 
+    /// <summary>The longest release text kept: the window shows the start of it, with a link to the rest.</summary>
+    public const int MaxNotes = 4000;
+
     /// <summary>The newer version found, if any.</summary>
     public UpdateInfo? Available { get; private set; }
 
+    /// <summary>True while the installer downloads, and after it has started (Vigil is about to close).</summary>
+    public bool Installing { get; private set; }
+
+    /// <summary>Why the last try to update failed, until the next try.</summary>
+    public string? Failure { get; private set; }
+
     /// <summary>Raised on a pool thread when a newer version is first found.</summary>
     public event Action<UpdateInfo>? Found;
+
+    /// <summary>Raised whenever Available, Installing or Failure changes, on any thread.</summary>
+    public event Action? Changed;
 
     public void Start() => _timer = new System.Threading.Timer(_ => _ = TickAsync(), null, FirstCheck, Interval);
 
@@ -43,17 +61,51 @@ public sealed class Updater : IDisposable
     private async Task TickAsync()
     {
         if (!_settings.CheckUpdates || Available is not null) return;
+        await CheckNowAsync();
+    }
+
+    /// <summary>Looks for a newer version now, whatever the setting (the timer checks the setting first).</summary>
+    public async Task CheckNowAsync()
+    {
         try
         {
             UpdateInfo? found = await CheckAsync();
-            if (found is null) return;
+            if (found is null || Available is not null) return;
             Available = found;
             Log.Info($"update: {found.Version} available");
             Found?.Invoke(found);
+            Changed?.Invoke();
         }
         catch (Exception e) when (e is HttpRequestException or TaskCanceledException or JsonException or IOException or KeyNotFoundException or InvalidOperationException or FormatException)
         {
             Log.Warn("update check", e);
+        }
+    }
+
+    /// <summary>
+    /// Downloads, checks and starts the installer for the version found. True once the installer runs (it closes
+    /// Vigil); false when there is nothing to install, an install is already under way, or it failed (see Failure).
+    /// The tray's menu and the window's banner both come here.
+    /// </summary>
+    public async Task<bool> InstallAsync()
+    {
+        if (Available is not { } update || Installing) return false;
+        Installing = true;
+        Failure = null;
+        Changed?.Invoke();
+        try
+        {
+            string installer = await DownloadAsync(update);
+            RunInstaller(installer, update);
+            return true;
+        }
+        catch (Exception e) when (e is HttpRequestException or TaskCanceledException or IOException or InvalidDataException or UnauthorizedAccessException or System.ComponentModel.Win32Exception)
+        {
+            Log.Warn("update", e);
+            Installing = false;
+            Failure = e.Message;
+            Changed?.Invoke();
+            return false;
         }
     }
 
@@ -88,7 +140,17 @@ public sealed class Updater : IDisposable
             if (!digest.StartsWith("sha256:", StringComparison.OrdinalIgnoreCase)) return null;
             var url = new Uri(asset.GetProperty("browser_download_url").GetString() ?? "", UriKind.RelativeOrAbsolute);
             if (!url.IsAbsoluteUri) url = new Uri(Path.GetFullPath(url.OriginalString, Path.GetDirectoryName(Path.GetFullPath(Feed))!));
-            return new UpdateInfo(new Version(version.Major, version.Minor, Math.Max(0, version.Build)), url, digest[7..].ToLowerInvariant());
+
+            string notes = release.TryGetProperty("body", out JsonElement body) ? body.GetString() ?? "" : "";
+            notes = notes.Replace("\r\n", "\n").Trim();
+            if (notes.Length > MaxNotes) notes = notes[..MaxNotes].TrimEnd() + "…";
+            // Only this repository's own releases page: the window offers to open it in the browser.
+            Uri? page = release.TryGetProperty("html_url", out JsonElement html)
+                && Uri.TryCreate(html.GetString(), UriKind.Absolute, out Uri? p)
+                && p.Scheme == Uri.UriSchemeHttps && p.Host == "github.com"
+                && p.AbsolutePath.StartsWith(ReleasesPath, StringComparison.OrdinalIgnoreCase) ? p : null;
+
+            return new UpdateInfo(new Version(version.Major, version.Minor, Math.Max(0, version.Build)), url, digest[7..].ToLowerInvariant(), notes, page);
         }
         return null;
     }
