@@ -2,7 +2,7 @@
 
 All notable changes to Vigil are listed here. Versions follow [Semantic Versioning](https://semver.org/).
 
-## [Unreleased]
+## [0.3.0] - 2026-11-17
 
 ### Changed
 - Vigil uses about 5 MB less memory in the tray: it clears its short-lived garbage every 30 seconds instead of
