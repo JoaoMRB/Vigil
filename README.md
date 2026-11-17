@@ -119,7 +119,8 @@ Your settings are kept.
 - **Themes and fonts:** five themes (Emerald Gold, Liquid Glass, Obsidian Platinum, Dark Glass, Light Glass), four
   clock fonts, and a 12 or 24-hour clock.
 - **Any way up:** landscape, upside down, or upright turned either way.
-- **Languages:** the screen follows Windows' language: English, Portuguese, Spanish, French, German or Italian.
+- **Languages:** the screen, the settings window and the tray menu follow Windows' language: English, Portuguese,
+  Spanish, French, German or Italian.
 
 ### On its own
 
@@ -246,7 +247,6 @@ user name, your hardware's names or any readings.
 
 ## Roadmap
 
-- The settings window in Portuguese, Spanish and French, like the website.
 - The other screen models, once there is hardware to test them with.
 - Several screens at once.
 

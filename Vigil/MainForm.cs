@@ -24,14 +24,8 @@ public sealed class MainForm : Form
 
     private static readonly JsonSerializerOptions Json = new() { PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
 
-    private static readonly (string Id, string Name, string Short, string Description)[] Views =
-    [
-        ("clock", "Clock", "Clock", "Time and date."),
-        ("system", "System", "System", "CPU and GPU temperature and load, memory in use."),
-        ("weather", "Weather and quote", "Weather", "Current weather for your city and the quote of the day."),
-        ("world", "World clocks", "World", "The time in up to three other cities."),
-        ("music", "Now playing", "Music", "Cover, title and progress of what is playing. Shown only while something plays.")
-    ];
+    /// <summary>The views, in the window's order. Their names are among the page's texts (view.&lt;id&gt;.name).</summary>
+    private static readonly string[] Views = ["clock", "system", "weather", "world", "music"];
 
     private readonly Settings _settings;
     private readonly DisplayService _display;
@@ -200,7 +194,7 @@ public sealed class MainForm : Form
                 {
                     // A view id keeps that view on the screen; null lets the views take turns again.
                     string? id = message.GetProperty("view").ValueKind == JsonValueKind.String ? message.GetProperty("view").GetString() : null;
-                    _display.HeldView = Views.Any(v => v.Id == id) ? Enum.Parse<ScreenView>(id!, ignoreCase: true) : null;
+                    _display.HeldView = Views.Contains(id) ? Enum.Parse<ScreenView>(id!, ignoreCase: true) : null;
                     SendFrame();
                     break;
                 }
@@ -293,7 +287,7 @@ public sealed class MainForm : Form
         }
         catch (Exception e) when (e is InvalidOperationException or UnauthorizedAccessException or IOException)
         {
-            MessageBox.Show(this, $"Could not change the start-up entry: {e.Message}", "Vigil", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            MessageBox.Show(this, UiText.Get("app.autostartFailed", ("error", e.Message)), "Vigil", MessageBoxButtons.OK, MessageBoxIcon.Warning);
         }
         PostSystem();
     }
@@ -398,7 +392,7 @@ public sealed class MainForm : Form
             }
             catch (Exception e) when (e is InvalidOperationException or UnauthorizedAccessException or IOException)
             {
-                MessageBox.Show(this, $"Could not update the start-up entry: {e.Message}", "Vigil", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                MessageBox.Show(this, UiText.Get("app.autostartFailed", ("error", e.Message)), "Vigil", MessageBoxButtons.OK, MessageBoxIcon.Warning);
             }
         }
         PostSystem();
@@ -414,19 +408,25 @@ public sealed class MainForm : Form
         }
         catch (Exception e) when (e is HttpRequestException or TaskCanceledException or JsonException)
         {
-            reply = new { type = "cityResults", id, cities = Array.Empty<WeatherCity>(), error = "Could not search. Check the internet connection." };
+            reply = new { type = "cityResults", id, cities = Array.Empty<WeatherCity>(), error = true }; // the page says it in the user's language
         }
         if (!IsDisposed) Post(reply);
     }
 
     /* ------------------------------ app -> page ------------------------------ */
 
+    /// <summary>
+    /// Everything the page builds itself from. The texts come in the user's language (UiText): read now, and gone
+    /// with the window. Views, designs and readings go by id; the page looks their names up among the texts.
+    /// </summary>
     private object InitMessage() => new
     {
         type = "init",
+        lang = UiText.Language,
+        strings = UiText.ForWindow(),
         settings = SettingsDto(),
         system = SystemDto(),
-        views = Views.Select(v => new { id = v.Id, name = v.Name, @short = v.Short, description = v.Description }),
+        views = Views.Select(id => new { id }),
         secondsChoices = SecondsChoices,
         themes = Themes.All.Select(t => new
         {
@@ -446,8 +446,8 @@ public sealed class MainForm : Form
         }),
         worldCities = WorldClocks.Cities,
         worldMax = WorldClocks.Max,
-        designs = SystemDesigns.Catalog.Select(d => new { id = d.Id, name = d.Name, description = d.Description }),
-        metrics = SystemDesigns.Metrics.Select(m => new { id = m.Id, name = m.Name }),
+        designs = SystemDesigns.Catalog.Select(d => new { id = d.Id }),
+        metrics = SystemDesigns.Metrics.Select(m => new { id = m.Id }),
         alertTempRange = new { min = SystemDesigns.MinAlertTemp, max = SystemDesigns.MaxAlertTemp }
     };
 
@@ -607,16 +607,17 @@ public sealed class MainForm : Form
     private void ShowStatus()
     {
         if (!_ready) return;
-        (string state, string text) = _display.Status switch
+        // state: the dot's colour; key: the text, status.<key> among the page's texts; detail: the model and port.
+        (string state, string key) = _display.Status switch
         {
-            DisplayStatus.Connected => ("connected", $"Connected · {_display.Detail}"),
-            DisplayStatus.Connecting => ("connecting", "Connecting to the display…"),
-            DisplayStatus.Busy => ("busy", "Display in use by another program"),
-            DisplayStatus.Error => ("error", "Display error · trying again"),
-            DisplayStatus.Asleep => ("idle", "Paused while the PC sleeps"),
-            _ => ("idle", "Display not found")
+            DisplayStatus.Connected => ("connected", "connected"),
+            DisplayStatus.Connecting => ("connecting", "connecting"),
+            DisplayStatus.Busy => ("busy", "busy"),
+            DisplayStatus.Error => ("error", "error"),
+            DisplayStatus.Asleep => ("idle", "asleep"),
+            _ => ("idle", "notFound")
         };
-        Post(new { type = "status", state, text });
+        Post(new { type = "status", state, key, detail = _display.Detail });
     }
 
     private void Post(object message)
@@ -635,8 +636,7 @@ public sealed class MainForm : Form
             Dock = DockStyle.Fill,
             TextAlign = ContentAlignment.MiddleCenter,
             ForeColor = Color.FromArgb(237, 237, 237),
-            Text = "Vigil's window needs the Microsoft Edge WebView2 Runtime, which is missing on this PC.\n" +
-                   "Install it from microsoft.com/edge/webview2. The display keeps working meanwhile."
+            Text = UiText.Get("app.webview2Missing")
         });
     }
 

@@ -4,7 +4,10 @@
  * The settings window. The app (MainForm.cs) owns the settings: this page shows them, sends every change as a
  * message, and redraws from the settings the app sends back. Nothing is stored here.
  *
- * App -> page: init, settings, status, frame, cityResults, system {autostart, admin, elevated, allUsers},
+ * Every text comes from the app's i18n\<language>.json, sent with init as strings, and is looked up with t(key).
+ *
+ * App -> page: init {lang, strings, ...}, settings, status {state, key, detail}, frame, cityResults,
+ *              system {autostart, admin, elevated, allUsers},
  *              update {version, current, notes, hasPage, installing, failure}
  * Page -> app: ready, set {key, value}, searchCity {id, name}, autostart {value}, admin {value}, diagnostics,
  *              hold {view}, screen {on}, update {action: install | page}
@@ -14,8 +17,35 @@ const host = window.chrome && window.chrome.webview;
 const send = message => host && host.postMessage(message);
 const $ = id => document.getElementById(id);
 
-let model = null;     // the init message: themes, fonts, views, cities, limits
+let model = null;     // the init message: themes, fonts, views, cities, limits, the language and its texts
 let settings = null;  // the latest settings from the app
+let strings = {};     // the window's texts in the user's language, English where a translation lacks one
+
+/** A text by its key, with "{name}" filled in from vars. A missing key shows as itself, which is easy to spot. */
+function t(key, vars) {
+  const text = strings[key];
+  if (text === undefined) return key;
+  return vars ? text.replace(/\{(\w+)\}/g, (all, name) => (name in vars ? String(vars[name]) : all)) : text;
+}
+
+/** Like t, for a text with a node in it: "{city}" becomes the element given for city. */
+function tNodes(key, nodes) {
+  return (strings[key] ?? key).split(/(\{\w+\})/).filter(Boolean)
+    .map(part => { const name = /^\{(\w+)\}$/.exec(part); return name && nodes[name[1]] ? nodes[name[1]] : part; });
+}
+
+/** The page's own texts, once: data-i18n for an element's text, data-i18n-attr="attribute=key;..." for attributes. */
+function translatePage() {
+  document.documentElement.lang = model.lang || 'en';
+  for (const node of document.querySelectorAll('[data-i18n]')) node.textContent = t(node.dataset.i18n);
+  for (const node of document.querySelectorAll('[data-i18n-attr]')) {
+    for (const pair of node.dataset.i18nAttr.split(';')) {
+      const [attribute, key] = pair.split('=');
+      node.setAttribute(attribute, t(key));
+    }
+  }
+  delete document.body.dataset.loading;
+}
 
 host && host.addEventListener('message', event => receive(event.data));
 document.addEventListener('DOMContentLoaded', () => send({ type: 'ready' }));
@@ -25,6 +55,8 @@ function receive(message) {
     case 'init':
       model = message;
       settings = message.settings;
+      strings = message.strings || {};
+      translatePage();
       build();
       sync();
       syncSystem(message.system);
@@ -34,7 +66,7 @@ function receive(message) {
       sync();
       break;
     case 'status':
-      showStatus(message.state, message.text);
+      showStatus(message.state, t(`status.${message.key}`, { detail: message.detail }));
       break;
     case 'frame':
       $('preview').src = message.png;
@@ -85,17 +117,17 @@ function showUpdate(info) {
   if (banner.hidden) return;
   banner.dataset.version = info.version;
 
-  $('update-title').textContent = `Vigil ${info.version} is available`;
+  $('update-title').textContent = t('update.available', { version: info.version });
   const desc = $('update-desc');
   desc.dataset.state = info.failure ? 'failed' : '';
   desc.textContent = info.installing
-    ? 'Downloading the update. Vigil closes and opens again by itself.'
+    ? t('update.downloading')
     : info.failure
-      ? `The update could not be installed: ${info.failure}`
-      : `You have ${info.current}. Your settings are kept.`;
+      ? t('update.failed', { error: info.failure })
+      : t('update.current', { version: info.current });
   const install = $('update-install');
   install.disabled = info.installing;
-  install.textContent = info.installing ? 'Updating…' : info.failure ? 'Try again' : 'Update';
+  install.textContent = t(info.installing ? 'update.installing' : info.failure ? 'update.retry' : 'update.install');
   $('update-later').hidden = info.installing;
 
   const notes = $('update-notes');
@@ -168,29 +200,12 @@ function inline(text) {
 
 /* ------------------------------ CPU temperature guide ------------------------------ */
 
-const cpuHints = {
-  off: {
-    title: "See the CPU's temperature",
-    desc: 'Windows only shows it to programs that run as administrator with a driver. Until then, the screen shows the CPU load in its place.'
-  },
-  denied: {
-    title: "Windows didn't grant administrator rights",
-    desc: 'CPU temperature is on, but this time Vigil runs without the rights it needs. Try again, and choose Yes when Windows asks.'
-  },
-  driver: {
-    title: 'One step left: the PawnIO driver',
-    desc: "Install PawnIO, then press Check again. Vigil doesn't need to restart."
-  },
-  unsupported: {
-    title: "This CPU's sensor can't be read yet",
-    desc: "Everything is set up, but this CPU isn't supported by the sensor library yet. The screen shows the load instead. Approximate CPU temperature, under System, gives a rough figure."
-  }
-};
+/** The guide's states, each with a title and a text under cpu.<state>. in the texts. */
+const cpuHints = new Set(['off', 'denied', 'driver', 'unsupported']);
 
 let lastCpuHint = '';
 function showCpuHint(info) {
-  const hint = cpuHints[info.state];
-  const show = !!hint && info.wanted && !info.dismissed;
+  const show = cpuHints.has(info.state) && info.wanted && !info.dismissed;
   $('cpu-hint').hidden = !show;
   if (!show) return;
   // Redraw only when something changed, so a button never moves under the pointer.
@@ -198,14 +213,14 @@ function showCpuHint(info) {
   if (key === lastCpuHint) return;
   lastCpuHint = key;
 
-  $('cpu-hint-title').textContent = hint.title;
-  $('cpu-hint-desc').textContent = hint.desc;
+  $('cpu-hint-title').textContent = t(`cpu.${info.state}.title`);
+  $('cpu-hint-desc').textContent = t(`cpu.${info.state}.desc`);
   const steps = $('cpu-hint-steps');
   steps.replaceChildren();
   if (info.state === 'off' || info.state === 'driver') {
     steps.append(
-      el('li', { 'data-done': String(info.admin), text: 'CPU temperature mode, under System' }),
-      el('li', { 'data-done': String(info.pawnio), text: 'The free PawnIO driver' }));
+      el('li', { 'data-done': String(info.admin), text: t('cpu.stepMode') }),
+      el('li', { 'data-done': String(info.pawnio), text: t('cpu.stepDriver') }));
   }
 
   const action = (label, name) => {
@@ -215,11 +230,11 @@ function showCpuHint(info) {
   };
   const actions = $('cpu-hint-actions');
   actions.replaceChildren();
-  if (info.state === 'off' && !info.admin) actions.append(action('Turn on', 'admin'));
-  if (info.state === 'denied') actions.append(action('Try again', 'admin'));
-  if (!info.pawnio && info.state !== 'denied') actions.append(action('Get PawnIO', 'pawnio'));
-  if (info.state === 'driver' || info.state === 'unsupported') actions.append(action('Check again', 'recheck'));
-  const later = el('button', { class: 'link', type: 'button', text: 'Not now' });
+  if (info.state === 'off' && !info.admin) actions.append(action(t('cpu.turnOn'), 'admin'));
+  if (info.state === 'denied') actions.append(action(t('cpu.retry'), 'admin'));
+  if (!info.pawnio && info.state !== 'denied') actions.append(action(t('cpu.getPawnio'), 'pawnio'));
+  if (info.state === 'driver' || info.state === 'unsupported') actions.append(action(t('cpu.check'), 'recheck'));
+  const later = el('button', { class: 'link', type: 'button', text: t('cpu.notNow') });
   later.addEventListener('click', () => send({ type: 'cpuTemp', action: 'dismiss' }));
   actions.append(later);
 }
@@ -227,12 +242,12 @@ function showCpuHint(info) {
 let copiedTimer = null;
 function showCopied(copied) {
   const button = $('diagnostics');
-  button.textContent = copied ? 'Copied' : 'Try again';
+  button.textContent = t(copied ? 'system.copied' : 'system.copyRetry');
   button.dataset.state = copied ? 'done' : 'failed';
-  $('diagnostics-result').textContent = copied ? 'Diagnostics copied to the clipboard.' : 'Could not copy: another program is using the clipboard.';
+  $('diagnostics-result').textContent = t(copied ? 'system.copiedDone' : 'system.copyFailed');
   clearTimeout(copiedTimer);
   copiedTimer = setTimeout(() => {
-    button.textContent = 'Copy';
+    button.textContent = t('system.copy');
     delete button.dataset.state;
   }, 2000);
 }
@@ -306,7 +321,8 @@ function build() {
   const views = $('views');
   views.replaceChildren();
   for (const view of model.views) {
-    const sw = el('button', { class: 'switch', role: 'switch', 'aria-label': view.name });
+    const name = t(`view.${view.id}.name`);
+    const sw = el('button', { class: 'switch', role: 'switch', 'aria-label': name });
     bindSwitch(sw, on => {
       const next = model.views.map(v => v.id).filter(id => (id === view.id ? on : settings.views.includes(id)));
       if (next.length === 0) return; // at least one view stays on
@@ -316,22 +332,20 @@ function build() {
     viewSwitches.set(view.id, sw);
     views.append(el('div', { class: 'row' }, [
       el('span', { class: 'row-text' }, [
-        el('span', { class: 'row-title', text: view.name }),
-        el('span', { class: 'row-desc', text: view.description })
+        el('span', { class: 'row-title', text: name }),
+        el('span', { class: 'row-desc', text: t(`view.${view.id}.desc`) })
       ]),
       sw
     ]));
   }
 
-  markLock = radioGroup($('lock'), [
-    { value: 'dim', label: 'Dim' }, { value: 'off', label: 'Turn off' }, { value: 'keep', label: 'Keep showing' }
-  ], value => { set('lockScreen', value); markLock(value); }, (button, option) => { button.textContent = option.label; });
+  markLock = radioGroup($('lock'), ['dim', 'off', 'keep'].map(value => ({ value, label: t(`system.lock.${value}`) })),
+    value => { set('lockScreen', value); markLock(value); }, (button, option) => { button.textContent = option.label; });
 
-  markGame = radioGroup($('game'), [
-    { value: 'off', label: 'Your views' }, { value: 'system', label: 'System' }, { value: 'clock', label: 'Clock' }
-  ], value => { set('gameView', value); markGame(value); }, (button, option) => { button.textContent = option.label; });
+  markGame = radioGroup($('game'), ['off', 'system', 'clock'].map(value => ({ value, label: t(`views.game.${value}`) })),
+    value => { set('gameView', value); markGame(value); }, (button, option) => { button.textContent = option.label; });
 
-  markSeconds = radioGroup($('seconds'), model.secondsChoices.map(s => ({ value: s, label: `${s}s` })),
+  markSeconds = radioGroup($('seconds'), model.secondsChoices.map(s => ({ value: s, label: t('views.secondsValue', { n: s }) })),
     value => { set('viewSeconds', value); markSeconds(value); },
     (button, option) => { button.textContent = option.label; });
 
@@ -403,8 +417,8 @@ function build() {
   world.replaceChildren();
   worldSelects.length = 0;
   for (let slot = 0; slot < model.worldMax; slot++) {
-    const select = el('select', { class: 'select', 'aria-label': `World clock ${slot + 1}` }, [
-      el('option', { value: '', text: 'None' }),
+    const select = el('select', { class: 'select', 'aria-label': t('world.slot', { n: slot + 1 }) }, [
+      el('option', { value: '', text: t('world.none') }),
       ...model.worldCities.map(c => el('option', { value: c.timeZoneId, text: c.label }))
     ]);
     select.addEventListener('change', () => {
@@ -428,7 +442,7 @@ function sync() {
     setSwitch(sw, on);
     // the last view on cannot be switched off: it stays fully visible, and says why
     const last = on && settings.views.length === 1;
-    sw.title = last ? 'At least one view stays on' : '';
+    sw.title = last ? t('views.lastOn') : '';
     sw.setAttribute('aria-disabled', String(last));
   }
   markSeconds(settings.viewSeconds);
@@ -466,9 +480,10 @@ function sync() {
   current.replaceChildren();
   if (settings.weatherCity) {
     const city = settings.weatherCity;
-    current.append('Showing the weather for ', el('strong', { text: city.name }), city.region ? `, ${city.region}` : '');
+    const place = el('span', {}, [el('strong', { text: city.name }), city.region ? `, ${city.region}` : '']);
+    current.append(...tNodes('weather.showing', { city: place }));
   } else {
-    current.textContent = 'No city chosen yet. The weather view is skipped until you pick one.';
+    current.textContent = t('weather.none');
   }
 }
 
@@ -488,16 +503,11 @@ function syncSystem(system) {
   setSwitch($('admin'), system.admin);
   // Installed for one user only, Vigil does not start with administrator rights without asking: any program could
   // change its files (Installation.ForAllUsers in Settings.cs).
-  const eachStart = 'Installed for you only, so Windows asks each time Vigil starts. Install it for all users to be asked once.';
-  $('admin-desc').textContent = system.admin && system.elevated
-    ? (system.allUsers
-      ? 'On. Vigil is running as administrator and reads the CPU sensors.'
-      : `On. Vigil is running as administrator. ${eachStart}`)
+  $('admin-desc').textContent = t(system.admin && system.elevated
+    ? (system.allUsers ? 'system.admin.on' : 'system.admin.onEachStart')
     : system.admin
-      ? 'On, but Windows did not grant administrator rights this time.'
-      : system.allUsers
-        ? 'Needs administrator rights. Windows asks once, then Vigil restarts.'
-        : `Needs administrator rights. ${eachStart}`;
+      ? 'system.admin.denied'
+      : system.allUsers ? 'system.admin.off' : 'system.admin.offEachStart');
 }
 
 /* ------------------------------ system design ------------------------------ */
@@ -510,10 +520,11 @@ function buildDesigns() {
     value => { set('systemDesign', value); syncDesign(); },
     (button, design) => {
       button.className = 'design';
-      button.setAttribute('aria-label', design.name + '. ' + design.description);
+      const name = t(`design.${design.id}.name`);
+      button.setAttribute('aria-label', name + '. ' + t(`design.${design.id}.desc`));
       button.append(
         el('img', { class: 'design-thumb', alt: '', width: '480', height: '320', 'data-design': design.id }),
-        el('span', { class: 'design-name', text: design.name }));
+        el('span', { class: 'design-name', text: name }));
     });
 
   for (const [key, id] of Object.entries(colorInputs)) {
@@ -530,8 +541,8 @@ function buildDesigns() {
   tiles.replaceChildren();
   tileSelects.length = 0;
   for (let slot = 0; slot < 6; slot++) {
-    const select = el('select', { class: 'select', 'aria-label': `Card ${slot + 1}` },
-      model.metrics.map(m => el('option', { value: m.id, text: m.name })));
+    const select = el('select', { class: 'select', 'aria-label': t('design.tile', { n: slot + 1 }) },
+      model.metrics.map(m => el('option', { value: m.id, text: t(`metric.${m.id}`) })));
     select.addEventListener('change', () => {
       settings.customTiles = tileSelects.map(s => s.value);
       set('customTiles', settings.customTiles);
@@ -577,7 +588,7 @@ function syncDesign() {
   if (!model || !settings) return;
   markDesign(settings.systemDesign);
   const info = model.designs.find(d => d.id === settings.systemDesign);
-  $('design-desc').textContent = info ? info.description : '';
+  $('design-desc').textContent = info ? t(`design.${info.id}.desc`) : '';
   $('tiles-field').hidden = settings.systemDesign !== 'custom';
   tileSelects.forEach((select, slot) => {
     if (document.activeElement !== select) select.value = settings.customTiles[slot];
@@ -604,10 +615,7 @@ function showStatus(state, text) {
 
 /* ------------------------------ quick controls ------------------------------ */
 
-const viewName = id => {
-  const view = model && model.views.find(v => v.id === id);
-  return view ? view.short : id;
-};
+const viewName = id => t(`view.${id}.short`);
 
 let nowFor = '';
 let markNow = null;
@@ -629,19 +637,19 @@ function showControls(frame) {
   [...$('now').children].forEach((button, index) => {
     const waiting = !ready.has(settings.views[index]);
     button.disabled = waiting;
-    button.title = waiting ? 'Nothing to show yet' : '';
+    button.title = waiting ? t('controls.waiting') : '';
   });
 
   const now = $('now');
   now.dataset.held = String(!!frame.held);
   $('resume').hidden = !frame.held;
   $('rotation').textContent =
-    !frame.screenOn ? 'The screen is off. The preview shows what it would show.'
-    : frame.gaming ? `A full-screen game is running, so the screen keeps to ${viewName(frame.view)}.`
-    : frame.held ? `${viewName(frame.held)} stays on the screen until you let the views take turns again.`
-    : frame.next ? `Next: ${viewName(frame.next)} in ${frame.nextIn}s. Pick a view to keep it on the screen.`
-    : settings.views.length > 1 ? 'The other views have nothing to show yet.'
-    : 'Only one view is switched on.';
+    !frame.screenOn ? t('controls.off')
+    : frame.gaming ? t('controls.gaming', { view: viewName(frame.view) })
+    : frame.held ? t('controls.held', { view: viewName(frame.held) })
+    : frame.next ? t('controls.next', { view: viewName(frame.next), seconds: frame.nextIn })
+    : settings.views.length > 1 ? t('controls.othersWaiting')
+    : t('controls.single');
 
   setSwitch($('screen'), frame.screenOn);
   document.querySelector('.preview').dataset.off = String(!frame.screenOn);
@@ -649,7 +657,7 @@ function showControls(frame) {
   // At night the backlight may be lower than the slider says: tell, so the slider does not look broken.
   const dimmed = frame.night && settings.nightBrightness < settings.brightness;
   $('brightness-note').hidden = !dimmed;
-  if (dimmed) $('brightness-note').textContent = `Dimmed to ${settings.nightBrightness}% at night, until ${settings.nightEnd}.`;
+  if (dimmed) $('brightness-note').textContent = t('controls.nightDimmed', { value: settings.nightBrightness, time: settings.nightEnd });
 }
 
 /* ------------------------------ city search ------------------------------ */
@@ -693,9 +701,9 @@ function showCityResults(message) {
   active = results.length ? 0 : -1;
   list.replaceChildren();
   if (message.error) {
-    list.append(el('li', { class: 'result-empty', text: message.error }));
+    list.append(el('li', { class: 'result-empty', text: t('weather.searchFailed') }));
   } else if (results.length === 0) {
-    list.append(el('li', { class: 'result-empty', text: 'No matching place.' }));
+    list.append(el('li', { class: 'result-empty', text: t('weather.noMatch') }));
   }
   results.forEach((city, index) => {
     list.append(el('li', {

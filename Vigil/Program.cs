@@ -48,6 +48,14 @@ internal static class Program
         int readme = Array.IndexOf(args, "--readme-images");
         if (readme >= 0 && readme + 1 < args.Length) return ReadmeImages.Run(args[readme + 1], Option(args, "--window"), Option(args, "--photo"));
 
+        // Vigil.exe --memory-test report.txt [--seconds 120] : run what the tray app runs, without a window, against a
+        // pretend display, and write how much memory it takes.
+        int memoryTest = Array.IndexOf(args, "--memory-test");
+        if (memoryTest >= 0 && memoryTest + 1 < args.Length)
+        {
+            return MemoryTest.Run(args[memoryTest + 1], int.TryParse(Option(args, "--seconds"), out int s) ? s : 120);
+        }
+
         // Vigil.exe --elevation-test report.txt : with administrator rights, check that the user's files are written
         // with the user's rights and that the start-up task needs no file; write PASS or FAIL for each, and exit.
         int elevationTest = Array.IndexOf(args, "--elevation-test");
@@ -96,7 +104,7 @@ internal static class Program
         {
             // The running instance has administrator rights, so this one cannot even look at it.
             ApplicationConfiguration.Initialize();
-            MessageBox.Show("Vigil is already running. Open it from its icon in the taskbar's notification area.", "Vigil",
+            MessageBox.Show(UiText.Get("app.alreadyRunning"), "Vigil",
                 MessageBoxButtons.OK, MessageBoxIcon.Information);
             return 0;
         }

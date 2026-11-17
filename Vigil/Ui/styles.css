@@ -315,6 +315,9 @@ output { color: var(--text); font-size: 13px; font-variant-numeric: tabular-nums
 .notes strong { color: var(--text); font-weight: 500; }
 .notes code { padding: 1px 4px; border-radius: 4px; background: var(--raised); font-size: 12px; }
 
+/* Until the texts in the user's language arrive (a few milliseconds), rather than English flashing first. */
+body[data-loading] .layout, body[data-loading] .status { visibility: hidden; }
+
 /* Read by screen readers, not shown. */
 .sr-only { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
 

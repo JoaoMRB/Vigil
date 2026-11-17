@@ -44,7 +44,13 @@ Vigil.exe --simulate                                                # a pretend 
 Vigil.exe --simulate-test report.txt                                # the link logic, PASS or FAIL per case
 Vigil.exe --update-test report.txt [--update-feed release.json]     # look for an update, download and verify it
 Vigil.exe --elevation-test report.txt                               # as administrator: the user's files stay the user's
+Vigil.exe --memory-test report.txt [--seconds 120]                  # memory over time, as in the tray
 ```
+
+**`--memory-test`** runs what the app runs in the tray (the sensors, the views, the frames) against a pretend
+display, without a window, and writes the memory every few seconds: private, working set and .NET's own heap, then
+the biggest modules loaded. Run a build before and after a change side by side to compare them. The window's
+browser runs in processes of its own and is not counted; it ends when the window closes.
 
 **`--elevation-test`** must run with administrator rights. It checks that, in administrator mode, the settings,
 the log and the update's download are written with the user's ordinary rights (`AsUser.cs`): it links a folder in
@@ -104,6 +110,27 @@ screen. Whatever photo goes there, check it first for hardware names, readings o
 The README's download link and the app's update check both look for the latest release, and GitHub skips
 pre-releases when it picks that one. The update check only offers a release whose `Vigil-Setup.exe` has a SHA-256
 listed by GitHub, and GitHub lists one for every uploaded file.
+
+## Translations
+
+Two sets of texts, both in English, Portuguese, Spanish, French, German and Italian, picked by Windows' language:
+
+- **The screen:** `Vigil/i18n/*.json`, built into the app (`ScreenText`).
+- **The settings window, the tray menu and the message boxes:** `Vigil/Ui/i18n/*.json`, one flat list of keys per
+  language, next to the app. The window reads its language's file when it opens (`UiText.ForWindow`, sent to the page
+  with `init`) and lets go of it when it closes; the tray keeps only the keys under `tray.` and `app.`. In the page,
+  `data-i18n="key"` sets an element's text, `data-i18n-attr="aria-label=key;..."` its attributes, and `t('key', {name})`
+  fills `{name}` in a text. A key missing from a language falls back to English.
+
+To add or change a text, change `en.json` and every other language, then run:
+
+```powershell
+node tools/check-i18n.mjs
+```
+
+It fails when a language lacks a key or has one English doesn't, when a `{placeholder}` differs from English, when
+the code asks for a key `en.json` doesn't have, or when a key is no longer used. Keep the labels of the three-way
+buttons (when the PC is locked, during a full-screen game) under about 14 characters, or they wrap.
 
 ## Conventions
 

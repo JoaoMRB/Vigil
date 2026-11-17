@@ -40,16 +40,16 @@ public sealed class TrayApp : ApplicationContext
         _display = new DisplayService(_settings);
         _display.StatusChanged += () => _ui.BeginInvoke(UpdateTooltip);
 
-        _autostartItem = new ToolStripMenuItem("Start with Windows") { CheckOnClick = true };
+        _autostartItem = new ToolStripMenuItem(UiText.Get("tray.autostart")) { CheckOnClick = true };
         _autostartItem.Click += (_, _) => Autostart.Set(_autostartItem.Checked, _settings);
 
         var menu = new TrayMenu();
         _updateItem.Click += async (_, _) => await UpdateAsync();
         menu.Items.Add(_updateItem);
-        menu.Items.Add("Open Vigil", null, (_, _) => ShowWindow());
+        menu.Items.Add(UiText.Get("tray.open"), null, (_, _) => ShowWindow());
         menu.Items.Add(_autostartItem);
         menu.Items.Add(new ToolStripSeparator());
-        menu.Items.Add("Quit", null, (_, _) => ExitThread());
+        menu.Items.Add(UiText.Get("tray.quit"), null, (_, _) => ExitThread());
         menu.Opening += (_, _) => _autostartItem.Checked = Autostart.IsEnabled;
 
         _tray = new NotifyIcon { Icon = _icon, ContextMenuStrip = menu, Visible = true };
@@ -71,7 +71,7 @@ public sealed class TrayApp : ApplicationContext
         // Before the window, which shows what the updater finds.
         _updater = new Updater(_settings);
         _updater.Found += update => _ui.BeginInvoke(() => _tray.ShowBalloonTip(10000, "Vigil",
-            $"Version {update.Version} is available. Right-click the icon to update, or open Vigil to see what's new.", ToolTipIcon.Info));
+            UiText.Get("tray.updateFound", ("version", update.Version)), ToolTipIcon.Info));
         _updater.Changed += () => _ui.BeginInvoke(SyncUpdateItem);
 
         _display.Start();
@@ -89,7 +89,7 @@ public sealed class TrayApp : ApplicationContext
             _updateItem.Visible = true;
         }
         _updateItem.Enabled = !_updater.Installing;
-        _updateItem.Text = _updater.Installing ? "Downloading the update…" : $"Update to Vigil {update.Version}";
+        _updateItem.Text = _updater.Installing ? UiText.Get("tray.downloading") : UiText.Get("tray.update", ("version", update.Version));
     }
 
     /// <summary>From the tray's menu or the window's banner.</summary>
@@ -101,7 +101,7 @@ public sealed class TrayApp : ApplicationContext
         }
         else if (_updater.Failure is { } failure)
         {
-            _tray.ShowBalloonTip(10000, "Vigil", $"The update could not be installed: {failure}", ToolTipIcon.Warning);
+            _tray.ShowBalloonTip(10000, "Vigil", UiText.Get("tray.updateFailed", ("error", failure)), ToolTipIcon.Warning);
         }
     }
 
@@ -212,12 +212,12 @@ public sealed class TrayApp : ApplicationContext
     {
         _tray.Text = _display.Status switch
         {
-            DisplayStatus.Connected => "Vigil: connected",
-            DisplayStatus.Connecting => "Vigil: connecting...",
-            DisplayStatus.Busy => "Vigil: the display is in use by another program",
-            DisplayStatus.Error => "Vigil: display error, trying again",
-            DisplayStatus.Asleep => "Vigil: paused while the PC sleeps",
-            _ => "Vigil: display not found"
+            DisplayStatus.Connected => UiText.Get("tray.connected"),
+            DisplayStatus.Connecting => UiText.Get("tray.connecting"),
+            DisplayStatus.Busy => UiText.Get("tray.busy"),
+            DisplayStatus.Error => UiText.Get("tray.error"),
+            DisplayStatus.Asleep => UiText.Get("tray.asleep"),
+            _ => UiText.Get("tray.notFound")
         };
     }
 }
