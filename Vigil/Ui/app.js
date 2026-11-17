@@ -4,7 +4,7 @@
  * The settings window. The app (MainForm.cs) owns the settings: this page shows them, sends every change as a
  * message, and redraws from the settings the app sends back. Nothing is stored here.
  *
- * App -> page: init, settings, status, frame, cityResults, system
+ * App -> page: init, settings, status, frame, cityResults, system {autostart, admin, elevated, allUsers}
  * Page -> app: ready, set {key, value}, searchCity {id, name}, autostart {value}, admin {value}, diagnostics,
  *              hold {view}, screen {on}
  */
@@ -380,11 +380,18 @@ function syncSystem(system) {
   if (!system) return;
   setSwitch($('autostart'), system.autostart);
   setSwitch($('admin'), system.admin);
+  // Installed for one user only, Vigil does not start with administrator rights without asking: any program could
+  // change its files (Installation.ForAllUsers in Settings.cs).
+  const eachStart = 'Installed for you only, so Windows asks each time Vigil starts. Install it for all users to be asked once.';
   $('admin-desc').textContent = system.admin && system.elevated
-    ? 'On. Vigil is running as administrator and reads the CPU sensors.'
+    ? (system.allUsers
+      ? 'On. Vigil is running as administrator and reads the CPU sensors.'
+      : `On. Vigil is running as administrator. ${eachStart}`)
     : system.admin
       ? 'On, but Windows did not grant administrator rights this time.'
-      : 'Needs administrator rights. Windows asks once, then Vigil restarts.';
+      : system.allUsers
+        ? 'Needs administrator rights. Windows asks once, then Vigil restarts.'
+        : `Needs administrator rights. ${eachStart}`;
 }
 
 /* ------------------------------ system design ------------------------------ */

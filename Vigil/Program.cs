@@ -44,6 +44,11 @@ internal static class Program
         int readme = Array.IndexOf(args, "--readme-images");
         if (readme >= 0 && readme + 1 < args.Length) return ReadmeImages.Run(args[readme + 1], Option(args, "--window"), Option(args, "--photo"));
 
+        // Vigil.exe --elevation-test report.txt : with administrator rights, check that the user's files are written
+        // with the user's rights and that the start-up task needs no file; write PASS or FAIL for each, and exit.
+        int elevationTest = Array.IndexOf(args, "--elevation-test");
+        if (elevationTest >= 0 && elevationTest + 1 < args.Length) return ElevationTest.Run(args[elevationTest + 1]);
+
         // --update-feed path-or-url : where to look for a newer version (a local JSON file for checks).
         if (Option(args, "--update-feed") is { } feed) Updater.Feed = feed;
         // Vigil.exe --update-test report.txt : check for an update, download and verify it, but do not install it.
@@ -123,7 +128,9 @@ internal static class Program
     private static void LogStart(bool tray)
     {
         string version = typeof(Program).Assembly.GetName().Version?.ToString(3) ?? "?";
-        Log.Info($"Vigil {version} started ({(tray ? "at sign-in" : "by hand")}, {(Elevation.IsElevated ? "administrator" : "standard user")}) on {Environment.OSVersion.VersionString}, .NET {Environment.Version}");
+        Log.Info($"Vigil {version} started ({(tray ? "at sign-in" : "by hand")}, {(Elevation.IsElevated ? "administrator" : "standard user")}, installed for {(Installation.ForAllUsers ? "all users" : "this user")}) on {Environment.OSVersion.VersionString}, .NET {Environment.Version}");
+        // With administrator rights, the user's files are written with the user's rights (AsUser): say when that failed.
+        if (AsUser.Problem is { } problem) Log.Warn($"files as the user: not available ({problem})");
     }
 
     /// <summary>Followed by a process id: wait for that process to quit before starting.</summary>
@@ -208,7 +215,7 @@ internal static class Program
                 report.Add($"Newer version: {update.Version}, installer {Log.Scrub(update.Installer.ToString())}");
                 string installer = Updater.DownloadAsync(update).GetAwaiter().GetResult();
                 report.Add($"Downloaded and the checksum matches: {Log.Scrub(installer)}");
-                File.Delete(installer);
+                AsUser.Run(() => File.Delete(installer));
             }
         }
         catch (Exception e) when (e is HttpRequestException or TaskCanceledException or System.Text.Json.JsonException or IOException or InvalidDataException or KeyNotFoundException or InvalidOperationException)

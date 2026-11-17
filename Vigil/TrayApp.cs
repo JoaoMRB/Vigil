@@ -93,7 +93,7 @@ public sealed class TrayApp : ApplicationContext
         try
         {
             string installer = await Updater.DownloadAsync(update);
-            Updater.RunInstaller(installer);
+            Updater.RunInstaller(installer, update);
             ExitThread(); // the installer replaces the files and starts Vigil again
         }
         catch (Exception e) when (e is HttpRequestException or TaskCanceledException or IOException or InvalidDataException or UnauthorizedAccessException or System.ComponentModel.Win32Exception)
@@ -164,8 +164,16 @@ public sealed class TrayApp : ApplicationContext
         }
     }
 
+    private bool _disposed;
+
+    /// <summary>
+    /// Called twice when Vigil quits: by Windows Forms as <c>Application.Run</c> ends, then by the <c>using</c> in
+    /// Program.Main. Only the first does anything.
+    /// </summary>
     protected override void Dispose(bool disposing)
     {
+        if (_disposed) return;
+        _disposed = true;
         if (disposing)
         {
             SystemEvents.SessionSwitch -= OnSessionSwitch;

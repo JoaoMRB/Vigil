@@ -43,7 +43,14 @@ Vigil.exe --window-png out.png [--tall] [--script "js"]             # capture th
 Vigil.exe --simulate                                                # a pretend display in a window
 Vigil.exe --simulate-test report.txt                                # the link logic, PASS or FAIL per case
 Vigil.exe --update-test report.txt [--update-feed release.json]     # look for an update, download and verify it
+Vigil.exe --elevation-test report.txt                               # as administrator: the user's files stay the user's
 ```
+
+**`--elevation-test`** must run with administrator rights. It checks that, in administrator mode, the settings,
+the log and the update's download are written with the user's ordinary rights (`AsUser.cs`): it links a folder in
+the temp folder to one only administrators can write to, and checks that writing, replacing and reading through the
+link are refused, and that the same write without `AsUser` would have gone through. It also registers a task named
+`Vigil-selftest` the way the start-up task is registered, without a file, and removes it. It leaves nothing behind.
 
 **`--png`** takes `--view` (clock, system, weather, world or music), `--design`, `--theme`, `--orientation`
 (landscape, landscape-flipped, portrait-right or portrait-left), `--tiles` for the Custom design's cards
@@ -97,3 +104,6 @@ listed by GitHub, and GitHub lists one for every uploaded file.
 - Text files use LF line endings, except where `.gitattributes` says otherwise.
 - The app writes nothing personal to its log or its diagnostics: no city, no user name, no hardware names, no
   readings. `Log.Scrub` takes the user's name out of paths.
+- In administrator mode, any file work in the user's folders (`%AppData%`, `%LocalAppData%`, the temp folder)
+  goes through `AsUser.Run`, so it runs with the user's ordinary rights. Anything new that reads or writes there
+  must do the same.

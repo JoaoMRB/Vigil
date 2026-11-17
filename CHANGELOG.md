@@ -10,6 +10,17 @@ All notable changes to Vigil are listed here. Versions follow [Semantic Versioni
 - "Start with Windows" is now listed under Startup apps in Task Manager in administrator mode too, and can be
   switched on and off there. The app shows it as off when Windows has it switched off.
 - The tray icon's menu is dark, in the colours of the settings window, instead of the system's.
+- The installer asks whether to install for you only or for all users. Administrator mode starts without a Windows
+  prompt only when Vigil is installed for all users, under Program Files. Installed for you only, Windows asks each
+  time Vigil starts: any program could change those files, so a copy started with administrator rights without a
+  prompt could have been replaced. A start-up task left by an earlier version for such a copy is removed and no
+  longer used. Running the installer again for all users removes the copy installed for you only.
+- An update checks the downloaded installer once more just before it runs, and keeps it locked until then, so it
+  can't be swapped after the check.
+- In administrator mode, Vigil writes its settings, its log and the update's download with your ordinary rights.
+  A program that swapped one of those folders for a link to a folder of Windows can no longer get Vigil to change
+  Windows' files. The settings window's browser keeps its cache in the install folder, and the start-up task is
+  registered without a temporary file. *Get PawnIO* opens the browser as you, not as administrator.
 
 ### Added
 - Quick controls under the preview: keep one view on the screen instead of the views taking turns (with the next
@@ -56,6 +67,9 @@ All notable changes to Vigil are listed here. Versions follow [Semantic Versioni
 - A log of what the app did and the errors it met, in `%LocalAppData%\Vigil\logs`. It stays on the PC, holds no
   personal data, and keeps itself small.
 - A website for the app in English, Portuguese, Spanish and French, in `site/`.
+
+### Fixed
+- Vigil no longer logs an error each time it quits.
 
 ## AuraTime app 0.1.0
 
