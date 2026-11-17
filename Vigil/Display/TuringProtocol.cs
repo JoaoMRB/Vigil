@@ -113,10 +113,15 @@ public static class TuringProtocol
         return x1 < 0 ? null : new Rect(x0, y0, x1, y1);
     }
 
-    /// <summary>The pixels of one band of <paramref name="rect"/>, as the little-endian bytes rev. A expects.</summary>
-    public static byte[] BandBytes(ushort[] frame, int frameWidth, Rect band)
+    /// <summary>The most bytes one band can take: a buffer this size fits any of them.</summary>
+    public const int MaxBandBytes = ScreenWidth * MaxBandRows * 2;
+
+    /// <summary>
+    /// The pixels of one band, as the little-endian bytes rev. A expects, written into <paramref name="bytes"/>
+    /// (reused from frame to frame, at least <see cref="MaxBandBytes"/> long). Returns how many it wrote.
+    /// </summary>
+    public static int BandBytes(ushort[] frame, int frameWidth, Rect band, byte[] bytes)
     {
-        var bytes = new byte[band.Width * band.Height * 2];
         int k = 0;
         for (int y = band.Y0; y <= band.Y1; y++)
         {
@@ -128,7 +133,7 @@ public static class TuringProtocol
                 bytes[k++] = (byte)(v >> 8);
             }
         }
-        return bytes;
+        return k;
     }
 
     /// <summary>Splits a rectangle into horizontal bands of at most <paramref name="maxRows"/> rows.</summary>

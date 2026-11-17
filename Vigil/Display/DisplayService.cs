@@ -35,6 +35,14 @@ public sealed class DisplayService : IDisposable
     /// would leave a damaged band on the screen for good.
     /// </summary>
     private const long FullRedrawMs = 5 * 60 * 1000;
+
+    /// <summary>
+    /// How often the loop asks for a collection of the youngest objects. The app keeps about 2 MB alive but makes a
+    /// few MB of short-lived garbage a minute (frames, text, sensor readings), and on its own .NET lets around 11 MB
+    /// pile up before it collects: measured with --memory-test, collecting every 30 s keeps the app about 6 MB
+    /// smaller, for well under a millisecond each time.
+    /// </summary>
+    private const long CollectMs = 30 * 1000;
     /// <summary>Backlight while the PC is locked and the screen is set to dim (at most the user's own level).</summary>
     private const int DimBrightness = 8;
     /// <summary>How long the PC's sleep waits for the screen to be turned off.</summary>
@@ -378,6 +386,7 @@ public sealed class DisplayService : IDisposable
         bool screenOn = true;
         bool atNight = false;
         long nextFullRedraw = Environment.TickCount64 + FullRedrawMs;
+        long nextCollect = Environment.TickCount64 + CollectMs;
 
         while (!cancel.IsCancellationRequested)
         {
@@ -454,6 +463,12 @@ public sealed class DisplayService : IDisposable
             }
             previous ??= new ushort[pixels];
             current.CopyTo(previous, 0);
+
+            if (Environment.TickCount64 >= nextCollect)
+            {
+                nextCollect = Environment.TickCount64 + CollectMs;
+                GC.Collect(0, GCCollectionMode.Forced, blocking: true, compacting: false);
+            }
 
             WaitHandle.WaitAny([cancel.WaitHandle, _wake], 1000 - DateTime.Now.Millisecond);
         }

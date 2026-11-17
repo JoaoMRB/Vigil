@@ -44,7 +44,13 @@ Vigil.exe --simulate                                                # a pretend 
 Vigil.exe --simulate-test report.txt                                # the link logic, PASS or FAIL per case
 Vigil.exe --update-test report.txt [--update-feed release.json]     # look for an update, download and verify it
 Vigil.exe --elevation-test report.txt                               # as administrator: the user's files stay the user's
+Vigil.exe --memory-test report.txt [--seconds 120]                  # memory over time, as in the tray
 ```
+
+**`--memory-test`** runs what the app runs in the tray (the sensors, the views, the frames) against a pretend
+display, without a window, and writes the memory every few seconds: private, working set and .NET's own heap, then
+the biggest modules loaded. Run a build before and after a change side by side to compare them. The window's
+browser runs in processes of its own and is not counted; it ends when the window closes.
 
 **`--elevation-test`** must run with administrator rights. It checks that, in administrator mode, the settings,
 the log and the update's download are written with the user's ordinary rights (`AsUser.cs`): it links a folder in

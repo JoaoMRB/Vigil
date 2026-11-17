@@ -2,6 +2,15 @@
 
 All notable changes to Vigil are listed here. Versions follow [Semantic Versioning](https://semver.org/).
 
+## [Unreleased]
+
+### Changed
+- Vigil uses about 5 MB less memory in the tray: it clears its short-lived garbage every 30 seconds instead of
+  letting about 11 MB pile up first, and reuses the buffer it sends each part of a picture to the screen in.
+
+### Added
+- `--memory-test`, for developers: the memory the app takes over time, as it runs in the tray.
+
 ## [0.2.0] - 2026-11-17
 
 ### Added

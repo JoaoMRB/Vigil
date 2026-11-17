@@ -75,13 +75,17 @@ public sealed class DisplayLink : IDisplayLink
         }
     }
 
+    /// <summary>One band's pixels, reused for every band of every frame instead of a new array each time.</summary>
+    private readonly byte[] _band = new byte[TuringProtocol.MaxBandBytes];
+
     /// <summary>Sends the pixels of <paramref name="rect"/> out of a full frame, in bands.</summary>
     public void SendBitmap(ushort[] frame, Rect rect)
     {
         foreach (Rect band in TuringProtocol.SplitBands(rect))
         {
             Write(TuringProtocol.DisplayBitmap(band));
-            Write(TuringProtocol.BandBytes(frame, TuringProtocol.ScreenWidth, band));
+            int count = TuringProtocol.BandBytes(frame, TuringProtocol.ScreenWidth, band, _band);
+            Write(_port ?? throw new IOException("Not connected."), _band, count);
         }
     }
 
@@ -147,11 +151,14 @@ public sealed class DisplayLink : IDisplayLink
     private void Write(byte[] bytes) => Write(_port ?? throw new IOException("Not connected."), bytes);
 
     /// <summary>Chunked write. The port's write timeout turns a display that stopped accepting data into an error.</summary>
-    private static void Write(SerialPort port, byte[] bytes)
+    private static void Write(SerialPort port, byte[] bytes) => Write(port, bytes, bytes.Length);
+
+    /// <summary>The first <paramref name="count"/> bytes of <paramref name="bytes"/>, chunked.</summary>
+    private static void Write(SerialPort port, byte[] bytes, int count)
     {
-        for (int i = 0; i < bytes.Length; i += TuringProtocol.WriteChunkBytes)
+        for (int i = 0; i < count; i += TuringProtocol.WriteChunkBytes)
         {
-            port.Write(bytes, i, Math.Min(TuringProtocol.WriteChunkBytes, bytes.Length - i));
+            port.Write(bytes, i, Math.Min(TuringProtocol.WriteChunkBytes, count - i));
         }
     }
 
