@@ -55,8 +55,9 @@ public static class Log
         {
             try
             {
-                if (FilePath is not { } path || !File.Exists(path)) return [];
-                string[] all = File.ReadAllLines(path, Encoding.UTF8);
+                if (FilePath is not { } path) return [];
+                string[]? all = AsUser.Run(() => File.Exists(path) ? File.ReadAllLines(path, Encoding.UTF8) : null);
+                if (all is null) return [];
                 return all.Length <= lines ? all : all[^lines..];
             }
             catch (Exception e) when (e is IOException or UnauthorizedAccessException)
@@ -94,17 +95,22 @@ public static class Log
                 return;
             }
 
+            var text = new StringBuilder();
+            if (_repeats > 0) text.AppendLine($"{_lastTime:yyyy-MM-dd HH:mm:ss} [info] (the line above came {_repeats} more time(s))");
+            text.AppendLine($"{now:yyyy-MM-dd HH:mm:ss} {line}");
             try
             {
-                Directory.CreateDirectory(_directory!);
-                if (File.Exists(path) && new FileInfo(path).Length > MaxBytes)
+                // The folder is the user's own: written with the user's rights (AsUser).
+                string directory = _directory!;
+                AsUser.Run(() =>
                 {
-                    File.Move(path, Path.Combine(_directory!, "vigil.1.log"), overwrite: true);
-                }
-                var text = new StringBuilder();
-                if (_repeats > 0) text.AppendLine($"{_lastTime:yyyy-MM-dd HH:mm:ss} [info] (the line above came {_repeats} more time(s))");
-                text.AppendLine($"{now:yyyy-MM-dd HH:mm:ss} {line}");
-                File.AppendAllText(path, text.ToString(), new UTF8Encoding(encoderShouldEmitUTF8Identifier: false));
+                    Directory.CreateDirectory(directory);
+                    if (File.Exists(path) && new FileInfo(path).Length > MaxBytes)
+                    {
+                        File.Move(path, Path.Combine(directory, "vigil.1.log"), overwrite: true);
+                    }
+                    File.AppendAllText(path, text.ToString(), new UTF8Encoding(encoderShouldEmitUTF8Identifier: false));
+                });
             }
             catch (Exception e) when (e is IOException or UnauthorizedAccessException)
             {

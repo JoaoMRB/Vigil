@@ -98,11 +98,27 @@ public sealed class MainForm : Form
         base.Dispose(disposing);
     }
 
+    /// <summary>
+    /// Where the window's browser keeps its cache. Its processes run with Vigil's own rights, and unlike file work
+    /// done here (AsUser) they cannot be made to use the user's: with administrator rights and an install for all
+    /// users, the cache goes in the install folder, which only administrators can change, one folder per user.
+    /// Installed for one user only, the user's own folder: the program's files there are no better protected.
+    /// </summary>
+    private static string BrowserDataFolder()
+    {
+        if (Elevation.IsElevated && Installation.ForAllUsers)
+        {
+            using var identity = System.Security.Principal.WindowsIdentity.GetCurrent();
+            return Path.Combine(AppContext.BaseDirectory, "WebView2", identity.User!.Value);
+        }
+        return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Vigil", "WebView2");
+    }
+
     private async Task InitialiseAsync()
     {
+        string dataFolder = BrowserDataFolder();
         try
         {
-            string dataFolder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Vigil", "WebView2");
             CoreWebView2Environment environment = await CoreWebView2Environment.CreateAsync(null, dataFolder);
             await _web.EnsureCoreWebView2Async(environment);
         }
@@ -310,7 +326,10 @@ public sealed class MainForm : Form
                 SetAdmin(true); // asks Windows, and restarts with the rights when it says yes
                 return;
             case "pawnio":
-                Process.Start(new ProcessStartInfo("https://pawnio.eu/") { UseShellExecute = true });
+                // Through Explorer, which opens it in the browser as the user: started from here, in administrator
+                // mode, the browser would run with administrator rights too.
+                Process.Start(new ProcessStartInfo(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Windows), "explorer.exe"),
+                    "\"https://pawnio.eu/\"") { UseShellExecute = false })?.Dispose();
                 return;
             case "recheck":
                 // The driver is looked for when the sensors open: open them again.
@@ -460,7 +479,8 @@ public sealed class MainForm : Form
         type = "system",
         autostart = Autostart.IsEnabled,
         admin = _settings.RunAsAdmin,
-        elevated = Elevation.IsElevated
+        elevated = Elevation.IsElevated,
+        allUsers = Installation.ForAllUsers
     };
 
     private void PostSettings() => Post(new { type = "settings", settings = SettingsDto() });

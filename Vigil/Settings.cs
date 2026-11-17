@@ -94,20 +94,25 @@ public sealed class Settings
     private static string LegacyFilePath =>
         Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "AuraTime", "settings.json");
 
+    /// <summary>The file is in the user's own folder: it is read and written with the user's rights (AsUser).</summary>
     public static Settings Load()
     {
         try
         {
-            // First run after the rename: carry over what the user set up in AuraTime.
-            if (FilePathOverride is null && !File.Exists(FilePath) && File.Exists(LegacyFilePath))
+            string? json = AsUser.Run(() =>
             {
-                Directory.CreateDirectory(Path.GetDirectoryName(FilePath)!);
-                File.Copy(LegacyFilePath, FilePath);
-            }
+                // First run after the rename: carry over what the user set up in AuraTime.
+                if (FilePathOverride is null && !File.Exists(FilePath) && File.Exists(LegacyFilePath))
+                {
+                    Directory.CreateDirectory(Path.GetDirectoryName(FilePath)!);
+                    File.Copy(LegacyFilePath, FilePath);
+                }
+                return File.Exists(FilePath) ? File.ReadAllText(FilePath) : null;
+            });
 
-            if (File.Exists(FilePath))
+            if (json is not null)
             {
-                Settings? loaded = JsonSerializer.Deserialize<Settings>(File.ReadAllText(FilePath));
+                Settings? loaded = JsonSerializer.Deserialize<Settings>(json);
                 if (loaded is not null)
                 {
                     loaded.Normalise();
@@ -125,8 +130,12 @@ public sealed class Settings
 
     public void Save()
     {
-        Directory.CreateDirectory(Path.GetDirectoryName(FilePath)!);
-        File.WriteAllText(FilePath, JsonSerializer.Serialize(this, JsonOptions));
+        string json = JsonSerializer.Serialize(this, JsonOptions);
+        AsUser.Run(() =>
+        {
+            Directory.CreateDirectory(Path.GetDirectoryName(FilePath)!);
+            File.WriteAllText(FilePath, json);
+        });
     }
 
     public static readonly string[] AllViews = ["clock", "system", "weather", "world", "music"];
@@ -228,12 +237,33 @@ public static class Elevation
     }
 }
 
+/// <summary>Where Vigil is installed, which decides whether it may start with administrator rights without asking.</summary>
+public static class Installation
+{
+    /// <summary>
+    /// Installed for all users, under Program Files: only an administrator can change these files. Installed for
+    /// one user, under %LocalAppData%\Programs, any program the user runs can, so a copy that Windows starts with
+    /// administrator rights without asking would hand those rights to whatever replaced it.
+    /// </summary>
+    public static bool ForAllUsers { get; } = IsUnder(Environment.ProcessPath, Environment.SpecialFolder.ProgramFiles);
+
+    private static bool IsUnder(string? path, Environment.SpecialFolder folder)
+    {
+        if (string.IsNullOrEmpty(path)) return false;
+        string root = Environment.GetFolderPath(folder);
+        if (string.IsNullOrEmpty(root)) return false;
+        root = Path.TrimEndingDirectorySeparator(Path.GetFullPath(root)) + Path.DirectorySeparatorChar;
+        return Path.GetFullPath(path).StartsWith(root, StringComparison.OrdinalIgnoreCase);
+    }
+}
+
 /// <summary>
 /// "Start with Windows": always the current user's Run key, so Vigil is listed under Startup apps in Task Manager
 /// and in Windows' settings, and can be switched on and off there as well as here.
 ///
-/// With administrator mode on there is also a scheduled task, which starts nothing by itself: the copy started at
-/// sign-in runs it to get a copy with administrator rights without a Windows prompt every time.
+/// With administrator mode on and Vigil installed for all users, there is also a scheduled task, which starts nothing
+/// by itself: the copy started at sign-in runs it to get a copy with administrator rights without a Windows prompt
+/// every time. Installed for one user only, there is no task and Windows asks each time (see <see cref="Installation"/>).
 /// </summary>
 public static class Autostart
 {
@@ -266,24 +296,30 @@ public static class Autostart
             approved?.DeleteValue(Name, throwOnMissingValue: false);
         }
 
-        // The task needs administrator rights to be created, changed or removed. Without them it stays as it is:
-        // harmless when unused, since it starts nothing on its own.
+        // The task needs administrator rights to be created, changed or removed. Without them it stays as it is
+        // until the next time Vigil runs with them (Sync).
         if (!Elevation.IsElevated) return;
-        if (enabled && settings.RunAsAdmin) CreateTask();
+        if (enabled && settings.RunAsAdmin && Installation.ForAllUsers) CreateTask();
         else if (TaskExists()) DeleteTask();
     }
 
-    /// <summary>Brings an existing "start with Windows" in line with the current mode (and with this version).</summary>
+    /// <summary>
+    /// Brings "start with Windows" in line with the current mode, the install and this version. With administrator
+    /// rights, it also removes a task left by an earlier version that should not be there, such as one pointing at
+    /// a copy installed for one user only.
+    /// </summary>
     public static void Sync(Settings settings)
     {
         if (IsEnabled) Set(true, settings);
+        else if (Elevation.IsElevated && TaskExists()) DeleteTask();
     }
 
     /// <summary>
     /// Starts a copy with administrator rights through the task, without a Windows prompt. False when there is no
-    /// task to do it (administrator mode was never on with "start with Windows", or the task was removed).
+    /// task to do it (administrator mode was never on with "start with Windows", or the task was removed), and
+    /// always when Vigil is installed for one user only: a task left there by an earlier version is not trusted.
     /// </summary>
-    public static bool StartElevated() => Schtasks($"/Run /TN \"{Name}\"") == 0;
+    public static bool StartElevated() => Installation.ForAllUsers && Schtasks($"/Run /TN \"{Name}\"") == 0;
 
     private static bool RunValueIsSet
     {
@@ -315,14 +351,16 @@ public static class Autostart
 
     private static void DeleteTask() => Schtasks($"/Delete /TN \"{Name}\" /F");
 
-    private static void CreateTask()
+    private static void CreateTask() => RegisterTask(Name, TaskXml());
+
+    /// <summary>The start-up task: runs this copy, with the highest rights the user has, when the app asks.</summary>
+    internal static string TaskXml()
     {
         string user = SecurityElement.Escape(WindowsIdentity.GetCurrent().Name);
         string exe = SecurityElement.Escape(Environment.ProcessPath!);
         // No trigger: the task only runs when the app asks. The XML form (unlike plain schtasks switches) lets it
         // start on battery power and run for ever.
         string xml = $"""
-            <?xml version="1.0" encoding="UTF-16"?>
             <Task version="1.2" xmlns="http://schemas.microsoft.com/windows/2004/02/mit/task">
               <RegistrationInfo><Description>Lets Vigil start with administrator rights, for the CPU temperature, without asking every time.</Description></RegistrationInfo>
               <Principals>
@@ -338,20 +376,32 @@ public static class Autostart
               <Actions Context="Author"><Exec><Command>{exe}</Command><Arguments>{TrayArgument} {FromTaskArgument}</Arguments></Exec></Actions>
             </Task>
             """;
-        string file = Path.Combine(Path.GetTempPath(), $"Vigil-task-{Environment.ProcessId}.xml");
+        return xml;
+    }
+
+    /// <summary>
+    /// Hands a task to the Task Scheduler directly, not through a file for schtasks: a file in the temp folder could
+    /// be changed by any program the user runs between being written and being read, and the task runs with
+    /// administrator rights.
+    /// </summary>
+    internal static void RegisterTask(string name, string xml)
+    {
         try
         {
-            File.WriteAllText(file, xml, Encoding.Unicode);
-            if (Schtasks($"/Create /TN \"{Name}\" /XML \"{file}\" /F") != 0)
-            {
-                throw new InvalidOperationException("Windows did not accept the start-up task.");
-            }
+            dynamic service = Activator.CreateInstance(Type.GetTypeFromProgID("Schedule.Service", throwOnError: true)!)!;
+            service.Connect();
+            dynamic folder = service.GetFolder(@"\");
+            folder.RegisterTask(name, xml, TaskCreateOrUpdate, null, null, TaskLogonInteractiveToken, null);
         }
-        finally
+        catch (Exception e) when (e is System.Runtime.InteropServices.COMException or UnauthorizedAccessException
+            or Microsoft.CSharp.RuntimeBinder.RuntimeBinderException)
         {
-            File.Delete(file);
+            throw new InvalidOperationException($"Windows did not accept the start-up task ({e.Message}).", e);
         }
     }
+
+    private const int TaskCreateOrUpdate = 6;
+    private const int TaskLogonInteractiveToken = 3;
 
     private static int Schtasks(string arguments) => Schtasks(arguments, out _);
 

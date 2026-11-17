@@ -93,45 +93,90 @@ public sealed class Updater : IDisposable
         return null;
     }
 
-    /// <summary>Downloads the installer to the temp folder and checks it. Returns its path; throws when it does not match.</summary>
+    /// <summary>
+    /// Downloads the installer to the temp folder and checks it. Returns its path; throws when it does not match.
+    /// The temp folder is the user's own: every file in it is opened with the user's rights (AsUser).
+    /// </summary>
     public static async Task<string> DownloadAsync(UpdateInfo update)
     {
         string path = Path.Combine(Path.GetTempPath(), $"Vigil-Setup-{update.Version}.exe");
         if (update.Installer.IsFile)
         {
-            File.Copy(update.Installer.LocalPath, path, overwrite: true);
+            AsUser.Run(() => File.Copy(update.Installer.LocalPath, path, overwrite: true));
         }
         else
         {
             using HttpClient http = Client();
             http.Timeout = TimeSpan.FromMinutes(5);
             await using Stream download = await http.GetStreamAsync(update.Installer);
-            await using FileStream file = File.Create(path);
+            await using FileStream file = AsUser.Run(() => new FileStream(path, FileMode.Create, FileAccess.Write, FileShare.None));
             await download.CopyToAsync(file);
         }
 
         string actual;
-        await using (FileStream file = File.OpenRead(path))
+        await using (FileStream file = AsUser.Run(() => File.OpenRead(path)))
         {
             actual = Convert.ToHexString(await SHA256.HashDataAsync(file)).ToLowerInvariant();
         }
         if (actual != update.Sha256)
         {
-            File.Delete(path);
+            AsUser.Run(() => File.Delete(path));
             throw new InvalidDataException("The downloaded installer does not match the checksum GitHub lists for it.");
         }
         return path;
     }
 
-    /// <summary>Runs the checked installer silently; it closes Vigil, updates it and starts it again.</summary>
-    public static void RunInstaller(string path)
+    /// <summary>Held open from the last check until Vigil quits: see <see cref="RunInstaller"/>.</summary>
+    private static FileStream? _installerLock;
+
+    /// <summary>
+    /// Runs the installer silently, in the way this copy was installed (for all users or for this one); it closes
+    /// Vigil, updates it and starts it again.
+    ///
+    /// The file sits in the user's temp folder, where any program the user runs can write. Before it starts, it is
+    /// opened so that nothing else can change or delete it, and checked once more. It stays open until Vigil quits,
+    /// so the file cannot be swapped between the check and the moment the installer, or the copy of it Windows
+    /// starts with administrator rights, reads it.
+    ///
+    /// The installer is started by the path Windows resolved for that open file, not by the path it was opened
+    /// with: a folder on the way could be a link that someone points elsewhere in between, but the folders on the
+    /// resolved path cannot be renamed or replaced while a file in them is open.
+    /// </summary>
+    public static void RunInstaller(string path, UpdateInfo update)
     {
-        Log.Info("update: running the installer");
-        Process.Start(new ProcessStartInfo(path, "/VERYSILENT /SUPPRESSMSGBOXES /NORESTART /CLOSEAPPLICATIONS /update=1")
+        _installerLock?.Dispose();
+        _installerLock = AsUser.Run(() => new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read));
+        string actual = Convert.ToHexString(SHA256.HashData(_installerLock)).ToLowerInvariant();
+        if (actual != update.Sha256)
+        {
+            _installerLock.Dispose();
+            _installerLock = null;
+            throw new InvalidDataException("The installer changed after it was downloaded.");
+        }
+        string resolved = FinalPath(_installerLock.SafeFileHandle);
+
+        string mode = Installation.ForAllUsers ? "/ALLUSERS" : "/CURRENTUSER";
+        Log.Info($"update: running the installer ({(Installation.ForAllUsers ? "all users" : "this user")})");
+        Process.Start(new ProcessStartInfo(resolved, $"/VERYSILENT /SUPPRESSMSGBOXES /NORESTART /CLOSEAPPLICATIONS {mode} /update=1")
         {
             UseShellExecute = true
-        });
+        })?.Dispose();
     }
+
+    /// <summary>The file's real path, with every link on the way resolved, without the \\?\ prefix.</summary>
+    private static string FinalPath(Microsoft.Win32.SafeHandles.SafeFileHandle file)
+    {
+        var buffer = new char[1024];
+        int length = GetFinalPathNameByHandle(file, buffer, buffer.Length, 0);
+        if (length <= 0 || length >= buffer.Length) throw new IOException("Windows could not tell where the installer is.");
+        string path = new(buffer, 0, length);
+        // A local drive comes as \\?\C:\...; a share as \\?\UNC\server\...
+        if (path.StartsWith(@"\\?\UNC\", StringComparison.Ordinal)) return @"\\" + path[8..];
+        return path.StartsWith(@"\\?\", StringComparison.Ordinal) ? path[4..] : path;
+    }
+
+    [System.Runtime.InteropServices.DllImport("kernel32.dll", CharSet = System.Runtime.InteropServices.CharSet.Unicode, SetLastError = true)]
+    private static extern int GetFinalPathNameByHandle(Microsoft.Win32.SafeHandles.SafeFileHandle file, char[] path, int length, int flags);
 
     private static HttpClient Client()
     {

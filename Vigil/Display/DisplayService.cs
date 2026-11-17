@@ -179,8 +179,11 @@ public sealed class DisplayService : IDisposable
         _wake.Set();
     }
 
+    private int _disposed;
+
     public void Dispose()
     {
+        if (Interlocked.Exchange(ref _disposed, 1) == 1) return;
         _stop.Cancel();
         _wake.Set();
         if (_thread.IsAlive) _thread.Join(3000);

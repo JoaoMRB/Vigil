@@ -89,7 +89,8 @@ screen off for now. Every change shows on the screen at once, and there is nothi
 **Install**
 
 1. Download **[Vigil-Setup.exe](https://github.com/JoaoMRB/Vigil/releases/latest/download/Vigil-Setup.exe)** and
-   run it. It doesn't need administrator rights.
+   run it. Choose **Install for me only**, which doesn't need administrator rights, unless you plan to use the
+   CPU temperature: then choose **Install for all users** (see [the sensors](#the-sensors)).
 2. The installer isn't code-signed yet, so Windows may show *Windows protected your PC*. Choose
    **More info → Run anyway**.
 3. Plug the screen in. Vigil finds it by itself, usually within a few seconds.
@@ -140,6 +141,13 @@ on **CPU temperature** under System and install the free [PawnIO](https://pawnio
 the CPU temperature and can't get it, the settings window shows a short guide: what is missing, a button for each
 step, and a tick as each one is done. Until then, Vigil shows the CPU load where the temperature would be, and a
 Custom card says what it is missing.
+
+**Installed for all users** (under Program Files), Windows asks for administrator rights once, when you switch
+CPU temperature on. After that Vigil starts with them at sign-in without asking. **Installed for you only**, Windows
+asks each time Vigil starts. The reason is that any program you run can change the files of an app installed for you
+only, and Vigil won't give administrator rights without a prompt to files that anything could have replaced. To
+move to an install for all users, run the installer again and choose *Install for all users*: it removes the copy
+installed for you only, and keeps your settings.
 
 Without the driver, **Approximate CPU temperature** (under System, off by default) shows the motherboard's ACPI
 thermal zone instead, marked with a `~`. That figure is often well below the CPU's own, and on many desktops it never
@@ -199,8 +207,9 @@ drives these screens, including one in the tray. Vigil connects by itself a few 
 <details>
 <summary><strong>The CPU shows its load, or "Admin mode only", instead of the temperature</strong></summary>
 
-Switch on **CPU temperature** under System, and install [PawnIO](https://pawnio.eu/). Windows asks once for
-administrator rights, then Vigil restarts. The guide under *System screen* in the settings window walks you through
+Switch on **CPU temperature** under System, and install [PawnIO](https://pawnio.eu/). Windows asks for
+administrator rights, then Vigil restarts. It asks only once if Vigil is installed for all users, and each time
+Vigil starts otherwise. The guide under *System screen* in the settings window walks you through
 it. See [the sensors](#the-sensors).
 
 A temperature with a `~` in front is the approximate one, from the motherboard. It isn't the CPU's own.

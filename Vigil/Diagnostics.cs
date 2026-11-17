@@ -19,6 +19,7 @@ public static class Diagnostics
         text.AppendLine("Vigil diagnostics");
         text.AppendLine();
         text.AppendLine($"Vigil {version} · Windows {Environment.OSVersion.Version} · .NET {Environment.Version} · {RuntimeInformation.OSArchitecture}");
+        text.AppendLine($"Installed for: {(Installation.ForAllUsers ? "all users" : "this user")}");
         text.AppendLine($"Running as: {(Elevation.IsElevated ? "administrator" : "standard user")}" +
             $" · CPU temperature mode: {(settings.RunAsAdmin ? "on" : "off")}" +
             $" · Start with Windows: {(SafeAutostart() is { } on ? (on ? "on" : "off") : "unknown")}");
