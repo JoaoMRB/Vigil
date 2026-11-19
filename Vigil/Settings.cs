@@ -128,13 +128,26 @@ public sealed class Settings
         return new Settings();
     }
 
+    /// <summary>
+    /// Writes the settings to a file next to the real one, makes sure it is on the disk, and only then puts it in the
+    /// real one's place. A crash or a power cut halfway through leaves the old file whole, never a cut-off one that
+    /// <see cref="Load"/> would have to throw away for the defaults.
+    /// </summary>
     public void Save()
     {
-        string json = JsonSerializer.Serialize(this, JsonOptions);
+        byte[] json = JsonSerializer.SerializeToUtf8Bytes(this, JsonOptions);
         AsUser.Run(() =>
         {
-            Directory.CreateDirectory(Path.GetDirectoryName(FilePath)!);
-            File.WriteAllText(FilePath, json);
+            string path = FilePath;
+            string temp = path + ".tmp";
+            Directory.CreateDirectory(Path.GetDirectoryName(path)!);
+            using (var file = new FileStream(temp, FileMode.Create, FileAccess.Write, FileShare.None))
+            {
+                file.Write(json);
+                file.Flush(flushToDisk: true);
+            }
+            // On the same drive, Windows swaps the two in one step.
+            File.Move(temp, path, overwrite: true);
         });
     }
 
