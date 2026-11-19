@@ -92,7 +92,7 @@ Filename: "{app}\{#AppExe}"; Description: "{cm:LaunchProgram,{#AppName}}"; Flags
 Filename: "{app}\{#AppExe}"; Parameters: "--tray"; Flags: nowait runasoriginaluser; Check: IsUpdate
 
 [UninstallDelete]
-; The window's browser cache in administrator mode, in an install for all users (MainForm.cs, BrowserDataFolder).
+; The window's browser cache that 0.1.0 to 0.3.0 kept here in administrator mode, in an install for all users.
 Type: filesandordirs; Name: "{app}\WebView2"
 ; The window's browser cache and the log. The settings (%AppData%\Vigil\settings.json) are kept for a later reinstall.
 Type: filesandordirs; Name: "{localappdata}\{#AppName}\WebView2"

@@ -8,6 +8,10 @@ All notable changes to Vigil are listed here. Versions follow [Semantic Versioni
 - A crash or a power cut while Vigil saved its settings could leave the file cut off, and Vigil would then start
   over from the defaults. The settings are now written to a file of their own first and only then put in place, so
   the old ones stay whole until the new ones are complete.
+- In administrator mode, installed for all users, the settings window stayed black and Edge said it couldn't read
+  and write to its data directory. Its browser runs with your ordinary rights even then, so it couldn't use the
+  cache in the install folder; the cache is now in your own folder (`%LocalAppData%\Vigil\WebView2`), as in every
+  other case.
 
 ## [0.3.0] - 2026-11-17
 

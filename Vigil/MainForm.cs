@@ -101,20 +101,14 @@ public sealed class MainForm : Form
     }
 
     /// <summary>
-    /// Where the window's browser keeps its cache. Its processes run with Vigil's own rights, and unlike file work
-    /// done here (AsUser) they cannot be made to use the user's: with administrator rights and an install for all
-    /// users, the cache goes in the install folder, which only administrators can change, one folder per user.
-    /// Installed for one user only, the user's own folder: the program's files there are no better protected.
+    /// Where the window's browser keeps its cache: always the user's own folder. The WebView2 runtime starts its
+    /// browser with the user's ordinary rights (medium integrity) even when Vigil runs with administrator rights, so
+    /// a folder only administrators can change, such as the install folder, is one it can't write to (Edge then
+    /// shows "can't read and write to its data directory" and the window stays black). A browser with the user's
+    /// rights gains nothing from a cache the user's programs can change.
     /// </summary>
-    private static string BrowserDataFolder()
-    {
-        if (Elevation.IsElevated && Installation.ForAllUsers)
-        {
-            using var identity = System.Security.Principal.WindowsIdentity.GetCurrent();
-            return Path.Combine(AppContext.BaseDirectory, "WebView2", identity.User!.Value);
-        }
-        return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Vigil", "WebView2");
-    }
+    private static string BrowserDataFolder() =>
+        Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Vigil", "WebView2");
 
     private async Task InitialiseAsync()
     {
