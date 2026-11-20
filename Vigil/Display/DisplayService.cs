@@ -184,8 +184,12 @@ public sealed class DisplayService : IDisposable
     {
         if (_locked == locked) return;
         _locked = locked;
+        UpdateSensorPause();
         _wake.Set();
     }
+
+    /// <summary>Locked, the screen shows only the time or is off: nothing reads the sensors until it is unlocked.</summary>
+    private void UpdateSensorPause() => Sensors.Paused = _locked && _settings.LockScreen != "keep";
 
     private int _disposed;
 
@@ -293,6 +297,8 @@ public sealed class DisplayService : IDisposable
     {
         Sensors.AdminWanted = _settings.RunAsAdmin;
         Sensors.Approximate = _settings.ApproxCpuTemp;
+        Sensors.Needs = SystemDesigns.Needs(_settings.SystemDesign, _settings.CustomTiles);
+        UpdateSensorPause();
         Sensors.SetEnabled(_settings.Views.Contains("system") || _settings.GameView == "system");
         Weather.Configure(_settings.Views.Contains("weather"), _settings.WeatherCity);
         Media.SetEnabled(_settings.Views.Contains("music"));

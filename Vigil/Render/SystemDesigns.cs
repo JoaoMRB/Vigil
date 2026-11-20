@@ -65,6 +65,32 @@ public static class SystemDesigns
 
     public static readonly string[] DefaultTiles = ["cpu-temp", "cpu-load", "gpu-temp", "gpu-load", "ram", "net-down"];
 
+    /// <summary>
+    /// The sensors a design draws from, so the rest are not read: every reading costs the PC a little, and the
+    /// drives' and the motherboard's ones more than most. The CPU is always read (the window's guide to its
+    /// temperature follows it). An unknown design reads everything.
+    /// </summary>
+    public static SensorNeeds Needs(string? design, IReadOnlyList<string>? tiles) => design switch
+    {
+        "minimal" or "gauges" => SensorNeeds.Cpu | SensorNeeds.Gpu | SensorNeeds.Memory,
+        "graphs" => SensorNeeds.Cpu | SensorNeeds.Gpu | SensorNeeds.Network,
+        "panel" or "bars" => SensorNeeds.Cpu | SensorNeeds.Gpu | SensorNeeds.Memory | SensorNeeds.Network | SensorNeeds.DriveTemp,
+        "dashboard" => SensorNeeds.Cpu | SensorNeeds.Gpu | SensorNeeds.Memory | SensorNeeds.Network | SensorNeeds.DriveTemp | SensorNeeds.Volume,
+        "custom" => CleanTiles(tiles).Aggregate(SensorNeeds.Cpu, (needs, tile) => needs | TileNeeds(tile)),
+        _ => SensorNeeds.All
+    };
+
+    private static SensorNeeds TileNeeds(string tile) => tile switch
+    {
+        "cpu-fan" => SensorNeeds.Fans,
+        "gpu-temp" or "gpu-load" or "gpu-clock" or "gpu-power" or "gpu-fan" or "vram" => SensorNeeds.Gpu,
+        "ram" => SensorNeeds.Memory,
+        "disk-temp" => SensorNeeds.DriveTemp,
+        "net-down" or "net-up" => SensorNeeds.Network,
+        "volume" => SensorNeeds.Volume,
+        _ => SensorNeeds.None // the CPU's own, the drive's use (Windows tells it directly) and the time
+    };
+
     /// <summary>Exactly <see cref="TileCount"/> known metrics: an unknown or missing one takes that card's default.</summary>
     public static List<string> CleanTiles(IReadOnlyList<string>? tiles) =>
         Enumerable.Range(0, TileCount)

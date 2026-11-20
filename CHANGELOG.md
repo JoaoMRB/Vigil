@@ -4,6 +4,13 @@ All notable changes to Vigil are listed here. Versions follow [Semantic Versioni
 
 ## [Unreleased]
 
+### Changed
+- Vigil takes about 25 times less CPU to read the sensors. An NVIDIA card is read straight through the driver's NVML
+  for just what the screen shows: the library read much more on every update (PCIe traffic, every Direct3D
+  engine...), about 30 ms of CPU every two seconds on an RTX 3070 Ti. Only the sensors the chosen design shows are
+  read (the drives' and the motherboard's only when a design shows them), the drives every 30 seconds instead of
+  every two, and nothing at all while the PC is locked and the screen shows only the time or is off.
+
 ### Fixed
 - A crash or a power cut while Vigil saved its settings could leave the file cut off, and Vigil would then start
   over from the defaults. The settings are now written to a file of their own first and only then put in place, so

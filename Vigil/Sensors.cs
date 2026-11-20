@@ -87,6 +87,23 @@ public sealed record SystemSnapshot
     }
 }
 
+/// <summary>Groups of sensors, so only those the screen shows are read (see <see cref="SystemSensors.Needs"/>).</summary>
+[Flags]
+public enum SensorNeeds
+{
+    None = 0,
+    Cpu = 1,
+    Gpu = 2,
+    Memory = 4,
+    Network = 8,
+    /// <summary>The motherboard's sensor chip, where the CPU fan is.</summary>
+    Fans = 16,
+    /// <summary>The drives' own sensors (SMART), for their temperature.</summary>
+    DriveTemp = 32,
+    Volume = 64,
+    All = Cpu | Gpu | Memory | Network | Fans | DriveTemp | Volume
+}
+
 /// <summary>
 /// Reads CPU, GPU, memory, disk and network sensors through LibreHardwareMonitorLib on a background timer, and
 /// keeps the last few minutes of some of them for the graph design. Without administrator rights the library
@@ -97,14 +114,43 @@ public sealed class SystemSensors : IDisposable
     /// <summary>How many readings the history keeps (one every <see cref="IntervalMs"/>).</summary>
     public const int HistoryLength = 90;
     private const int IntervalMs = 2000;
+    /// <summary>
+    /// The drives are read every this many polls (30 seconds): asking a drive for its SMART data is slow, can keep
+    /// a hard disk from resting, and its temperature changes slowly.
+    /// </summary>
+    private const int DriveEvery = 15;
 
     private readonly object _lock = new();
     private readonly List<float> _cpuLoad = [], _gpuLoad = [], _cpuTemp = [], _gpuTemp = [], _netDown = [], _netUp = [];
     private Computer? _computer;
+    private NvidiaGpu? _nvidia;
     private MMDeviceEnumerator? _audio;
     private System.Threading.Timer? _timer;
 
     public SystemSnapshot Latest { get; private set; } = SystemSnapshot.Empty;
+
+    private volatile SensorNeeds _needs = SensorNeeds.All;
+    private SensorNeeds _polledNeeds = SensorNeeds.None;
+    private int _driveTick;
+
+    /// <summary>What the screen shows: only these sensors are read. Everything unless told (the command-line checks).</summary>
+    public SensorNeeds Needs
+    {
+        get => _needs;
+        set => _needs = value | SensorNeeds.Cpu;
+    }
+
+    private volatile bool _paused;
+
+    /// <summary>
+    /// Nothing on the screen shows the PC (it is locked and shows only the time, or is off): the readings stop, and
+    /// the last one is kept. Unlike <see cref="SetEnabled"/>, the library stays open, ready to go on.
+    /// </summary>
+    public bool Paused
+    {
+        get => _paused;
+        set => _paused = value;
+    }
 
     /// <summary>The user asked for administrator mode: tells "switched off" apart from "Windows said no".</summary>
     public bool AdminWanted { get; set; }
@@ -138,7 +184,7 @@ public sealed class SystemSensors : IDisposable
         {
             if (enabled && _timer is null)
             {
-                _timer = new System.Threading.Timer(_ => Poll(), null, 0, IntervalMs);
+                _timer = new System.Threading.Timer(_ => OnTimer(), null, 0, IntervalMs);
             }
             else if (!enabled && _timer is not null)
             {
@@ -146,6 +192,8 @@ public sealed class SystemSensors : IDisposable
                 _timer = null;
                 _computer?.Close();
                 _computer = null;
+                _nvidia?.Dispose();
+                _nvidia = null;
                 _audio?.Dispose();
                 _audio = null;
                 foreach (List<float> series in new[] { _cpuLoad, _gpuLoad, _cpuTemp, _gpuTemp, _netDown, _netUp }) series.Clear();
@@ -171,6 +219,7 @@ public sealed class SystemSensors : IDisposable
         {
             foreach (IHardware hardware in (_computer?.Hardware ?? []).SelectMany(h => new[] { h }.Concat(h.SubHardware)))
             {
+                hardware.Update(); // everything, for the record, whatever the screen shows
                 yield return $"{hardware.HardwareType}: {hardware.Name}";
                 foreach (ISensor sensor in hardware.Sensors.OrderBy(s => s.SensorType).ThenBy(s => s.Index))
                 {
@@ -178,6 +227,11 @@ public sealed class SystemSensors : IDisposable
                 }
             }
         }
+    }
+
+    private void OnTimer()
+    {
+        if (!_paused) Poll();
     }
 
     private void Poll()
@@ -195,23 +249,41 @@ public sealed class SystemSensors : IDisposable
                     IsMotherboardEnabled = true
                 };
                 _computer.Open();
+                _nvidia = NvidiaGpu.TryOpen();
+                if (_nvidia is not null) Log.Info($"sensors: {_nvidia.Name} read through NVML");
             }
+            SensorNeeds needs = _needs;
+            // A drive temperature asked for anew is read at once, not at the next turn of the drives.
+            if ((needs & ~_polledNeeds).HasFlag(SensorNeeds.DriveTemp)) _driveTick = 0;
+            _polledNeeds = needs;
+            bool drives = _driveTick++ % DriveEvery == 0;
             foreach (IHardware hardware in _computer.Hardware)
             {
+                if (!Wanted(hardware.HardwareType, needs, drives)) continue;
+                // An NVIDIA card NVML answers for is read there instead (NvidiaGpu says why).
+                if (hardware.HardwareType == HardwareType.GpuNvidia && _nvidia is not null) continue;
                 hardware.Update();
                 // The motherboard's fans sit on its sensor chip, one level down.
                 foreach (IHardware sub in hardware.SubHardware) sub.Update();
             }
 
-            (float? volume, bool muted) = ReadVolume();
+            (float? volume, bool muted) = needs.HasFlag(SensorNeeds.Volume) ? ReadVolume() : (null, false);
             SystemSnapshot reading = Read(_computer) with { VolumePct = volume, Muted = muted };
+            if (_nvidia is not null && needs.HasFlag(SensorNeeds.Gpu))
+            {
+                reading = _nvidia.Read(reading);
+                reading = reading with { GpuName = ShortName(reading.GpuName) };
+            }
             if (reading.CpuTemp is null) reading = WithStandIn(reading);
+            // A group that is not read keeps its last values: the history gets gaps instead, so a graph that
+            // comes back does not draw a stale line.
+            bool gpu = needs.HasFlag(SensorNeeds.Gpu), net = needs.HasFlag(SensorNeeds.Network);
             Push(_cpuLoad, reading.CpuLoad);
-            Push(_gpuLoad, reading.GpuLoad);
+            Push(_gpuLoad, gpu ? reading.GpuLoad : null);
             Push(_cpuTemp, reading.CpuTemp);
-            Push(_gpuTemp, reading.GpuTemp);
-            Push(_netDown, reading.NetDownBps);
-            Push(_netUp, reading.NetUpBps);
+            Push(_gpuTemp, gpu ? reading.GpuTemp : null);
+            Push(_netDown, net ? reading.NetDownBps : null);
+            Push(_netUp, net ? reading.NetUpBps : null);
             Latest = reading with
             {
                 History = new SystemHistory(_cpuLoad.ToArray(), _gpuLoad.ToArray(), _cpuTemp.ToArray(), _gpuTemp.ToArray(), _netDown.ToArray(), _netUp.ToArray())
@@ -228,6 +300,18 @@ public sealed class SystemSensors : IDisposable
             Monitor.Exit(_lock);
         }
     }
+
+    /// <summary>Whether this kind of hardware is read on this poll. The drives only on their turn.</summary>
+    private static bool Wanted(HardwareType type, SensorNeeds needs, bool drivesTurn) => type switch
+    {
+        HardwareType.Cpu => true,
+        HardwareType.GpuNvidia or HardwareType.GpuAmd or HardwareType.GpuIntel => needs.HasFlag(SensorNeeds.Gpu),
+        HardwareType.Memory => needs.HasFlag(SensorNeeds.Memory),
+        HardwareType.Network => needs.HasFlag(SensorNeeds.Network),
+        HardwareType.Motherboard => needs.HasFlag(SensorNeeds.Fans),
+        HardwareType.Storage => needs.HasFlag(SensorNeeds.DriveTemp) && drivesTurn,
+        _ => true
+    };
 
     /// <summary>
     /// No reading from the CPU's own sensor: say why, and, when the user asked for it, put the ACPI thermal zone in
