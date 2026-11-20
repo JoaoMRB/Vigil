@@ -4,6 +4,11 @@ All notable changes to Vigil are listed here. Versions follow [Semantic Versioni
 
 ## [Unreleased]
 
+### Changed
+- In administrator mode, installed for all users, opening Vigil yourself no longer brings up a Windows prompt: it
+  starts through the same task as at sign-in, and opens its window (or has the copy already in the tray open it).
+  The task is now kept while administrator mode is on, whether Vigil starts with Windows or not.
+
 ### Added
 - Geist Mono, a fifth clock font. Every digit is as wide as the others, so the time and the readings don't shift
   sideways as they change. A "°" sits next to its number, not a digit's width away.

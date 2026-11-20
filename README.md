@@ -144,7 +144,8 @@ step, and a tick as each one is done. Until then, Vigil shows the CPU load where
 Custom card says what it is missing.
 
 **Installed for all users** (under Program Files), Windows asks for administrator rights once, when you switch
-CPU temperature on. After that Vigil starts with them at sign-in without asking. **Installed for you only**, Windows
+CPU temperature on. After that Vigil starts with them without asking, at sign-in and when you open it yourself.
+**Installed for you only**, Windows
 asks each time Vigil starts. The reason is that any program you run can change the files of an app installed for you
 only, and Vigil won't give administrator rights without a prompt to files that anything could have replaced. To
 move to an install for all users, run the installer again and choose *Install for all users*: it removes the copy

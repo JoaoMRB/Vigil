@@ -82,14 +82,17 @@ internal static class Program
         int waitFor = Array.IndexOf(args, WaitForArgument);
         if (waitFor >= 0 && waitFor + 1 < args.Length && int.TryParse(args[waitFor + 1], out int pid)) WaitForExit(pid);
 
-        bool tray = args.Contains(Autostart.TrayArgument);
+        bool fromTask = args.Contains(Autostart.FromTaskArgument);
+        // The task always starts a copy for the tray; one opened by hand that ran it asks for the window.
+        bool tray = args.Contains(Autostart.TrayArgument) && !(fromTask && Autostart.WindowAsked());
         Log.Start();
         Settings settings = Settings.Load();
         // A copy started by the task is as elevated as it will get: it must not ask again (that would loop).
-        if (settings.RunAsAdmin && !Elevation.IsElevated && !args.Contains(Autostart.FromTaskArgument))
+        if (settings.RunAsAdmin && !Elevation.IsElevated && !fromTask)
         {
-            // At sign-in, the task hands over to a copy with administrator rights without a Windows prompt.
-            if (tray && Autostart.StartElevated()) return 0;
+            // At sign-in or opened by hand, the task hands over to a copy with administrator rights without a
+            // Windows prompt. Without the task, Windows asks.
+            if (Autostart.StartElevated(openWindow: !tray)) return 0;
             if (Elevation.Relaunch(tray ? Autostart.TrayArgument : "")) return 0;
         }
         // (When the user says no to the Windows prompt, the app carries on without the CPU temperature.)
@@ -98,7 +101,7 @@ internal static class Program
         bool first;
         try
         {
-            single = new Mutex(true, @"Local\Vigil", out first);
+            single = new Mutex(true, Autostart.SingleInstanceMutex, out first);
         }
         catch (UnauthorizedAccessException)
         {

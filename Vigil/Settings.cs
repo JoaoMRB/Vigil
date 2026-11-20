@@ -275,8 +275,9 @@ public static class Installation
 /// and in Windows' settings, and can be switched on and off there as well as here.
 ///
 /// With administrator mode on and Vigil installed for all users, there is also a scheduled task, which starts nothing
-/// by itself: the copy started at sign-in runs it to get a copy with administrator rights without a Windows prompt
-/// every time. Installed for one user only, there is no task and Windows asks each time (see <see cref="Installation"/>).
+/// by itself: a copy without administrator rights (the one started at sign-in, or one opened by hand) runs it to get a
+/// copy with them without a Windows prompt every time. Installed for one user only, there is no task and Windows asks
+/// each time (see <see cref="Installation"/>).
 /// </summary>
 public static class Autostart
 {
@@ -309,30 +310,94 @@ public static class Autostart
             approved?.DeleteValue(Name, throwOnMissingValue: false);
         }
 
-        // The task needs administrator rights to be created, changed or removed. Without them it stays as it is
-        // until the next time Vigil runs with them (Sync).
-        if (!Elevation.IsElevated) return;
-        if (enabled && settings.RunAsAdmin && Installation.ForAllUsers) CreateTask();
-        else if (TaskExists()) DeleteTask();
+        SyncTask(settings);
     }
 
     /// <summary>
-    /// Brings "start with Windows" in line with the current mode, the install and this version. With administrator
-    /// rights, it also removes a task left by an earlier version that should not be there, such as one pointing at
-    /// a copy installed for one user only.
+    /// Brings "start with Windows" and the task in line with the current mode, the install and this version. With
+    /// administrator rights, it also removes a task left by an earlier version that should not be there, such as one
+    /// pointing at a copy installed for one user only.
     /// </summary>
     public static void Sync(Settings settings)
     {
         if (IsEnabled) Set(true, settings);
-        else if (Elevation.IsElevated && TaskExists()) DeleteTask();
+        else SyncTask(settings);
     }
 
     /// <summary>
-    /// Starts a copy with administrator rights through the task, without a Windows prompt. False when there is no
-    /// task to do it (administrator mode was never on with "start with Windows", or the task was removed), and
-    /// always when Vigil is installed for one user only: a task left there by an earlier version is not trusted.
+    /// The task is there exactly while administrator mode is on and Vigil is installed for all users, whether it
+    /// starts with Windows or not: opened by hand, it uses the task too. It needs administrator rights to be created,
+    /// changed or removed; without them it stays as it is until the next time Vigil runs with them.
     /// </summary>
-    public static bool StartElevated() => Installation.ForAllUsers && Schtasks($"/Run /TN \"{Name}\"") == 0;
+    private static void SyncTask(Settings settings)
+    {
+        if (!Elevation.IsElevated) return;
+        if (settings.RunAsAdmin && Installation.ForAllUsers) CreateTask();
+        else if (TaskExists()) DeleteTask();
+    }
+
+    /// <summary>
+    /// Asks the copy the task starts to open its window rather than stay in the tray. A copy without administrator
+    /// rights cannot reach one with them (Windows keeps their objects from it), but the other way round works: the
+    /// copy opened by hand holds this event while the task starts the other, which looks for it. Anyone could create
+    /// it; all it does is open the window.
+    /// </summary>
+    private const string OpenWindowEvent = @"Local\Vigil.OpenWindow";
+
+    /// <summary>The name of the mutex that keeps Vigil to one copy (Program).</summary>
+    public const string SingleInstanceMutex = @"Local\Vigil";
+
+    /// <summary>
+    /// Starts a copy with administrator rights through the task, without a Windows prompt; with
+    /// <paramref name="openWindow"/>, one that opens its window (or has the copy already running open it). False
+    /// when there is no task to do it (administrator mode was never on with this version, or the task was removed),
+    /// and always when Vigil is installed for one user only: a task left there by an earlier version is not trusted.
+    /// </summary>
+    public static bool StartElevated(bool openWindow)
+    {
+        if (!Installation.ForAllUsers) return false;
+        using EventWaitHandle? ask = openWindow ? new EventWaitHandle(true, EventResetMode.ManualReset, OpenWindowEvent) : null;
+        if (Schtasks($"/Run /TN \"{Name}\"") != 0) return false;
+        // The new copy reads the request before it takes the mutex: once the mutex is there, the request was read
+        // (or another copy was already running, and the new one has it open its window anyway).
+        if (ask is not null) WaitForRunningCopy(TimeSpan.FromSeconds(15));
+        return true;
+    }
+
+    /// <summary>In the copy the task started: whether the copy that ran the task wants the window open.</summary>
+    public static bool WindowAsked()
+    {
+        try
+        {
+            if (!EventWaitHandle.TryOpenExisting(OpenWindowEvent, out EventWaitHandle? ask)) return false;
+            using (ask) return ask.WaitOne(0);
+        }
+        catch (Exception e) when (e is UnauthorizedAccessException or IOException or WaitHandleCannotBeOpenedException)
+        {
+            return false;
+        }
+    }
+
+    private static void WaitForRunningCopy(TimeSpan timeout)
+    {
+        long until = Environment.TickCount64 + (long)timeout.TotalMilliseconds;
+        while (Environment.TickCount64 < until)
+        {
+            try
+            {
+                if (Mutex.TryOpenExisting(SingleInstanceMutex, out Mutex? running))
+                {
+                    running.Dispose();
+                    return;
+                }
+            }
+            catch (UnauthorizedAccessException)
+            {
+                return; // there, held by a copy with rights this one does not have
+            }
+            Thread.Sleep(100);
+        }
+    }
 
     private static bool RunValueIsSet
     {
@@ -372,7 +437,8 @@ public static class Autostart
         string user = SecurityElement.Escape(WindowsIdentity.GetCurrent().Name);
         string exe = SecurityElement.Escape(Environment.ProcessPath!);
         // No trigger: the task only runs when the app asks. The XML form (unlike plain schtasks switches) lets it
-        // start on battery power and run for ever.
+        // start on battery power and run for ever. Parallel: the copy it started at sign-in is still running when
+        // Vigil is opened by hand, and the new one must start to have that one open its window (it then quits).
         string xml = $"""
             <Task version="1.2" xmlns="http://schemas.microsoft.com/windows/2004/02/mit/task">
               <RegistrationInfo><Description>Lets Vigil start with administrator rights, for the CPU temperature, without asking every time.</Description></RegistrationInfo>
@@ -380,7 +446,7 @@ public static class Autostart
                 <Principal id="Author"><UserId>{user}</UserId><LogonType>InteractiveToken</LogonType><RunLevel>HighestAvailable</RunLevel></Principal>
               </Principals>
               <Settings>
-                <MultipleInstancesPolicy>IgnoreNew</MultipleInstancesPolicy>
+                <MultipleInstancesPolicy>Parallel</MultipleInstancesPolicy>
                 <DisallowStartIfOnBatteries>false</DisallowStartIfOnBatteries>
                 <StopIfGoingOnBatteries>false</StopIfGoingOnBatteries>
                 <ExecutionTimeLimit>PT0S</ExecutionTimeLimit>
