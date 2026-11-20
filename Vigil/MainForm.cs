@@ -59,6 +59,7 @@ public sealed class MainForm : Form
         Controls.Add(_web);
 
         _display.StatusChanged += OnStatusChanged;
+        _display.WindowOpened(); // the preview shows the sensors, with or without the screen
         _timer.Tick += (_, _) =>
         {
             SendFrame();
@@ -91,6 +92,7 @@ public sealed class MainForm : Form
         if (disposing)
         {
             _display.StatusChanged -= OnStatusChanged;
+            _display.WindowClosed();
             if (_updater is not null) _updater.Changed -= OnUpdateChanged;
             _timer.Dispose();
             _web.Dispose(); // the browser processes end with the last WebView2 that uses them

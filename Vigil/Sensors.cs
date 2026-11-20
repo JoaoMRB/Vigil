@@ -143,13 +143,27 @@ public sealed class SystemSensors : IDisposable
     private volatile bool _paused;
 
     /// <summary>
-    /// Nothing on the screen shows the PC (it is locked and shows only the time, or is off): the readings stop, and
-    /// the last one is kept. Unlike <see cref="SetEnabled"/>, the library stays open, ready to go on.
+    /// Nothing shows the PC (no screen, or one locked down to the time, and no window): the readings stop, and the
+    /// last one is kept. Unlike <see cref="SetEnabled"/>, the library stays open, ready to go on. Going on reads at
+    /// once rather than at the next tick, so what shows first is fresh.
     /// </summary>
     public bool Paused
     {
         get => _paused;
-        set => _paused = value;
+        set
+        {
+            bool resume = _paused && !value;
+            _paused = value;
+            if (!resume) return;
+            try
+            {
+                _timer?.Change(0, IntervalMs);
+            }
+            catch (ObjectDisposedException)
+            {
+                // Switched off meanwhile: nothing to go on with.
+            }
+        }
     }
 
     /// <summary>The user asked for administrator mode: tells "switched off" apart from "Windows said no".</summary>

@@ -133,6 +133,7 @@ public sealed class DisplayService : IDisposable
         {
             if (_screenOff == value) return;
             _screenOff = value;
+            UpdateSensorPause();
             _wake.Set();
         }
     }
@@ -188,8 +189,31 @@ public sealed class DisplayService : IDisposable
         _wake.Set();
     }
 
-    /// <summary>Locked, the screen shows only the time or is off: nothing reads the sensors until it is unlocked.</summary>
-    private void UpdateSensorPause() => Sensors.Paused = _locked && _settings.LockScreen != "keep";
+    private int _windows;
+
+    /// <summary>The settings window opened: its preview shows the sensors, whether the screen is there or not.</summary>
+    public void WindowOpened()
+    {
+        Interlocked.Increment(ref _windows);
+        UpdateSensorPause();
+    }
+
+    /// <summary>The settings window closed.</summary>
+    public void WindowClosed()
+    {
+        Interlocked.Decrement(ref _windows);
+        UpdateSensorPause();
+    }
+
+    /// <summary>
+    /// The sensors are read only while something shows them: the window's preview, or the screen when it is
+    /// connected, on, and not locked down to the time. Otherwise they rest, and the last reading is kept.
+    /// </summary>
+    private void UpdateSensorPause()
+    {
+        bool screenShows = Status == DisplayStatus.Connected && !_screenOff && !(_locked && _settings.LockScreen != "keep");
+        Sensors.Paused = Volatile.Read(ref _windows) == 0 && !screenShows;
+    }
 
     private int _disposed;
 
@@ -509,6 +533,7 @@ public sealed class DisplayService : IDisposable
         string line = detail.Length > 0 ? $"display: {status} ({detail})" : $"display: {status}";
         if (status is DisplayStatus.Busy or DisplayStatus.Error) Log.Warn(line);
         else Log.Info(line);
+        UpdateSensorPause();
         StatusChanged?.Invoke();
     }
 }
