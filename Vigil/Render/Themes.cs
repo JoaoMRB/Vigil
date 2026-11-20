@@ -22,7 +22,8 @@ public sealed record Theme(
     SKColor Accent,
     SKColor Muted);
 
-public sealed record ClockFont(string Id, string Name, string File, bool Italic);
+/// <param name="Monospaced">Every character as wide as a digit: a "°" after a number is drawn closer (see ScreenRenderer.DegreePull).</param>
+public sealed record ClockFont(string Id, string Name, string File, bool Italic, bool Monospaced = false);
 
 public static class Themes
 {
@@ -76,7 +77,9 @@ public static class ClockFonts
         new("outfit", "Outfit", "outfit-latin-500-normal.ttf", false),
         new("orbitron", "Orbitron", "orbitron-latin-700-normal.ttf", false),
         new("inter", "Inter", "inter-latin-300-normal.ttf", false),
-        new("playfair", "Playfair Display", "playfair-display-latin-400-italic.ttf", true)
+        new("playfair", "Playfair Display", "playfair-display-latin-400-italic.ttf", true),
+        // Every digit as wide as the others: the time does not shift sideways as the minutes change.
+        new("geist-mono", "Geist Mono", "geist-mono-latin-400-normal.ttf", false, Monospaced: true)
     ];
 
     public static ClockFont Resolve(string? id) => All.FirstOrDefault(f => f.Id == id) ?? All[0];

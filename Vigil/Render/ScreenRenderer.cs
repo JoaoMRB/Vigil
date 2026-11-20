@@ -196,13 +196,13 @@ public sealed partial class ScreenRenderer : IDisposable
         // Icon + temperature, centred together
         string temp = $"{Math.Round(weather.TempC).ToString(CultureInfo.InvariantCulture)}°";
         using var tempFont = new SKFont(Typeface(options.Font.File), 92);
-        while (tempFont.Size > 12 && tempFont.MeasureText(temp) > 200) tempFont.Size -= 2;
-        float tempWidth = tempFont.MeasureText(temp);
+        while (tempFont.Size > 12 && ClockTextWidth(options.Font, tempFont, temp) > 200) tempFont.Size -= 2;
+        float tempWidth = ClockTextWidth(options.Font, tempFont, temp);
         const float iconSize = 58;
         const float gap = 18;
         float startX = cx - (tempWidth + gap + iconSize) / 2;
         DrawWeatherIcon(weather.Condition, startX + iconSize / 2, 106, iconSize, theme);
-        FillText(theme.Primary, temp, startX + iconSize + gap, 128, tempWidth, tempFont, paint);
+        FillClockText(options.Font, theme.Primary, temp, startX + iconSize + gap, 128, tempFont, paint);
 
         using var conditionFont = new SKFont(Typeface("inter-latin-600-normal.ttf"), 16);
         using var cityFont = new SKFont(Typeface("inter-latin-500-normal.ttf"), 13);
@@ -415,8 +415,12 @@ public sealed partial class ScreenRenderer : IDisposable
         }
     }
 
-    /// <summary>Left-aligned text in the theme's primary colour, or its horizontal gradient when it has several.</summary>
-    private void FillText(SKColor[] colors, string text, float x, float baseline, float width, SKFont font, SKPaint paint)
+    /// <summary>
+    /// Left-aligned text in the theme's primary colour, or its horizontal gradient when it has several. The gradient
+    /// runs over <paramref name="width"/> from <paramref name="gradientStart"/> (the text's own start unless given),
+    /// so a text drawn in pieces shades as one.
+    /// </summary>
+    private void FillText(SKColor[] colors, string text, float x, float baseline, float width, SKFont font, SKPaint paint, float? gradientStart = null)
     {
         if (colors.Length == 1)
         {
@@ -424,11 +428,41 @@ public sealed partial class ScreenRenderer : IDisposable
             _canvas.DrawText(text, x, baseline, SKTextAlign.Left, font, paint);
             return;
         }
+        float from = gradientStart ?? x;
         using SKShader gradient = SKShader.CreateLinearGradient(
-            new SKPoint(x, 0), new SKPoint(x + width, 0), colors, SKShaderTileMode.Clamp);
+            new SKPoint(from, 0), new SKPoint(from + width, 0), colors, SKShaderTileMode.Clamp);
         paint.Shader = gradient;
         _canvas.DrawText(text, x, baseline, SKTextAlign.Left, font, paint);
         paint.Shader = null;
+    }
+
+    /// <summary>
+    /// In a monospaced font a "°" sits in a cell as wide as a digit, with a wide gap before it: how far to move it
+    /// back towards the number. Nothing for any other font, or a text that does not end in "°".
+    /// </summary>
+    private static float DegreePull(ClockFont clock, SKFont font, string text)
+    {
+        if (!clock.Monospaced || !text.EndsWith('°')) return 0;
+        font.MeasureText("°", out SKRect ink);
+        return MathF.Max(0, ink.Left - font.Size * 0.04f);
+    }
+
+    /// <summary>How wide a text in the clock font is drawn by <see cref="FillClockText"/>.</summary>
+    private static float ClockTextWidth(ClockFont clock, SKFont font, string text) => font.MeasureText(text) - DegreePull(clock, font, text);
+
+    /// <summary><see cref="FillText"/> for a text in the clock font, with a closing "°" kept next to the number.</summary>
+    private void FillClockText(ClockFont clock, SKColor[] colors, string text, float x, float baseline, SKFont font, SKPaint paint)
+    {
+        float pull = DegreePull(clock, font, text);
+        float width = font.MeasureText(text) - pull;
+        if (pull == 0)
+        {
+            FillText(colors, text, x, baseline, width, font, paint);
+            return;
+        }
+        string number = text[..^1];
+        FillText(colors, number, x, baseline, width, font, paint);
+        FillText(colors, "°", x + font.MeasureText(number) - pull, baseline, width, font, paint, gradientStart: x);
     }
 
     /// <summary>

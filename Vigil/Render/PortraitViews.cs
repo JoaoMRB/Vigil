@@ -46,9 +46,9 @@ public sealed partial class ScreenRenderer
         DrawWeatherIcon(weather.Condition, cx, 104, 76, theme);
         string temp = $"{Math.Round(weather.TempC).ToString(CultureInfo.InvariantCulture)}°";
         using var tempFont = new SKFont(Typeface(options.Font.File), 92);
-        while (tempFont.Size > 12 && tempFont.MeasureText(temp) > 220) tempFont.Size -= 2;
-        float tempWidth = tempFont.MeasureText(temp);
-        FillText(theme.Primary, temp, cx - tempWidth / 2, 222, tempWidth, tempFont, paint);
+        while (tempFont.Size > 12 && ClockTextWidth(options.Font, tempFont, temp) > 220) tempFont.Size -= 2;
+        float tempWidth = ClockTextWidth(options.Font, tempFont, temp);
+        FillClockText(options.Font, theme.Primary, temp, cx - tempWidth / 2, 222, tempFont, paint);
 
         using var conditionFont = new SKFont(Typeface("inter-latin-600-normal.ttf"), 16);
         using var cityFont = new SKFont(Typeface("inter-latin-500-normal.ttf"), 13);

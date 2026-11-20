@@ -40,7 +40,7 @@ Before the PC sleeps the screen turns off, and it comes back by itself when the 
 itself down.
 
 **Yours to shape.** Seven designs for the system view, one of them with six cards you fill yourself. Five themes,
-four clock fonts, your own colours. Stand the screen upright and every view has a layout made for it.
+five clock fonts, your own colours. Stand the screen upright and every view has a layout made for it.
 
 **Private and light.** No account and no telemetry. Vigil only goes online for the weather and to check for updates,
 and you can turn off either one. It waits in the tray and stays out of the way.
@@ -116,8 +116,8 @@ Your settings are kept.
 - **Seven system designs:** Dashboard, Custom, Full panel, Gauges, Bars, Graphs and Minimal. Each one has its own
   colours, and you can change them, along with the temperature from which a reading counts as hot.
 - **Custom:** six cards. Each card shows one of 18 readings, from the GPU fan to the upload speed.
-- **Themes and fonts:** five themes (Dark Glass, the default, then Emerald Gold, Liquid Glass, Obsidian Platinum, Light Glass), four
-  clock fonts, and a 12 or 24-hour clock.
+- **Themes and fonts:** five themes (Dark Glass, the default, then Emerald Gold, Liquid Glass, Obsidian Platinum, Light Glass), five
+  clock fonts (Outfit, Orbitron, Inter, Playfair Display and the monospaced Geist Mono), and a 12 or 24-hour clock.
 - **Any way up:** landscape, upside down, or upright turned either way.
 - **Languages:** the screen, the settings window and the tray menu follow Windows' language: English, Portuguese,
   Spanish, French, German or Italian.

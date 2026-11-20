@@ -661,7 +661,9 @@ public sealed partial class ScreenRenderer
         using SKFont font = Font(o.Font.File, size);
         using SKFont smallFont = Font(Semibold, size * unitScale);
         SKFont unitFont = small ? smallFont : font;
-        float Total() => font.MeasureText(big.Value) + (big.Unit.Length > 0 ? gap + unitFont.MeasureText(big.Unit) : 0);
+        // A "°" in the clock font, when that is monospaced, moves in next to the number.
+        float Pull() => small ? 0 : DegreePull(o.Font, font, big.Unit);
+        float Total() => font.MeasureText(big.Value) + (big.Unit.Length > 0 ? gap + unitFont.MeasureText(big.Unit) - Pull() : 0);
         while (font.Size > 12 && Total() > maxWidth)
         {
             font.Size -= 2;
@@ -674,7 +676,7 @@ public sealed partial class ScreenRenderer
         FillText(big.Hot ? [o.System.Alert] : o.Theme.Primary, big.Value, start, baseline, valueWidth, font, paint);
         paint.Shader = null;
         paint.Color = big.Hot ? o.System.Alert : unitColor;
-        _canvas.DrawText(big.Unit, start + valueWidth + gap, baseline, SKTextAlign.Left, unitFont, paint);
+        _canvas.DrawText(big.Unit, start + valueWidth + gap - Pull(), baseline, SKTextAlign.Left, unitFont, paint);
     }
 
     /// <summary>A thin vertical divider.</summary>

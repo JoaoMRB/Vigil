@@ -4,6 +4,10 @@ All notable changes to Vigil are listed here. Versions follow [Semantic Versioni
 
 ## [Unreleased]
 
+### Added
+- Geist Mono, a fifth clock font. Every digit is as wide as the others, so the time and the readings don't shift
+  sideways as they change. A "°" sits next to its number, not a digit's width away.
+
 ### Changed
 - Dark Glass is the default theme and comes first in the list, in Vigil's own graphite and silver: its accent is
   silver instead of AuraTime's gold. The themes that came from AuraTime are still there. A theme you chose before
