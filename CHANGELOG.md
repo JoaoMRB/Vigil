@@ -5,6 +5,9 @@ All notable changes to Vigil are listed here. Versions follow [Semantic Versioni
 ## [Unreleased]
 
 ### Changed
+- Dark Glass is the default theme and comes first in the list, in Vigil's own graphite and silver: its accent is
+  silver instead of AuraTime's gold. The themes that came from AuraTime are still there. A theme you chose before
+  stays as it is.
 - Vigil takes about 25 times less CPU to read the sensors. An NVIDIA card is read straight through the driver's NVML
   for just what the screen shows: the library read much more on every update (PCIe traffic, every Direct3D
   engine...), about 30 ms of CPU every two seconds on an RTX 3070 Ti. Only the sensors the chosen design shows are

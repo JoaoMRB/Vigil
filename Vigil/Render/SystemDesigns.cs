@@ -116,7 +116,7 @@ public static class SystemDesigns
 
     public static string Hex(SKColor c) => $"#{c.Red:X2}{c.Green:X2}{c.Blue:X2}";
 
-    // A cool second colour next to the theme's warm gold, so the CPU and the GPU are told apart at a glance.
+    // A cool second colour next to the theme's accent (silver, or AuraTime's gold), so the CPU and the GPU are told apart at a glance.
     private static SKColor DefaultSecondary(Theme theme) => theme.IsLight ? SKColor.Parse("#0284C7") : SKColor.Parse("#7DD3FC");
 
     private static SKColor DefaultAlert(Theme theme) => theme.IsLight ? SKColor.Parse("#DC2626") : SKColor.Parse("#F87171");

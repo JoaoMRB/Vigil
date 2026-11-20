@@ -1,4 +1,4 @@
-using SkiaSharp;
+﻿using SkiaSharp;
 
 namespace Vigil.Render;
 
@@ -26,12 +26,19 @@ public sealed record ClockFont(string Id, string Name, string File, bool Italic)
 
 public static class Themes
 {
-    public const string DefaultId = "emerald-gold";
+    public const string DefaultId = "dark-glass";
 
     private static SKColor C(string hex) => SKColor.Parse(hex);
 
+    /// <summary>Vigil's own theme first, in its graphite and silver; then the ones from AuraTime.</summary>
     public static readonly Theme[] All =
     [
+        new("dark-glass", "Dark Glass", false, 45,
+            [C("#18181b"), C("#0a0a0a"), C("#1c1917")],
+            [],
+            C("#FFFFFF"), 0.02f, C("#FFFFFF"), 0.05f,
+            [C("#FFFFFF")], C("#D4D4D8"), C("#9ca3af")),
+
         new("emerald-gold", "Emerald Gold", false, 135,
             [C("#052211"), C("#000000"), C("#011409")],
             [new(C("#0A3B1F"), 0.2f, true), new(C("#D4AF37"), 0.1f, false)],
@@ -49,12 +56,6 @@ public static class Themes
             [],
             C("#09090b"), 0.4f, C("#18181b"), 0.8f,
             [C("#FFFFFF"), C("#a1a1aa"), C("#52525b")], C("#D4AF37"), C("#9ca3af")),
-
-        new("dark-glass", "Dark Glass", false, 45,
-            [C("#18181b"), C("#0a0a0a"), C("#1c1917")],
-            [],
-            C("#FFFFFF"), 0.02f, C("#FFFFFF"), 0.05f,
-            [C("#FFFFFF")], C("#D4AF37"), C("#9ca3af")),
 
         new("light-glass", "Light Glass", true, 45,
             [C("#e5e7eb"), C("#f1f5f9"), C("#d1d5db")],

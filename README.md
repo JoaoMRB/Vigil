@@ -116,7 +116,7 @@ Your settings are kept.
 - **Seven system designs:** Dashboard, Custom, Full panel, Gauges, Bars, Graphs and Minimal. Each one has its own
   colours, and you can change them, along with the temperature from which a reading counts as hot.
 - **Custom:** six cards. Each card shows one of 18 readings, from the GPU fan to the upload speed.
-- **Themes and fonts:** five themes (Emerald Gold, Liquid Glass, Obsidian Platinum, Dark Glass, Light Glass), four
+- **Themes and fonts:** five themes (Dark Glass, the default, then Emerald Gold, Liquid Glass, Obsidian Platinum, Light Glass), four
   clock fonts, and a 12 or 24-hour clock.
 - **Any way up:** landscape, upside down, or upright turned either way.
 - **Languages:** the screen, the settings window and the tray menu follow Windows' language: English, Portuguese,
