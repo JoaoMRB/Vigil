@@ -4,10 +4,21 @@ All notable changes to Vigil are listed here. Versions follow [Semantic Versioni
 
 ## [Unreleased]
 
+## [0.4.0] - 2026-11-20
+
 ### Changed
+- Vigil takes about 25 times less CPU to read the sensors. An NVIDIA card is read straight through the driver's NVML
+  for just what the screen shows: the library read much more on every update (PCIe traffic, every Direct3D
+  engine...), about 30 ms of CPU every two seconds on an RTX 3070 Ti. Only the sensors the chosen design shows are
+  read (the drives' and the motherboard's only when a design shows them), the drives every 30 seconds instead of
+  every two, and nothing at all while nothing shows them: no screen plugged in (or one turned off, or locked down to
+  the time) and the window closed. They go on the moment the screen or the window is back.
 - In administrator mode, installed for all users, opening Vigil yourself no longer brings up a Windows prompt: it
   starts through the same task as at sign-in, and opens its window (or has the copy already in the tray open it).
   The task is now kept while administrator mode is on, whether Vigil starts with Windows or not.
+- Dark Glass is the default theme and comes first in the list, in Vigil's own graphite and silver: its accent is
+  silver instead of AuraTime's gold. The themes that came from AuraTime are still there. A theme you chose before
+  stays as it is.
 
 ### Added
 - Alerts with a limit for each part, set once for every design: the CPU (90° to start with), the GPU (83°) and the
@@ -20,17 +31,6 @@ All notable changes to Vigil are listed here. Versions follow [Semantic Versioni
   long the PC has been on. None of them costs the PC anything more to read.
 - Geist Mono, a fifth clock font. Every digit is as wide as the others, so the time and the readings don't shift
   sideways as they change. A "°" sits next to its number, not a digit's width away.
-
-### Changed
-- Dark Glass is the default theme and comes first in the list, in Vigil's own graphite and silver: its accent is
-  silver instead of AuraTime's gold. The themes that came from AuraTime are still there. A theme you chose before
-  stays as it is.
-- Vigil takes about 25 times less CPU to read the sensors. An NVIDIA card is read straight through the driver's NVML
-  for just what the screen shows: the library read much more on every update (PCIe traffic, every Direct3D
-  engine...), about 30 ms of CPU every two seconds on an RTX 3070 Ti. Only the sensors the chosen design shows are
-  read (the drives' and the motherboard's only when a design shows them), the drives every 30 seconds instead of
-  every two, and nothing at all while nothing shows them: no screen plugged in (or one turned off, or locked down to
-  the time) and the window closed. They go on the moment the screen or the window is back.
 
 ### Fixed
 - A crash or a power cut while Vigil saved its settings could leave the file cut off, and Vigil would then start
