@@ -114,9 +114,13 @@ Your settings are kept.
   *Now playing* shows the cover, title, artist and progress of anything in Windows' media controls, such as Spotify,
   a browser or the Media Player. It takes its turn only while something plays.
 - **Seven system designs:** Dashboard, Custom, Full panel, Gauges, Bars, Graphs and Minimal. Each one has its own
-  colours, and you can change them, along with the temperature from which a reading counts as hot.
+  colours, and you can change them.
 - **Custom:** six cards. Each card shows one of 23 readings, from the GPU fan and the busiest core to the free space and
   the uptime.
+- **Alerts:** a reading past its limit turns the design's alert colour. The CPU, the GPU and the drive each have their
+  own limit (90°, 83° and 65° to start with), and memory, video memory and the system drive count as nearly full from
+  90%, 95% and 90%. In Custom and Dashboard the card's border turns too, so you see it from across the room. A reading
+  leaves the alert only a few degrees under its limit, so one that wavers around it doesn't flicker.
 - **Themes and fonts:** five themes (Dark Glass, the default, then Emerald Gold, Liquid Glass, Obsidian Platinum, Light Glass), five
   clock fonts (Outfit, Orbitron, Inter, Playfair Display and the monospaced Geist Mono), and a 12 or 24-hour clock.
 - **Any way up:** landscape, upside down, or upright turned either way.

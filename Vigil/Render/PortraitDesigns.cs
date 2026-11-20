@@ -41,7 +41,12 @@ public sealed partial class ScreenRenderer
         using SKFont sub = Font(Medium, 12);
         float cx = W / 2f;
 
-        Big[] numbers = [TempOrLoad(s.CpuTemp, s.CpuLoad, st, s.CpuTempApprox), TempOrLoad(s.GpuTemp, s.GpuLoad, st), new(RoundText(Fraction(s.RamUsedGb, s.RamTotalGb) * 100), "%", false)];
+        Big[] numbers =
+        [
+            TempOrLoad(s.CpuTemp, s.CpuLoad, s.Hot(AlertFlags.CpuTemp), s.CpuTempApprox),
+            TempOrLoad(s.GpuTemp, s.GpuLoad, s.Hot(AlertFlags.GpuTemp)),
+            new(RoundText(Fraction(s.RamUsedGb, s.RamTotalGb) * 100), "%", s.Hot(AlertFlags.Ram))
+        ];
         string[] labels = ["CPU", "GPU", "RAM"];
         SKColor[] units = [st.Accent, st.Secondary, st.Accent];
         string[] subs =
@@ -69,8 +74,8 @@ public sealed partial class ScreenRenderer
         Theme theme = o.Theme;
         const float x0 = 70;
 
-        PanelColumn(o, x0, "CPU", s.CpuName, s.CpuTemp, s.CpuLoad, s.CpuClockMhz, s.CpuPowerW, st.Accent, s.CpuTempApprox);
-        Shifted(0, 126, () => PanelColumn(o, x0, "GPU", s.GpuName, s.GpuTemp, s.GpuLoad, s.GpuClockMhz, s.GpuPowerW, st.Secondary));
+        PanelColumn(o, x0, "CPU", s.CpuName, s.CpuTemp, s.CpuLoad, s.CpuClockMhz, s.CpuPowerW, st.Accent, s.Hot(AlertFlags.CpuTemp), s.CpuTempApprox);
+        Shifted(0, 126, () => PanelColumn(o, x0, "GPU", s.GpuName, s.GpuTemp, s.GpuLoad, s.GpuClockMhz, s.GpuPowerW, st.Secondary, s.Hot(AlertFlags.GpuTemp)));
         using (var p = new SKPaint { Color = theme.Muted.WithAlpha(40) })
         {
             _canvas.DrawRect(x0, 174, 180, 1, p);
@@ -79,10 +84,10 @@ public sealed partial class ScreenRenderer
 
         using SKFont label = Font(Semibold, 11);
         using SKFont value = Font(Medium, 12);
-        PanelCell(o, x0, 324, "RAM", GbText(s.RamUsedGb, s.RamTotalGb), Fraction(s.RamUsedGb, s.RamTotalGb), st.Accent, label, value);
-        PanelCell(o, x0, 360, "VRAM", GbText(s.VramUsedGb, s.VramTotalGb), Fraction(s.VramUsedGb, s.VramTotalGb), st.Secondary, label, value);
+        PanelCell(o, x0, 324, "RAM", GbText(s.RamUsedGb, s.RamTotalGb), Fraction(s.RamUsedGb, s.RamTotalGb), st.Accent, label, value, s.Hot(AlertFlags.Ram));
+        PanelCell(o, x0, 360, "VRAM", GbText(s.VramUsedGb, s.VramTotalGb), Fraction(s.VramUsedGb, s.VramTotalGb), st.Secondary, label, value, s.Hot(AlertFlags.Vram));
         string disk = s.DiskUsedPct is null ? "–" : s.DiskTemp is null ? PercentText(s.DiskUsedPct) : $"{PercentText(s.DiskUsedPct)}  ·  {TempText(s.DiskTemp)}";
-        PanelCell(o, x0, 396, "DISK", disk, (s.DiskUsedPct ?? 0) / 100, st.Accent, label, value);
+        PanelCell(o, x0, 396, "DISK", disk, (s.DiskUsedPct ?? 0) / 100, st.Accent, label, value, s.Hot(AlertFlags.Disk | AlertFlags.DriveTemp));
         Text("NET", x0, 432, label, theme.Muted, SKTextAlign.Left, 1.5f);
         NetSpeeds(o, s, x0 + 180, 432, value);
     }
@@ -92,8 +97,8 @@ public sealed partial class ScreenRenderer
     {
         SystemStyle st = o.System;
         float cx = W / 2f;
-        Shifted(0, -26, () => GaugeColumn(o, cx, "CPU", s.CpuName, s.CpuTemp, s.CpuLoad, st.Accent, "RAM", s.RamUsedGb, s.RamTotalGb, s.CpuTempApprox));
-        Shifted(0, 192, () => GaugeColumn(o, cx, "GPU", s.GpuName, s.GpuTemp, s.GpuLoad, st.Secondary, "VRAM", s.VramUsedGb, s.VramTotalGb));
+        Shifted(0, -26, () => GaugeColumn(o, cx, "CPU", s.CpuName, s.CpuTemp, s.CpuLoad, st.Accent, "RAM", s.RamUsedGb, s.RamTotalGb, s.Hot(AlertFlags.CpuTemp), s.Hot(AlertFlags.Ram), s.CpuTempApprox));
+        Shifted(0, 192, () => GaugeColumn(o, cx, "GPU", s.GpuName, s.GpuTemp, s.GpuLoad, st.Secondary, "VRAM", s.VramUsedGb, s.VramTotalGb, s.Hot(AlertFlags.GpuTemp), s.Hot(AlertFlags.Vram)));
     }
 
     /// <summary>Six meters, each with its name and values on a line above it.</summary>
@@ -105,23 +110,23 @@ public sealed partial class ScreenRenderer
 
         float ram = Fraction(s.RamUsedGb, s.RamTotalGb), vram = Fraction(s.VramUsedGb, s.VramTotalGb);
         float peak = MathF.Max(1_000_000, s.History.NetDown.Where(v => !float.IsNaN(v)).DefaultIfEmpty(0).Max());
-        BarRowPortrait(o, 80, "CPU", (s.CpuLoad ?? 0) / 100, st.Accent, PercentText(s.CpuLoad), TempText(s.CpuTemp, s.CpuTempApprox), s.CpuTemp >= st.AlertTemp, label, value);
-        BarRowPortrait(o, 144, "GPU", (s.GpuLoad ?? 0) / 100, st.Secondary, PercentText(s.GpuLoad), TempText(s.GpuTemp), s.GpuTemp >= st.AlertTemp, label, value);
-        BarRowPortrait(o, 208, "RAM", ram, st.Accent, GbText(s.RamUsedGb, s.RamTotalGb), PercentText(ram * 100), false, label, value);
-        BarRowPortrait(o, 272, "VRAM", vram, st.Secondary, GbText(s.VramUsedGb, s.VramTotalGb), PercentText(vram * 100), false, label, value);
-        BarRowPortrait(o, 336, "DISK", (s.DiskUsedPct ?? 0) / 100, st.Accent, PercentText(s.DiskUsedPct), TempText(s.DiskTemp), s.DiskTemp >= st.AlertTemp, label, value);
+        BarRowPortrait(o, 80, "CPU", (s.CpuLoad ?? 0) / 100, st.Accent, PercentText(s.CpuLoad), TempText(s.CpuTemp, s.CpuTempApprox), s.Hot(AlertFlags.CpuTemp), label, value);
+        BarRowPortrait(o, 144, "GPU", (s.GpuLoad ?? 0) / 100, st.Secondary, PercentText(s.GpuLoad), TempText(s.GpuTemp), s.Hot(AlertFlags.GpuTemp), label, value);
+        BarRowPortrait(o, 208, "RAM", ram, st.Accent, GbText(s.RamUsedGb, s.RamTotalGb), PercentText(ram * 100), s.Hot(AlertFlags.Ram), label, value, s.Hot(AlertFlags.Ram));
+        BarRowPortrait(o, 272, "VRAM", vram, st.Secondary, GbText(s.VramUsedGb, s.VramTotalGb), PercentText(vram * 100), s.Hot(AlertFlags.Vram), label, value, s.Hot(AlertFlags.Vram));
+        BarRowPortrait(o, 336, "DISK", (s.DiskUsedPct ?? 0) / 100, st.Accent, PercentText(s.DiskUsedPct), TempText(s.DiskTemp), s.Hot(AlertFlags.DriveTemp), label, value, s.Hot(AlertFlags.Disk), s.Hot(AlertFlags.Disk));
         BarRowPortrait(o, 400, "NET", Math.Clamp((s.NetDownBps ?? 0) / peak, 0, 1), st.Secondary, "", "", false, label, value);
         NetSpeeds(o, s, 276, 400, value);
     }
 
-    private void BarRowPortrait(RenderOptions o, float y, string label, float fraction, SKColor color, string a, string b, bool bHot, SKFont labelFont, SKFont valueFont)
+    private void BarRowPortrait(RenderOptions o, float y, string label, float fraction, SKColor color, string a, string b, bool bHot, SKFont labelFont, SKFont valueFont, bool barHot = false, bool aHot = false)
     {
         Theme theme = o.Theme;
         const float left = 44, right = 276;
         Text(label, left, y, labelFont, theme.Muted, SKTextAlign.Left, 1.5f);
         Text(b, right, y, valueFont, bHot ? o.System.Alert : StrongText(theme), SKTextAlign.Right);
-        if (a.Length > 0) Text(a, right - valueFont.MeasureText(b) - 14, y, valueFont, StrongText(theme), SKTextAlign.Right);
-        Meter(left, y + 10, right - left, 8, fraction, color, theme);
+        if (a.Length > 0) Text(a, right - valueFont.MeasureText(b) - 14, y, valueFont, aHot ? o.System.Alert : StrongText(theme), SKTextAlign.Right);
+        Meter(left, y + 10, right - left, 8, fraction, barHot ? o.System.Alert : color, theme);
     }
 
     /// <summary>CPU, GPU and download, each with its number over a chart as wide as the screen.</summary>
@@ -133,9 +138,9 @@ public sealed partial class ScreenRenderer
         using SKFont sub = Font(Medium, 11);
 
         GraphRowPortrait(o, 40, "CPU", s.CpuTemp is not null ? $"{PercentText(s.CpuLoad)} load" : s.CpuName,
-            TempOrLoad(s.CpuTemp, s.CpuLoad, st, s.CpuTempApprox), s.History.CpuLoad, 100, st.Accent, label, sub);
+            TempOrLoad(s.CpuTemp, s.CpuLoad, s.Hot(AlertFlags.CpuTemp), s.CpuTempApprox), s.History.CpuLoad, 100, st.Accent, label, sub);
         GraphRowPortrait(o, 176, "GPU", s.GpuTemp is not null ? $"{PercentText(s.GpuLoad)} load" : s.GpuName,
-            TempOrLoad(s.GpuTemp, s.GpuLoad, st), s.History.GpuLoad, 100, st.Secondary, label, sub);
+            TempOrLoad(s.GpuTemp, s.GpuLoad, s.Hot(AlertFlags.GpuTemp)), s.History.GpuLoad, 100, st.Secondary, label, sub);
         (string value, string unit) = RateParts(s.NetDownBps);
         float peak = MathF.Max(1_000_000, s.History.NetDown.Where(v => !float.IsNaN(v)).DefaultIfEmpty(0).Max());
         GraphRowPortrait(o, 312, "NET", $"up {RateText(s.NetUpBps)}", new Big(value, unit, false), s.History.NetDown, peak,
@@ -163,9 +168,9 @@ public sealed partial class ScreenRenderer
 
         string vram = s.VramUsedGb is { } gb ? Inv($"{gb:0.0} GB") : "–";
         Card(o, new SKRect(12, 12, 308, 128), "CPU", s.CpuName, s.CpuLoad, st.Accent, compact: false,
-            ("TEMP", TempText(s.CpuTemp, s.CpuTempApprox), s.CpuTemp >= st.AlertTemp), ("SPEED", GhzText(s.CpuClockMhz), false));
+            ("TEMP", TempText(s.CpuTemp, s.CpuTempApprox), s.Hot(AlertFlags.CpuTemp)), ("SPEED", GhzText(s.CpuClockMhz), false));
         Card(o, new SKRect(12, 136, 308, 252), "GPU", s.GpuName, s.GpuLoad, st.Secondary, compact: false,
-            ("TEMP", TempText(s.GpuTemp), s.GpuTemp >= st.AlertTemp), ("VRAM", vram, false));
+            ("TEMP", TempText(s.GpuTemp), s.Hot(AlertFlags.GpuTemp)), ("VRAM", vram, s.Hot(AlertFlags.Vram)));
 
         var strip = new SKRect(12, 260, 308, 316);
         Panel(strip, theme.Muted, theme);
@@ -193,19 +198,19 @@ public sealed partial class ScreenRenderer
 
         float ram = Fraction(s.RamUsedGb, s.RamTotalGb);
         TallCard(o, new SKRect(12, 324, 156, 468), "RAM", ram * 100, st.Accent,
-            ("USED", s.RamUsedGb is { } used ? Inv($"{used:0.0} GB") : "–", false),
-            ("TOTAL", s.RamTotalGb is { } total ? Inv($"{MathF.Round(total)} GB") : "–", false));
+            ("USED", s.RamUsedGb is { } used ? Inv($"{used:0.0} GB") : "–", s.Hot(AlertFlags.Ram)),
+            ("TOTAL", s.RamTotalGb is { } total ? Inv($"{MathF.Round(total)} GB") : "–", false), ringHot: s.Hot(AlertFlags.Ram));
         TallCard(o, new SKRect(164, 324, 308, 468), "DISK", s.DiskUsedPct, st.Secondary,
-            ("TEMP", TempText(s.DiskTemp), s.DiskTemp >= st.AlertTemp),
-            ("FREE", s.DiskUsedPct is { } du ? PercentText(100 - du) : "–", false));
+            ("TEMP", TempText(s.DiskTemp), s.Hot(AlertFlags.DriveTemp)),
+            ("FREE", s.DiskUsedPct is { } du ? PercentText(100 - du) : "–", s.Hot(AlertFlags.Disk)), ringHot: s.Hot(AlertFlags.Disk));
     }
 
     /// <summary>A narrow card: the title, the load ring in the middle, and two values side by side under it.</summary>
     private void TallCard(RenderOptions o, SKRect r, string title, float? load, SKColor color,
-        (string Label, string Value, bool Hot) first, (string Label, string Value, bool Hot) second)
+        (string Label, string Value, bool Hot) first, (string Label, string Value, bool Hot) second, bool ringHot = false)
     {
         Theme theme = o.Theme;
-        Panel(r, color, theme);
+        Panel(r, Border(o, color, first.Hot || second.Hot || ringHot), theme);
         using SKFont titleFont = Font(Semibold, 13);
         using SKFont tiny = Font(Semibold, 11);
         using SKFont value = Font(Semibold, 14);
@@ -213,8 +218,8 @@ public sealed partial class ScreenRenderer
 
         const float radius = 28, stroke = 7;
         float cx = r.MidX, cy = r.Top + 68;
-        Ring(cx, cy, radius, stroke, (load ?? 0) / 100, color, theme);
-        var big = new Big(load is null ? "–" : RoundText(load.Value), load is null ? "" : "%", false);
+        Ring(cx, cy, radius, stroke, (load ?? 0) / 100, ringHot ? o.System.Alert : color, theme);
+        var big = new Big(load is null ? "–" : RoundText(load.Value), load is null ? "" : "%", ringHot);
         BigValue(o, big, cx, cy + 7, 2 * (radius - stroke) - 6, 20, color, SKTextAlign.Center, 0.5f);
 
         float column = r.Width / 2;

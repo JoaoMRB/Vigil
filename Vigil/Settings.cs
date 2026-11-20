@@ -35,6 +35,8 @@ public sealed class Settings
     public List<string> CustomTiles { get; set; } = [.. Render.SystemDesigns.DefaultTiles];
     /// <summary>The user's colour choices per design (design id to colours). A design without an entry uses the theme's.</summary>
     public Dictionary<string, DesignColors> Designs { get; set; } = [];
+    /// <summary>When readings count as too high, for every design. Replaced, never changed in place.</summary>
+    public AlertLimits Alerts { get; set; } = new();
 
     public string Theme { get; set; } = Render.Themes.DefaultId;
     public string Font { get; set; } = Render.ClockFonts.DefaultId;
@@ -184,6 +186,7 @@ public sealed class Settings
         }
         if (!Render.SystemDesigns.IsKnown(SystemDesign)) SystemDesign = Render.SystemDesigns.DefaultId;
         CustomTiles = Render.SystemDesigns.CleanTiles(CustomTiles);
+        Alerts = (Alerts ?? new AlertLimits()).Cleaned();
         // A new dictionary, never changed in place: the display thread may be reading the old one.
         Designs = (Designs ?? [])
             .Where(pair => Render.SystemDesigns.IsKnown(pair.Key) && pair.Value is not null)
@@ -200,21 +203,18 @@ public sealed class DesignColors
     public string? Accent { get; set; }
     /// <summary>"#RRGGBB". The second colour: GPU.</summary>
     public string? Secondary { get; set; }
-    /// <summary>"#RRGGBB". What a temperature turns into when it gets too high.</summary>
+    /// <summary>"#RRGGBB". What a reading turns into when it is past its limit (<see cref="Settings.Alerts"/>).</summary>
     public string? Alert { get; set; }
-    /// <summary>Degrees Celsius from which a temperature counts as too high.</summary>
-    public int? AlertTemp { get; set; }
 
     [System.Text.Json.Serialization.JsonIgnore]
-    public bool IsEmpty => Accent is null && Secondary is null && Alert is null && AlertTemp is null;
+    public bool IsEmpty => Accent is null && Secondary is null && Alert is null;
 
-    /// <summary>A copy with everything that is not a valid colour or a sensible temperature dropped.</summary>
+    /// <summary>A copy with everything that is not a valid colour dropped. (A limit per design, from before, is let go.)</summary>
     public DesignColors Cleaned() => new()
     {
         Accent = ValidHex(Accent),
         Secondary = ValidHex(Secondary),
-        Alert = ValidHex(Alert),
-        AlertTemp = AlertTemp is { } t ? Math.Clamp(t, Render.SystemDesigns.MinAlertTemp, Render.SystemDesigns.MaxAlertTemp) : null
+        Alert = ValidHex(Alert)
     };
 
     private static string? ValidHex(string? value) =>

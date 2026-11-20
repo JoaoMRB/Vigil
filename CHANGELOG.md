@@ -10,6 +10,11 @@ All notable changes to Vigil are listed here. Versions follow [Semantic Versioni
   The task is now kept while administrator mode is on, whether Vigil starts with Windows or not.
 
 ### Added
+- Alerts with a limit for each part, set once for every design: the CPU (90° to start with), the GPU (83°) and the
+  drive (65°), where there was one temperature for all three per design. Memory, video memory and the system drive
+  can count as nearly full too (90%, 95%, 90%). A card in alert gets its border in the alert colour in Custom and
+  Dashboard, which can be switched off. A reading only leaves the alert a little under its limit, so one that hovers
+  around it no longer flicks the colour every second. A limit set per design before is let go.
 - Five more readings for the Custom design's cards: the busiest core (one core can be flat out while the average
   looks calm), the hottest core, the total power of the CPU and the GPU, the free space on the system drive, and how
   long the PC has been on. None of them costs the PC anything more to read.

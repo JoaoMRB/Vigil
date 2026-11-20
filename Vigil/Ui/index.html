@@ -177,15 +177,50 @@
           <div class="colors" role="group" aria-labelledby="colors-label">
             <label class="color"><input type="color" id="color-accent"><span><span data-i18n="design.color.main">Main</span><small data-i18n="design.color.mainFor">CPU</small></span></label>
             <label class="color"><input type="color" id="color-secondary"><span><span data-i18n="design.color.second">Second</span><small data-i18n="design.color.secondFor">GPU</small></span></label>
-            <label class="color"><input type="color" id="color-alert"><span><span data-i18n="design.color.hot">Hot</span><small data-i18n="design.color.hotFor">too warm</small></span></label>
+            <label class="color"><input type="color" id="color-alert"><span><span data-i18n="design.color.hot">Alert</span><small data-i18n="design.color.hotFor">past a limit</small></span></label>
           </div>
+        </div>
+      </section>
+
+      <section class="card" aria-labelledby="alerts-title">
+        <header class="card-head">
+          <h2 id="alerts-title" data-i18n="alerts.title">Alerts</h2>
+          <p data-i18n="alerts.desc">When a reading counts as too high. It then takes the design's Alert colour.</p>
+        </header>
+        <div class="field">
+          <div class="field-head">
+            <label class="field-label" for="alert-cpu" data-i18n="alerts.cpu">CPU</label>
+            <output id="alert-cpu-value" for="alert-cpu"></output>
+          </div>
+          <input type="range" id="alert-cpu" min="40" max="110" step="1">
         </div>
         <div class="field">
           <div class="field-head">
-            <label class="field-label" for="alert-temp" data-i18n="design.alertTemp">Temperature counts as hot from</label>
-            <output id="alert-temp-value" for="alert-temp"></output>
+            <label class="field-label" for="alert-gpu" data-i18n="alerts.gpu">GPU</label>
+            <output id="alert-gpu-value" for="alert-gpu"></output>
           </div>
-          <input type="range" id="alert-temp" min="50" max="100" step="1">
+          <input type="range" id="alert-gpu" min="40" max="110" step="1">
+        </div>
+        <div class="field">
+          <div class="field-head">
+            <label class="field-label" for="alert-drive" data-i18n="alerts.drive">Drive</label>
+            <output id="alert-drive-value" for="alert-drive"></output>
+          </div>
+          <input type="range" id="alert-drive" min="40" max="110" step="1">
+        </div>
+        <div class="row">
+          <span class="row-text">
+            <span class="row-title" id="alert-fill-label" data-i18n="alerts.fill">Nearly full</span>
+            <span class="row-desc" id="alert-fill-desc" data-i18n="alerts.fillDesc">Memory from 90%, video memory from 95%, the system drive from 90% used.</span>
+          </span>
+          <button class="switch" id="alert-fill" role="switch" aria-labelledby="alert-fill-label" aria-describedby="alert-fill-desc"></button>
+        </div>
+        <div class="row">
+          <span class="row-text">
+            <span class="row-title" id="alert-outline-label" data-i18n="alerts.outline">Outline the card</span>
+            <span class="row-desc" id="alert-outline-desc" data-i18n="alerts.outlineDesc">In Custom and Dashboard, a card in alert also gets its border in the Alert colour, to be seen from afar.</span>
+          </span>
+          <button class="switch" id="alert-outline" role="switch" aria-labelledby="alert-outline-label" aria-describedby="alert-outline-desc"></button>
         </div>
       </section>
 

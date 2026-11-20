@@ -241,7 +241,7 @@ public sealed class DisplayService : IDisposable
             s.Views.Contains("world") ? WorldClocks.Rows(s.WorldClocks, now, s.Use24h) : [],
             Media.Latest);
         Theme theme = Themes.Resolve(s.Theme);
-        SystemStyle style = SystemDesigns.Resolve(theme, s.SystemDesign, s.Designs.GetValueOrDefault(s.SystemDesign), s.CustomTiles);
+        SystemStyle style = SystemDesigns.Resolve(theme, s.SystemDesign, s.Designs.GetValueOrDefault(s.SystemDesign), s.CustomTiles, s.Alerts.Outline);
         var options = new RenderOptions(theme, ClockFonts.Resolve(s.Font), s.Use24h, CultureInfo.CurrentCulture, _text, style, s.Orientation);
         ScreenView view = _gaming
             ? s.GameView == "system" ? ScreenView.System : ScreenView.Clock
@@ -321,6 +321,7 @@ public sealed class DisplayService : IDisposable
     {
         Sensors.AdminWanted = _settings.RunAsAdmin;
         Sensors.Approximate = _settings.ApproxCpuTemp;
+        Sensors.Limits = _settings.Alerts;
         Sensors.Needs = SystemDesigns.Needs(_settings.SystemDesign, _settings.CustomTiles);
         UpdateSensorPause();
         Sensors.SetEnabled(_settings.Views.Contains("system") || _settings.GameView == "system");

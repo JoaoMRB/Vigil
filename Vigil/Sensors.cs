@@ -60,6 +60,11 @@ public sealed record SystemSnapshot
 
     public SystemHistory History { get; init; } = SystemHistory.Empty;
 
+    /// <summary>The readings past their limit (<see cref="AlertLimits"/>).</summary>
+    public AlertFlags Alerts { get; init; }
+
+    public bool Hot(AlertFlags flag) => (Alerts & flag) != 0;
+
     public static readonly SystemSnapshot Empty = new();
 
     /// <summary>Made-up readings, so a design can be shown (previews, checks) without touching the sensors.</summary>
@@ -172,6 +177,9 @@ public sealed class SystemSensors : IDisposable
             }
         }
     }
+
+    /// <summary>When a reading counts as too high. Each reading is judged here, once, for the screen and the window alike.</summary>
+    public AlertLimits Limits { get; set; } = new();
 
     /// <summary>The user asked for administrator mode: tells "switched off" apart from "Windows said no".</summary>
     public bool AdminWanted { get; set; }
@@ -296,6 +304,7 @@ public sealed class SystemSensors : IDisposable
                 reading = reading with { GpuName = ShortName(reading.GpuName) };
             }
             if (reading.CpuTemp is null) reading = WithStandIn(reading);
+            reading = reading with { Alerts = Limits.Evaluate(reading, Latest.Alerts) };
             // A group that is not read keeps its last values: the history gets gaps instead, so a graph that
             // comes back does not draw a stale line.
             bool gpu = needs.HasFlag(SensorNeeds.Gpu), net = needs.HasFlag(SensorNeeds.Network);

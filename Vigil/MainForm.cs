@@ -241,13 +241,23 @@ public sealed class MainForm : Form
                 {
                     Accent = OptionalString(value, "accent"),
                     Secondary = OptionalString(value, "secondary"),
-                    Alert = OptionalString(value, "alert"),
-                    AlertTemp = value.TryGetProperty("alertTemp", out JsonElement temp) && temp.ValueKind == JsonValueKind.Number ? temp.GetInt32() : null
+                    Alert = OptionalString(value, "alert")
                 };
                 // A new dictionary, never changed in place: the display thread may be reading the old one.
                 s.Designs = new Dictionary<string, DesignColors>(s.Designs) { [design] = colors };
                 break;
             }
+            case "alerts":
+                // A new object, never changed in place: the sensors may be reading the old one. Normalise clamps it.
+                s.Alerts = new AlertLimits
+                {
+                    CpuTemp = value.GetProperty("cpuTemp").GetInt32(),
+                    GpuTemp = value.GetProperty("gpuTemp").GetInt32(),
+                    DriveTemp = value.GetProperty("driveTemp").GetInt32(),
+                    Fill = value.GetProperty("fill").GetBoolean(),
+                    Outline = value.GetProperty("outline").GetBoolean()
+                };
+                break;
             case "weatherCity":
                 s.WeatherCity = value.ValueKind == JsonValueKind.Null
                     ? null
@@ -444,7 +454,8 @@ public sealed class MainForm : Form
         worldMax = WorldClocks.Max,
         designs = SystemDesigns.Catalog.Select(d => new { id = d.Id }),
         metrics = SystemDesigns.Metrics.Select(m => new { id = m.Id }),
-        alertTempRange = new { min = SystemDesigns.MinAlertTemp, max = SystemDesigns.MaxAlertTemp }
+        alertRange = new { min = AlertLimits.MinTemp, max = AlertLimits.MaxTemp },
+        alertDefaults = new AlertLimits()
     };
 
     private object SettingsDto() => new
@@ -469,14 +480,22 @@ public sealed class MainForm : Form
         systemDesign = _settings.SystemDesign,
         customTiles = _settings.CustomTiles,
         designs = _settings.Designs,
-        styleDefaults = StyleDefaults()
+        styleDefaults = StyleDefaults(),
+        alerts = new
+        {
+            cpuTemp = _settings.Alerts.CpuTemp,
+            gpuTemp = _settings.Alerts.GpuTemp,
+            driveTemp = _settings.Alerts.DriveTemp,
+            fill = _settings.Alerts.Fill,
+            outline = _settings.Alerts.Outline
+        }
     };
 
     /// <summary>The colours a design starts with on the current theme: what the page shows until the user picks others.</summary>
     private object StyleDefaults()
     {
         (string accent, string secondary, string alert) = SystemDesigns.DefaultColors(Themes.Resolve(_settings.Theme));
-        return new { accent, secondary, alert, alertTemp = SystemDesigns.DefaultAlertTemp };
+        return new { accent, secondary, alert };
     }
 
     private object SystemDto() => new

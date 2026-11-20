@@ -430,6 +430,7 @@ function build() {
   }
 
   buildDesigns();
+  buildAlerts();
   buildCitySearch();
 }
 
@@ -470,6 +471,7 @@ function sync() {
   markLock(settings.lockScreen);
   markGame(settings.gameView);
   syncDesign();
+  syncAlerts();
 
   worldSelects.forEach((select, slot) => {
     select.value = settings.worldClocks[slot] || '';
@@ -530,10 +532,6 @@ function buildDesigns() {
   for (const [key, id] of Object.entries(colorInputs)) {
     $(id).addEventListener('input', () => queueStyle({ [key]: $(id).value.toUpperCase() }));
   }
-  const alertTemp = $('alert-temp');
-  alertTemp.min = model.alertTempRange.min;
-  alertTemp.max = model.alertTempRange.max;
-  alertTemp.addEventListener('input', () => queueStyle({ alertTemp: +alertTemp.value }));
   $('reset-colors').addEventListener('click', resetStyle);
 
   // Custom design: one select per card
@@ -562,7 +560,6 @@ function queueStyle(patch) {
   const design = settings.systemDesign;
   const merged = { ...styleOf(design), ...patch };
   settings.designs = { ...settings.designs, [design]: merged };
-  showAlertTemp(+$('alert-temp').value);
   $('reset-colors').disabled = false;
   clearTimeout(styleTimer);
   styleTimer = setTimeout(() => send({ type: 'set', key: 'designStyle', value: { design, ...merged } }), 150);
@@ -574,14 +571,47 @@ function resetStyle() {
   const designs = { ...settings.designs };
   delete designs[design];
   settings.designs = designs;
-  send({ type: 'set', key: 'designStyle', value: { design, accent: null, secondary: null, alert: null, alertTemp: null } });
+  send({ type: 'set', key: 'designStyle', value: { design, accent: null, secondary: null, alert: null } });
   syncDesign();
 }
 
-function showAlertTemp(value) {
-  const range = $('alert-temp');
-  $('alert-temp-value').textContent = value + ' °C';
-  range.style.setProperty('--fill', ((value - range.min) / (range.max - range.min)) * 100 + '%');
+/* ------------------------------ alerts ------------------------------ */
+
+const alertRanges = [['alert-cpu', 'cpuTemp'], ['alert-gpu', 'gpuTemp'], ['alert-drive', 'driveTemp']];
+
+/** The limits, sent once the slider stops (one message per drag, not per degree). */
+let alertTimer = null;
+function queueAlerts(patch) {
+  settings.alerts = { ...settings.alerts, ...patch };
+  clearTimeout(alertTimer);
+  alertTimer = setTimeout(() => send({ type: 'set', key: 'alerts', value: settings.alerts }), 150);
+}
+
+function buildAlerts() {
+  for (const [id, key] of alertRanges) {
+    const range = $(id);
+    range.min = model.alertRange.min;
+    range.max = model.alertRange.max;
+    range.addEventListener('input', () => { showAlertLimit(id); queueAlerts({ [key]: +range.value }); });
+  }
+  bindSwitch($('alert-fill'), on => { setSwitch($('alert-fill'), on); queueAlerts({ fill: on }); });
+  bindSwitch($('alert-outline'), on => { setSwitch($('alert-outline'), on); queueAlerts({ outline: on }); });
+}
+
+function showAlertLimit(id) {
+  const range = $(id);
+  $(`${id}-value`).textContent = range.value + ' °C';
+  range.style.setProperty('--fill', ((range.value - range.min) / (range.max - range.min)) * 100 + '%');
+}
+
+function syncAlerts() {
+  const alerts = settings.alerts || model.alertDefaults;
+  for (const [id, key] of alertRanges) {
+    if (document.activeElement !== $(id)) $(id).value = alerts[key];
+    showAlertLimit(id);
+  }
+  setSwitch($('alert-fill'), alerts.fill);
+  setSwitch($('alert-outline'), alerts.outline);
 }
 
 function syncDesign() {
@@ -600,9 +630,6 @@ function syncDesign() {
     const input = $(id);
     if (document.activeElement !== input) input.value = (own[key] || defaults[key]).toLowerCase();
   }
-  const range = $('alert-temp');
-  if (document.activeElement !== range) range.value = own.alertTemp != null ? own.alertTemp : defaults.alertTemp;
-  showAlertTemp(+range.value);
   $('reset-colors').disabled = !Object.values(own).some(v => v != null);
 }
 
