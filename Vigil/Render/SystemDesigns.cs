@@ -44,7 +44,9 @@ public static class SystemDesigns
     public static readonly MetricInfo[] Metrics =
     [
         new("cpu-temp", "CPU temperature"),
+        new("cpu-core-temp", "Hottest core"),
         new("cpu-load", "CPU load"),
+        new("cpu-core-load", "Busiest core"),
         new("cpu-clock", "CPU clock"),
         new("cpu-power", "CPU power"),
         new("cpu-fan", "CPU fan"),
@@ -52,14 +54,17 @@ public static class SystemDesigns
         new("gpu-load", "GPU load"),
         new("gpu-clock", "GPU clock"),
         new("gpu-power", "GPU power"),
+        new("power-total", "Total power"),
         new("gpu-fan", "GPU fan"),
         new("vram", "Video memory"),
         new("ram", "Memory"),
         new("disk", "System drive"),
+        new("disk-free", "Free space"),
         new("disk-temp", "Drive temperature"),
         new("net-down", "Download"),
         new("net-up", "Upload"),
         new("volume", "Volume"),
+        new("uptime", "Uptime"),
         new("time", "Time")
     ];
 
@@ -83,12 +88,12 @@ public static class SystemDesigns
     private static SensorNeeds TileNeeds(string tile) => tile switch
     {
         "cpu-fan" => SensorNeeds.Fans,
-        "gpu-temp" or "gpu-load" or "gpu-clock" or "gpu-power" or "gpu-fan" or "vram" => SensorNeeds.Gpu,
+        "gpu-temp" or "gpu-load" or "gpu-clock" or "gpu-power" or "gpu-fan" or "vram" or "power-total" => SensorNeeds.Gpu,
         "ram" => SensorNeeds.Memory,
         "disk-temp" => SensorNeeds.DriveTemp,
         "net-down" or "net-up" => SensorNeeds.Network,
         "volume" => SensorNeeds.Volume,
-        _ => SensorNeeds.None // the CPU's own, the drive's use (Windows tells it directly) and the time
+        _ => SensorNeeds.None // the CPU's own and its cores, the drive's use and space (Windows tells them), uptime, the time
     };
 
     /// <summary>Exactly <see cref="TileCount"/> known metrics: an unknown or missing one takes that card's default.</summary>
@@ -466,7 +471,15 @@ public sealed partial class ScreenRenderer
         {
             "cpu-temp" => new Tile("CPU TEMP", TempOrLoad(s.CpuTemp, null, st, s.CpuTempApprox), 1,
                 s.CpuTempApprox ? "Approximate (ACPI)" : s.CpuTemp is null ? missing : s.CpuName, Of(s.CpuTemp, 100), cpu),
+            "cpu-core-temp" => new Tile("HOTTEST CORE", Temp(s.CpuCoreMaxTemp), 1,
+                s.CpuCoreMaxTemp is null ? (missing.Length > 0 ? missing : "Not reported") : s.CpuName, Of(s.CpuCoreMaxTemp, 100), cpu),
             "cpu-load" => new Tile("CPU LOAD", Percent(s.CpuLoad), 0.5f, s.CpuName, Of(s.CpuLoad, 100), cpu),
+            "cpu-core-load" => new Tile("BUSIEST CORE", Percent(s.CpuCoreMaxLoad), 0.5f,
+                s.CpuLoad is { } all ? Inv($"{RoundText(all)}% on all cores") : s.CpuName, Of(s.CpuCoreMaxLoad, 100), cpu),
+            "power-total" => PowerTile(s, cpu),
+            "disk-free" => new Tile("FREE SPACE", Number(s.DiskFreeGb, s.DiskFreeGb is >= 100 ? "0" : "0.0", "GB"), 0.4f,
+                s.DiskTotalGb is { } size ? Inv($"of {MathF.Round(size)} GB on {s.DiskName}") : "", Of(s.DiskUsedPct, 100), cpu),
+            "uptime" => UptimeTile(now, gpu),
             "cpu-clock" => new Tile("CPU CLOCK", Number(s.CpuClockMhz / 1000, "0.0", "GHz"), 0.4f, s.CpuName, null, cpu),
             "cpu-power" => new Tile("CPU POWER", Number(s.CpuPowerW, "0", "W"), 0.5f, s.CpuName, null, cpu),
             "cpu-fan" => new Tile("CPU FAN", Number(s.CpuFanRpm, "0", "RPM"), 0.35f, s.CpuFanRpm is null ? FanNote(s) : "", null, cpu),
@@ -491,6 +504,29 @@ public sealed partial class ScreenRenderer
         {
             (string value, string unit) = RateParts(bytesPerSecond);
             return new Tile(label, new Big(value, unit, false), 0.4f, "", null, color);
+        }
+
+        // The CPU and the GPU together. Without administrator mode the CPU's power is unknown: the total is then
+        // the GPU's alone, and the line under it says so.
+        static Tile PowerTile(SystemSnapshot s, SKColor color)
+        {
+            if (s.CpuPowerW is null && s.GpuPowerW is null) return new Tile("TOTAL POWER", new Big("–", "", false), 0.5f, "", null, color);
+            float total = (s.CpuPowerW ?? 0) + (s.GpuPowerW ?? 0);
+            string Part(float? w) => w is { } v ? Inv($"{MathF.Round(v)}") : "–";
+            return new Tile("TOTAL POWER", new Big(Inv($"{MathF.Round(total)}"), "W", false), 0.5f,
+                $"CPU {Part(s.CpuPowerW)} · GPU {Part(s.GpuPowerW)}", null, color);
+        }
+
+        // Since Windows started (or last restarted: shutting down with Fast startup on keeps counting).
+        static Tile UptimeTile(DateTime now, SKColor color)
+        {
+            TimeSpan up = TimeSpan.FromMilliseconds(Environment.TickCount64);
+            DateTime since = now - up;
+            Big big = up.TotalHours < 1 ? new Big(Inv($"{up.Minutes}"), "min", false)
+                : up.TotalDays < 1 ? new Big(Inv($"{up.Hours}:{up.Minutes:00}"), "h", false)
+                : new Big(Inv($"{(int)up.TotalDays}"), (int)up.TotalDays == 1 ? "day" : "days", false);
+            string detail = since.Date == now.Date ? Inv($"since {since:HH:mm}") : Inv($"since {since:dd/MM HH:mm}");
+            return new Tile("UPTIME", big, 0.4f, detail, null, color);
         }
     }
 

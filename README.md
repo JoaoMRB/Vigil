@@ -115,7 +115,8 @@ Your settings are kept.
   a browser or the Media Player. It takes its turn only while something plays.
 - **Seven system designs:** Dashboard, Custom, Full panel, Gauges, Bars, Graphs and Minimal. Each one has its own
   colours, and you can change them, along with the temperature from which a reading counts as hot.
-- **Custom:** six cards. Each card shows one of 18 readings, from the GPU fan to the upload speed.
+- **Custom:** six cards. Each card shows one of 23 readings, from the GPU fan and the busiest core to the free space and
+  the uptime.
 - **Themes and fonts:** five themes (Dark Glass, the default, then Emerald Gold, Liquid Glass, Obsidian Platinum, Light Glass), five
   clock fonts (Outfit, Orbitron, Inter, Playfair Display and the monospaced Geist Mono), and a 12 or 24-hour clock.
 - **Any way up:** landscape, upside down, or upright turned either way.
@@ -157,11 +158,13 @@ moves. When it stays put for five minutes while the CPU load swings, Vigil drops
 
 | Reading | Standard | CPU temperature mode + PawnIO |
 | --- | :---: | :---: |
-| CPU load | ✓ | ✓ |
+| CPU load, and the busiest core's | ✓ | ✓ |
 | CPU temperature, clock and power | `~` approximate, if you switch it on | ✓ |
+| Hottest core | | ✓ |
+| Total power (CPU + GPU) | the GPU's only | ✓ |
 | CPU fan (from the motherboard) | | ✓ |
 | GPU temperature, load, clock, power, fan and video memory | ✓ | ✓ |
-| Memory, system drive, network, volume | ✓ | ✓ |
+| Memory, system drive and its free space, network, volume, uptime | ✓ | ✓ |
 | Drive temperature | | ✓ |
 
 ## Supported screens

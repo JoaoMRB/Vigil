@@ -10,6 +10,9 @@ All notable changes to Vigil are listed here. Versions follow [Semantic Versioni
   The task is now kept while administrator mode is on, whether Vigil starts with Windows or not.
 
 ### Added
+- Five more readings for the Custom design's cards: the busiest core (one core can be flat out while the average
+  looks calm), the hottest core, the total power of the CPU and the GPU, the free space on the system drive, and how
+  long the PC has been on. None of them costs the PC anything more to read.
 - Geist Mono, a fifth clock font. Every digit is as wide as the others, so the time and the readings don't shift
   sideways as they change. A "°" sits next to its number, not a digit's width away.
 

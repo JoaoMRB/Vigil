@@ -20,6 +20,10 @@ public sealed record SystemSnapshot
     /// <summary>Why the CPU's own sensor gave nothing (administrator mode off, no driver...).</summary>
     public CpuTemperature.Missing CpuTempMissing { get; init; }
     public float? CpuLoad { get; init; }
+    /// <summary>The load of the busiest core: one core can be flat out while the average looks calm (games).</summary>
+    public float? CpuCoreMaxLoad { get; init; }
+    /// <summary>The temperature of the hottest core (administrator mode, like the CPU's own temperature).</summary>
+    public float? CpuCoreMaxTemp { get; init; }
     public float? CpuClockMhz { get; init; }
     public float? CpuPowerW { get; init; }
 
@@ -41,6 +45,9 @@ public sealed record SystemSnapshot
 
     public string DiskName { get; init; } = "";
     public float? DiskUsedPct { get; init; }
+    /// <summary>Free and total space of the drive Windows is on, in GB as Explorer counts them (1024³ bytes).</summary>
+    public float? DiskFreeGb { get; init; }
+    public float? DiskTotalGb { get; init; }
     public float? DiskTemp { get; init; }
 
     /// <summary>Master volume of the default speakers, 0..100.</summary>
@@ -74,11 +81,11 @@ public sealed record SystemSnapshot
 
         return new SystemSnapshot
         {
-            CpuName = "Sample CPU", CpuTemp = 58, CpuLoad = 36, CpuClockMhz = 4200, CpuPowerW = 65,
+            CpuName = "Sample CPU", CpuTemp = 58, CpuLoad = 36, CpuCoreMaxLoad = 71, CpuCoreMaxTemp = 64, CpuClockMhz = 4200, CpuPowerW = 65,
             GpuName = "Sample GPU", GpuTemp = 52, GpuLoad = 24, GpuClockMhz = 1800, GpuPowerW = 120,
             CpuFanRpm = 1150, GpuFanRpm = 1400,
             RamUsedGb = 17.3f, RamTotalGb = 32, VramUsedGb = 3.2f, VramTotalGb = 8,
-            DiskName = "Sample SSD", DiskUsedPct = 62, DiskTemp = 38,
+            DiskName = "Sample SSD", DiskUsedPct = 62, DiskFreeGb = 181, DiskTotalGb = 476, DiskTemp = 38,
             NetDownBps = 4_200_000, NetUpBps = 310_000, VolumePct = 40,
             History = new SystemHistory(
                 Wave(40, 25, 8, 2, 100), Wave(30, 20, 6, 0, 100), Wave(56, 8, 2, 30, 90), Wave(50, 6, 2, 30, 90),
@@ -382,7 +389,7 @@ public sealed class SystemSensors : IDisposable
             ?? computer.Hardware.FirstOrDefault(h => h.HardwareType == HardwareType.Memory);
         // The library only lists physical disks when it runs with administrator rights: their temperature comes from there.
         IHardware? disk = computer.Hardware.FirstOrDefault(h => h.HardwareType == HardwareType.Storage && h.Sensors.Any(x => x.SensorType == SensorType.Temperature && x.Value is not null));
-        (string diskName, float? diskUsed) = SystemDrive();
+        (string diskName, float? diskUsed, float? diskFree, float? diskTotal) = SystemDrive();
         List<IHardware> network = computer.Hardware.Where(h => h.HardwareType == HardwareType.Network).ToList();
 
         (float? Down, float? Up) busiest = BusiestAdapter(network);
@@ -397,6 +404,11 @@ public sealed class SystemSensors : IDisposable
             CpuName = ShortName(cpu?.Name),
             CpuTemp = Value(cpu, SensorType.Temperature, "CPU Package") ?? Value(cpu, SensorType.Temperature, "Core (Tctl/Tdie)") ?? Value(cpu, SensorType.Temperature, "Core Average"),
             CpuLoad = Value(cpu, SensorType.Load, "CPU Total"),
+            CpuCoreMaxLoad = Value(cpu, SensorType.Load, "CPU Core Max") ?? Max(cpu, SensorType.Load, s => s.Name.StartsWith("CPU Core #", StringComparison.Ordinal)),
+            // Intel gives the hottest core itself; AMD has one sensor per core complex ("CCD1 (Tdie)") instead.
+            CpuCoreMaxTemp = Value(cpu, SensorType.Temperature, "Core Max") ?? Max(cpu, SensorType.Temperature, s =>
+                (s.Name.Contains("Core #", StringComparison.Ordinal) || s.Name.StartsWith("CCD", StringComparison.Ordinal))
+                && !s.Name.Contains("Distance", StringComparison.Ordinal)),
             CpuClockMhz = Average(cpu, SensorType.Clock, "CPU Core #"),
             CpuPowerW = NonZero(Value(cpu, SensorType.Power, "CPU Package")),
 
@@ -415,6 +427,8 @@ public sealed class SystemSensors : IDisposable
 
             DiskName = diskName,
             DiskUsedPct = diskUsed,
+            DiskFreeGb = diskFree,
+            DiskTotalGb = diskTotal,
             DiskTemp = disk?.Sensors.FirstOrDefault(s => s.SensorType == SensorType.Temperature && s.Value is not null)?.Value,
 
             NetDownBps = busiest.Down,
@@ -439,6 +453,17 @@ public sealed class SystemSensors : IDisposable
 
     private static float? Value(IHardware? hardware, SensorType type, string name) =>
         hardware?.Sensors.FirstOrDefault(s => s.SensorType == type && s.Name == name)?.Value;
+
+    /// <summary>The highest of the sensors of a type that <paramref name="match"/> picks, among those with a reading.</summary>
+    private static float? Max(IHardware? hardware, SensorType type, Func<ISensor, bool> match)
+    {
+        float? max = null;
+        foreach (ISensor sensor in hardware?.Sensors ?? [])
+        {
+            if (sensor.SensorType == type && sensor.Value is { } v && match(sensor) && (max is null || v > max)) max = v;
+        }
+        return max;
+    }
 
     /// <summary>Some sensors answer 0 when they cannot really be read (CPU power without a driver): that is "unknown".</summary>
     private static float? NonZero(float? value) => value is > 0 ? value : null;
@@ -476,19 +501,21 @@ public sealed class SystemSensors : IDisposable
     }
 
     /// <summary>How full the drive Windows is installed on is, with the normal Windows API: no administrator rights needed.</summary>
-    private static (string Name, float? UsedPct) SystemDrive()
+    private static (string Name, float? UsedPct, float? FreeGb, float? TotalGb) SystemDrive()
     {
         try
         {
             string? root = Path.GetPathRoot(Environment.SystemDirectory);
-            if (root is null) return ("", null);
+            if (root is null) return ("", null, null, null);
             var drive = new DriveInfo(root);
-            if (!drive.IsReady || drive.TotalSize <= 0) return ("", null);
-            return (root.TrimEnd('\\'), (float)(100.0 * (drive.TotalSize - drive.AvailableFreeSpace) / drive.TotalSize));
+            if (!drive.IsReady || drive.TotalSize <= 0) return ("", null, null, null);
+            long total = drive.TotalSize, free = drive.AvailableFreeSpace;
+            const double gb = 1024.0 * 1024 * 1024;
+            return (root.TrimEnd('\\'), (float)(100.0 * (total - free) / total), (float)(free / gb), (float)(total / gb));
         }
         catch (Exception e) when (e is IOException or UnauthorizedAccessException)
         {
-            return ("", null);
+            return ("", null, null, null);
         }
     }
 
